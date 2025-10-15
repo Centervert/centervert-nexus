@@ -9,7 +9,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { z } from 'zod';
 import centervertLogo from '@/assets/centervert-logo-white.png';
-import gradientBg from '@/assets/gradient-bg.jpg';
 
 const authSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -102,18 +101,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center">
-      {/* Background with gradient */}
-      <div 
-        className="fixed inset-0 z-0"
-        style={{
-          backgroundImage: `url(${gradientBg})`,
-          backgroundSize: '100% 100%',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
-      </div>
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500">
 
       {/* Centered Form */}
       <div className="relative z-10 w-full max-w-md p-8">
