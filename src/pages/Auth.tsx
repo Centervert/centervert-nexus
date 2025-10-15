@@ -108,7 +108,7 @@ const Auth = () => {
         className="fixed inset-0 z-0"
         style={{
           backgroundImage: `url(${gradientBg})`,
-          backgroundSize: 'cover',
+          backgroundSize: '100% 100%',
           backgroundPosition: 'center',
         }}
       >
