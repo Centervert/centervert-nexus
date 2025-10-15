@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect } from 'react';
 import { z } from 'zod';
+import centervertLogo from '@/assets/centervert-logo.png';
 
 const authSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -104,11 +105,8 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <div className="mb-4 flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-foreground">
-              <span className="text-sm font-bold text-background">C</span>
-            </div>
-            <span className="text-xl font-bold">centervert</span>
+          <div className="mb-4 flex items-center">
+            <img src={centervertLogo} alt="Centervert" className="h-10" />
           </div>
           <CardTitle>{isLogin ? 'Welcome Back' : 'Create Account'}</CardTitle>
           <CardDescription>

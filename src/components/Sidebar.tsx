@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import centervertLogo from '@/assets/centervert-logo.png';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -19,11 +20,8 @@ const Sidebar = () => {
   return (
     <div className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar-bg">
       {/* Logo */}
-      <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded bg-foreground">
-          <span className="text-sm font-bold text-background">C</span>
-        </div>
-        <span className="text-lg font-bold">centervert</span>
+      <div className="flex h-16 items-center border-b border-sidebar-border px-6">
+        <img src={centervertLogo} alt="Centervert" className="h-8" />
       </div>
 
       {/* Status Indicator */}
