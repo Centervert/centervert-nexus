@@ -117,13 +117,13 @@ const Auth = () => {
 
       {/* Centered Form */}
       <div className="relative z-10 w-full max-w-md p-8">
-        {/* Logo */}
-        <div className="mb-8 flex justify-center animate-fade-in">
-          <img src={centervertLogo} alt="Centervert" className="h-12" />
-        </div>
-
         {/* Form Card */}
         <div className="rounded-2xl bg-black/40 p-8 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
+          {/* Logo */}
+          <div className="mb-8 flex justify-center animate-fade-in">
+            <img src={centervertLogo} alt="Centervert" className="h-12" />
+          </div>
+
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-white mb-2">
               {isLogin ? 'Welcome back' : 'Create account'}
