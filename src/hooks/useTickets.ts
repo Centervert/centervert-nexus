@@ -1,79 +1,76 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Database } from '@/integrations/supabase/types';
-
-type TicketStatus = Database['public']['Enums']['ticket_status'];
-type TicketPriority = Database['public']['Enums']['ticket_priority'];
 
 export interface Ticket {
   id: string;
   title: string;
   description: string;
-  status: TicketStatus;
-  priority: TicketPriority;
+  status: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   category_id: string | null;
   created_by: string;
   assigned_to: string | null;
   created_at: string;
   updated_at: string;
+  resolved_at: string | null;
+  closed_at: string | null;
   categories: {
     name: string;
+    description: string | null;
   } | null;
   creator: {
-    email: string;
     full_name: string | null;
+    email: string;
   } | null;
-  assignee: {
-    email: string;
+  assigned_profile: {
     full_name: string | null;
+    email: string;
   } | null;
 }
 
-interface UseTicketsFilters {
+interface UseTicketsParams {
   search?: string;
   status?: string;
-  priority?: string;
   sortBy?: 'created_at' | 'title' | 'priority' | 'status';
-  sortOrder?: 'asc' | 'desc';
 }
 
-export const useTickets = (filters?: UseTicketsFilters) => {
+export const useTickets = (params?: UseTicketsParams) => {
   return useQuery({
-    queryKey: ['tickets', filters],
+    queryKey: ['tickets', params],
     queryFn: async () => {
       let query = supabase
         .from('tickets')
         .select(`
           *,
-          categories (name),
-          creator:profiles!tickets_created_by_fkey (email, full_name),
-          assignee:profiles!tickets_assigned_to_fkey (email, full_name)
+          categories (
+            name,
+            description
+          ),
+          creator:created_by (
+            full_name,
+            email
+          ),
+          assigned_profile:assigned_to (
+            full_name,
+            email
+          )
         `);
 
-      // Apply search filter
-      if (filters?.search) {
-        query = query.or(`title.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
+      if (params?.search) {
+        query = query.or(`title.ilike.%${params.search}%,description.ilike.%${params.search}%`);
       }
 
-      // Apply status filter
-      if (filters?.status && filters.status !== 'all') {
-        query = query.eq('status', filters.status as TicketStatus);
+      if (params?.status && params.status !== 'all') {
+        query = query.eq('status', params.status as any);
       }
 
-      // Apply priority filter
-      if (filters?.priority && filters.priority !== 'all') {
-        query = query.eq('priority', filters.priority as TicketPriority);
-      }
-
-      // Apply sorting
-      const sortBy = filters?.sortBy || 'created_at';
-      const sortOrder = filters?.sortOrder || 'desc';
-      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+      const sortField = params?.sortBy || 'created_at';
+      query = query.order(sortField, { ascending: false });
 
       const { data, error } = await query;
 
       if (error) throw error;
-      return data as any as Ticket[];
+      return (data || []) as unknown as Ticket[];
     },
   });
 };
@@ -89,9 +86,9 @@ export const useTicketStats = () => {
       if (error) throw error;
 
       const stats = {
-        open: tickets.filter((t) => t.status === 'open').length,
-        needResponse: tickets.filter((t) => t.status === 'awaiting_response').length,
-        inProgress: tickets.filter((t) => t.status === 'in_progress').length,
+        open: tickets.filter(t => t.status === 'open').length,
+        needResponse: tickets.filter(t => t.status === 'awaiting_response').length,
+        inProgress: tickets.filter(t => t.status === 'in_progress').length,
         total: tickets.length,
       };
 
