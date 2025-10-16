@@ -272,7 +272,7 @@ const Dashboard = () => {
                         <div className="text-sm text-muted-foreground">
                           {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                           {ticket.end_client_name && (
-                            <span> → {ticket.end_client_name}</span>
+                            <span> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                           )}
                         </div>
                         <div className="text-sm">
@@ -316,7 +316,7 @@ const Dashboard = () => {
                       <div className="hidden md:flex md:items-center text-sm">
                         {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                         {ticket.end_client_name && (
-                          <span className="text-muted-foreground"> → {ticket.end_client_name}</span>
+                          <span className="text-muted-foreground"> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                         )}
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
