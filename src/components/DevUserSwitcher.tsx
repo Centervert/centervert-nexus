@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Loader2, Settings } from 'lucide-react';
+import { User, Loader2, Settings, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TEST_USERS = [
@@ -21,14 +21,27 @@ const TEST_USERS = [
   { email: 'dev.user@test.local', password: 'User123!', label: 'User', color: 'bg-green-500' },
 ];
 
+const ORIGINAL_USER_KEY = 'dev_original_user_email';
+
 export const DevUserSwitcher = () => {
   const { user } = useAuth();
   const { data: userRole } = useUserRole();
   const [isSwitching, setIsSwitching] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
+  const [originalUserEmail, setOriginalUserEmail] = useState<string | null>(null);
 
   // Only show in development
   if (!import.meta.env.DEV) return null;
+
+  useEffect(() => {
+    // Load original user email from localStorage
+    const stored = localStorage.getItem(ORIGINAL_USER_KEY);
+    if (stored) {
+      setOriginalUserEmail(stored);
+    }
+  }, []);
+
+  const isTestUser = TEST_USERS.some(testUser => testUser.email === user?.email);
 
   const setupTestUsers = async () => {
     setIsSettingUp(true);
@@ -64,6 +77,12 @@ export const DevUserSwitcher = () => {
   const handleSwitchUser = async (email: string, password: string, label: string) => {
     setIsSwitching(true);
     try {
+      // Store original user email before switching to a test user
+      if (!isTestUser && user?.email) {
+        localStorage.setItem(ORIGINAL_USER_KEY, user.email);
+        setOriginalUserEmail(user.email);
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -88,6 +107,35 @@ export const DevUserSwitcher = () => {
     } catch (error) {
       console.error('Switch user error:', error);
       toast.error('Could not switch user account');
+      setIsSwitching(false);
+    }
+  };
+
+  const handleReturnToOriginal = async () => {
+    if (!originalUserEmail) {
+      toast.error('No original user account found');
+      return;
+    }
+
+    setIsSwitching(true);
+    
+    try {
+      // Sign out current test user
+      await supabase.auth.signOut();
+      
+      // Clear the original user storage
+      localStorage.removeItem(ORIGINAL_USER_KEY);
+      setOriginalUserEmail(null);
+      
+      toast.success('Signed out of test account. Please log in with your account.');
+      
+      // Reload to show login page
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Return to original error:', error);
+      toast.error('Could not return to original account');
       setIsSwitching(false);
     }
   };
@@ -120,9 +168,28 @@ export const DevUserSwitcher = () => {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium">Dev User Switcher</p>
             <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            {originalUserEmail && isTestUser && (
+              <p className="text-xs text-muted-foreground">
+                Original: {originalUserEmail}
+              </p>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        
+        {originalUserEmail && isTestUser && (
+          <>
+            <DropdownMenuItem
+              onClick={handleReturnToOriginal}
+              disabled={isSwitching}
+              className="cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              <span>Return to My Account</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         
         {TEST_USERS.map((testUser) => (
           <DropdownMenuItem
