@@ -54,6 +54,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const [editDeliverables, setEditDeliverables] = useState('');
   const [showApprovedWarning, setShowApprovedWarning] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [dismissedPOWarning, setDismissedPOWarning] = useState(false);
   
   // Approval flow
   const [showApprovalForm, setShowApprovalForm] = useState(false);
@@ -66,6 +67,37 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const [declineReason, setDeclineReason] = useState('');
   const [preferredAmount, setPreferredAmount] = useState('');
   const [declinedBy, setDeclinedBy] = useState('');
+  
+  // Cancel request flow
+  const [showCancelRequestDialog, setShowCancelRequestDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelRequestedBy, setCancelRequestedBy] = useState('');
+
+  // Fetch current user profile for auto-fill
+  const { data: currentUser } = useQuery({
+    queryKey: ['current-user-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      return profile?.full_name || user.email || '';
+    },
+  });
+
+  // Auto-fill user names when forms open
+  useEffect(() => {
+    if (currentUser) {
+      if (showApprovalForm && !approvedBy) setApprovedBy(currentUser);
+      if (showDeclineForm && !declinedBy) setDeclinedBy(currentUser);
+      if (showCancelRequestDialog && !cancelRequestedBy) setCancelRequestedBy(currentUser);
+    }
+  }, [currentUser, showApprovalForm, showDeclineForm, showCancelRequestDialog]);
 
   const { data: quote, isLoading } = useQuery({
     queryKey: ['ticket-quote', ticketId],
@@ -98,13 +130,13 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       const diff = expiry - now;
 
       if (diff <= 0) {
-        setTimeRemaining('Expired');
+        setTimeRemaining('');
         return;
       }
 
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      setTimeRemaining(`${minutes}m ${seconds}s remaining`);
+      setTimeRemaining(`${minutes}m ${seconds}s`);
     };
 
     updateTimer();
@@ -189,14 +221,18 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     }
   };
 
-  const handleCancel = async () => {
-    if (!quote) return;
+  const handleCancelRequest = async () => {
+    if (!quote || !cancelReason.trim() || !cancelRequestedBy.trim()) {
+      toast.error('Please provide reason and your name');
+      return;
+    }
 
     try {
       const { error } = await supabase
         .from('ticket_quotes')
         .update({
           status: 'cancelled',
+          decline_reason: `Cancellation requested by ${cancelRequestedBy}: ${cancelReason}`,
           approval_window_expires_at: null,
         })
         .eq('id', quote.id);
@@ -204,10 +240,13 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
-      toast.success('Approval cancelled');
+      toast.success('Cancellation request submitted');
+      setShowCancelRequestDialog(false);
+      setCancelReason('');
+      setCancelRequestedBy('');
     } catch (error) {
-      console.error('Error cancelling approval:', error);
-      toast.error('Failed to cancel approval');
+      console.error('Error requesting cancellation:', error);
+      toast.error('Failed to submit cancellation request');
     }
   };
 
@@ -334,10 +373,52 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     quote?.approval_window_expires_at &&
     new Date(quote.approval_window_expires_at) > new Date();
 
-  const needsPO = quote?.status === 'approved' && !quote?.po_number;
+  const needsPO = quote?.status === 'approved' && !quote?.po_number && !dismissedPOWarning;
 
   return (
     <>
+      {/* Cancel Request Dialog */}
+      <AlertDialog open={showCancelRequestDialog} onOpenChange={setShowCancelRequestDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Request to Cancel Approval</AlertDialogTitle>
+            <AlertDialogDescription>
+              The cancellation window has expired. Please provide a reason for the cancellation request.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="cancel-reason">Reason *</Label>
+              <Textarea
+                id="cancel-reason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Why are you requesting cancellation?"
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="cancel-requested-by">Requested By *</Label>
+              <Input
+                id="cancel-requested-by"
+                value={cancelRequestedBy}
+                onChange={(e) => setCancelRequestedBy(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelRequest}
+              disabled={!cancelReason.trim() || !cancelRequestedBy.trim()}
+            >
+              Submit Request
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* No PO Warning Dialog */}
       <AlertDialog open={showNoPOWarning} onOpenChange={setShowNoPOWarning}>
         <AlertDialogContent>
@@ -432,9 +513,18 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         {needsPO && (
           <div className="absolute inset-0 bg-red-50/80 border-2 border-red-200 rounded-lg flex items-center justify-center z-10">
             <div className="bg-white p-6 rounded-lg shadow-lg space-y-4 max-w-md">
-              <div className="flex items-center gap-3 text-red-600">
-                <AlertTriangle className="h-6 w-6" />
-                <p className="font-semibold">Missing PO Number</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 text-red-600">
+                  <AlertTriangle className="h-6 w-6" />
+                  <p className="font-semibold">Missing PO Number</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDismissedPOWarning(true)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
               <p className="text-sm text-muted-foreground">
                 This quote was approved without a PO number. Please add one.
@@ -451,6 +541,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                     if (poNumber.trim()) {
                       addPOMutation.mutate(poNumber.trim());
                       setPoNumber('');
+                      setDismissedPOWarning(true);
                     }
                   }}
                   disabled={!poNumber.trim() || addPOMutation.isPending}
@@ -741,11 +832,26 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
               <div className="space-y-4">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-md space-y-2">
                   <p className="text-sm font-medium text-green-900">Quote Approved</p>
-                  <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
+                  {quote.po_number && (
+                    <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
+                  )}
                 </div>
-                {isWithinCancellationWindow && (
-                  <Button onClick={handleCancel} variant="outline" className="w-full">
-                    Cancel Approval
+                {isWithinCancellationWindow ? (
+                  <Button
+                    onClick={handleCancelRequest}
+                    variant="destructive"
+                    className="w-full gap-2 bg-red-600 hover:bg-red-700"
+                  >
+                    <Clock className="h-4 w-4" />
+                    Cancel Approval ({timeRemaining} remaining)
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setShowCancelRequestDialog(true)}
+                    className="w-full gap-2 bg-orange-600 hover:bg-orange-700"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    Request to Cancel Approval
                   </Button>
                 )}
               </div>
@@ -766,8 +872,12 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                   )}
                 </div>
                 {isWithinCancellationWindow && (
-                  <Button onClick={handleCancel} variant="outline" className="w-full">
-                    Cancel Decline
+                  <Button
+                    onClick={handleCancelRequest}
+                    className="w-full gap-2 bg-red-600 hover:bg-red-700"
+                  >
+                    <Clock className="h-4 w-4" />
+                    Cancel Decline ({timeRemaining} remaining)
                   </Button>
                 )}
               </div>
