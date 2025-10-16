@@ -24,7 +24,11 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
     payment_terms: '',
     payment_terms_days: '',
     managing_agency_id: '',
-    billing_address: '',
+    billing_street1: '',
+    billing_street2: '',
+    billing_city: '',
+    billing_state: '',
+    billing_zip: '',
     tax_id: '',
     website: '',
     phone: '',
@@ -50,13 +54,21 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
     setLoading(true);
 
     try {
+      const billingAddress = [
+        formData.billing_street1,
+        formData.billing_street2,
+        formData.billing_city,
+        formData.billing_state,
+        formData.billing_zip
+      ].filter(Boolean).join(', ') || null;
+
       const { error } = await supabase.from('clients').insert([{
         name: formData.name,
         client_type: formData.client_type as any,
         payment_terms: formData.payment_terms || null,
         payment_terms_days: formData.payment_terms_days ? parseInt(formData.payment_terms_days) : null,
         managing_agency_id: formData.managing_agency_id || null,
-        billing_address: formData.billing_address || null,
+        billing_address: billingAddress,
         tax_id: formData.tax_id || null,
         website: formData.website || null,
         phone: formData.phone || null,
@@ -76,7 +88,11 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         payment_terms: '',
         payment_terms_days: '',
         managing_agency_id: '',
-        billing_address: '',
+        billing_street1: '',
+        billing_street2: '',
+        billing_city: '',
+        billing_state: '',
+        billing_zip: '',
         tax_id: '',
         website: '',
         phone: '',
@@ -218,13 +234,36 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="billing_address">Billing Address</Label>
-            <Textarea
-              id="billing_address"
-              value={formData.billing_address}
-              onChange={(e) => setFormData({ ...formData, billing_address: e.target.value })}
-              rows={3}
-            />
+            <Label>Billing Address</Label>
+            <div className="space-y-2">
+              <Input
+                placeholder="Street 1"
+                value={formData.billing_street1}
+                onChange={(e) => setFormData({ ...formData, billing_street1: e.target.value })}
+              />
+              <Input
+                placeholder="Street 2 (Optional)"
+                value={formData.billing_street2}
+                onChange={(e) => setFormData({ ...formData, billing_street2: e.target.value })}
+              />
+              <div className="grid grid-cols-3 gap-2">
+                <Input
+                  placeholder="City"
+                  value={formData.billing_city}
+                  onChange={(e) => setFormData({ ...formData, billing_city: e.target.value })}
+                />
+                <Input
+                  placeholder="State"
+                  value={formData.billing_state}
+                  onChange={(e) => setFormData({ ...formData, billing_state: e.target.value })}
+                />
+                <Input
+                  placeholder="Zip"
+                  value={formData.billing_zip}
+                  onChange={(e) => setFormData({ ...formData, billing_zip: e.target.value })}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">
