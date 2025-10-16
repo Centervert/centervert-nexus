@@ -6,6 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -15,11 +22,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { DollarSign, CheckCircle, XCircle, Upload, Clock, Pencil, X, Check, AlertTriangle } from 'lucide-react';
+import { DollarSign, CheckCircle, XCircle, Clock, Pencil, X, Check, AlertTriangle } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
+import { cn } from '@/lib/utils';
 
 interface Quote {
   id: string;
@@ -40,15 +48,24 @@ interface TicketPricingProps {
 export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
-  const [poNumber, setPoNumber] = useState('');
-  const [declineReason, setDeclineReason] = useState('');
-  const [preferredAmount, setPreferredAmount] = useState('');
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editDeliverables, setEditDeliverables] = useState('');
   const [showApprovedWarning, setShowApprovedWarning] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  
+  // Approval flow
+  const [showApprovalForm, setShowApprovalForm] = useState(false);
+  const [poNumber, setPoNumber] = useState('');
+  const [approvedBy, setApprovedBy] = useState('');
+  const [showNoPOWarning, setShowNoPOWarning] = useState(false);
+  
+  // Decline flow
+  const [showDeclineForm, setShowDeclineForm] = useState(false);
+  const [declineReason, setDeclineReason] = useState('');
+  const [preferredAmount, setPreferredAmount] = useState('');
+  const [declinedBy, setDeclinedBy] = useState('');
 
   const { data: quote, isLoading } = useQuery({
     queryKey: ['ticket-quote', ticketId],
@@ -95,9 +112,17 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     return () => clearInterval(interval);
   }, [quote]);
 
-  const handleApprove = async () => {
-    if (!quote || !poNumber.trim()) {
-      toast.error('Please enter a PO number');
+  const handleApprove = async (bypassPOWarning = false) => {
+    if (!quote) return;
+
+    // Show warning if no PO and not bypassing
+    if (!poNumber.trim() && !bypassPOWarning) {
+      setShowNoPOWarning(true);
+      return;
+    }
+
+    if (!approvedBy.trim()) {
+      toast.error('Please enter who approved this quote');
       return;
     }
 
@@ -108,7 +133,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         .from('ticket_quotes')
         .update({
           status: 'approved',
-          po_number: poNumber.trim(),
+          po_number: poNumber.trim() || null,
           approval_window_expires_at: expiresAt,
         })
         .eq('id', quote.id);
@@ -117,7 +142,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote approved successfully');
+      setShowApprovalForm(false);
       setPoNumber('');
+      setApprovedBy('');
     } catch (error) {
       console.error('Error approving quote:', error);
       toast.error('Failed to approve quote');
@@ -127,6 +154,11 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const handleDecline = async () => {
     if (!quote || !declineReason.trim()) {
       toast.error('Please provide a reason for declining');
+      return;
+    }
+
+    if (!declinedBy.trim()) {
+      toast.error('Please enter who declined this quote');
       return;
     }
 
@@ -147,8 +179,10 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote declined');
+      setShowDeclineForm(false);
       setDeclineReason('');
       setPreferredAmount('');
+      setDeclinedBy('');
     } catch (error) {
       console.error('Error declining quote:', error);
       toast.error('Failed to decline quote');
@@ -176,6 +210,46 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       toast.error('Failed to cancel approval');
     }
   };
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      if (!quote) return;
+
+      const { error } = await supabase
+        .from('ticket_quotes')
+        .update({ status: newStatus })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      toast.success('Quote status updated');
+    },
+    onError: () => {
+      toast.error('Failed to update status');
+    },
+  });
+
+  const addPOMutation = useMutation({
+    mutationFn: async (po: string) => {
+      if (!quote) return;
+
+      const { error } = await supabase
+        .from('ticket_quotes')
+        .update({ po_number: po })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      toast.success('PO number added');
+    },
+    onError: () => {
+      toast.error('Failed to add PO number');
+    },
+  });
 
   const updateQuoteMutation = useMutation({
     mutationFn: async (keepApproved: boolean) => {
@@ -257,11 +331,36 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   }
 
   const isWithinCancellationWindow =
-    quote.approval_window_expires_at &&
+    quote?.approval_window_expires_at &&
     new Date(quote.approval_window_expires_at) > new Date();
+
+  const needsPO = quote?.status === 'approved' && !quote?.po_number;
 
   return (
     <>
+      {/* No PO Warning Dialog */}
+      <AlertDialog open={showNoPOWarning} onOpenChange={setShowNoPOWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Approve Without PO Number?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are approving this quote without a PO number. Are you sure you want to continue?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Go Back</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              setShowNoPOWarning(false);
+              handleApprove(true);
+            }}>
+              Approve Without PO
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {/* Warning Dialog for Editing Approved Quote */}
       <AlertDialog open={showApprovedWarning} onOpenChange={setShowApprovedWarning}>
         <AlertDialogContent>
@@ -329,52 +428,104 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card>
+      <Card className={cn(needsPO && 'relative')}>
+        {needsPO && (
+          <div className="absolute inset-0 bg-red-50/80 border-2 border-red-200 rounded-lg flex items-center justify-center z-10">
+            <div className="bg-white p-6 rounded-lg shadow-lg space-y-4 max-w-md">
+              <div className="flex items-center gap-3 text-red-600">
+                <AlertTriangle className="h-6 w-6" />
+                <p className="font-semibold">Missing PO Number</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This quote was approved without a PO number. Please add one.
+              </p>
+              <div className="space-y-2">
+                <Input
+                  placeholder="Enter PO number"
+                  value={poNumber}
+                  onChange={(e) => setPoNumber(e.target.value)}
+                />
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (poNumber.trim()) {
+                      addPOMutation.mutate(poNumber.trim());
+                      setPoNumber('');
+                    }
+                  }}
+                  disabled={!poNumber.trim() || addPOMutation.isPending}
+                >
+                  {addPOMutation.isPending ? 'Adding...' : 'Add PO Number'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Quote & Pricing
             </CardTitle>
-            {userRole?.isAdmin && !isEditingQuote && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleEditClick}
-                className="gap-2"
-              >
-                <Pencil className="h-4 w-4" />
-                Edit Quote
-              </Button>
-            )}
-            {isEditingQuote && (
-              <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {userRole?.isAdmin && (
+                <Select
+                  value={quote.status}
+                  onValueChange={(value) => updateStatusMutation.mutate(value)}
+                  disabled={updateStatusMutation.isPending}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="awaiting_approval">Awaiting Approval</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="declined">Declined</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {userRole?.isAdmin && !isEditingQuote && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    setIsEditingQuote(false);
-                    if (quote) {
-                      setEditAmount(quote.amount.toString());
-                      setEditDeliverables(quote.deliverables?.join('\n') || '');
-                    }
-                  }}
+                  onClick={handleEditClick}
                   className="gap-2"
                 >
-                  <X className="h-4 w-4" />
-                  Cancel
+                  <Pencil className="h-4 w-4" />
+                  Edit Quote
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleSaveClick}
-                  disabled={updateQuoteMutation.isPending}
-                  className="gap-2"
-                >
-                  <Check className="h-4 w-4" />
-                  {updateQuoteMutation.isPending ? 'Saving...' : 'Save'}
-                </Button>
-              </div>
-            )}
+              )}
+              {isEditingQuote && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditingQuote(false);
+                      if (quote) {
+                        setEditAmount(quote.amount.toString());
+                        setEditDeliverables(quote.deliverables?.join('\n') || '');
+                      }
+                    }}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSaveClick}
+                    disabled={updateQuoteMutation.isPending}
+                    className="gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    {updateQuoteMutation.isPending ? 'Saving...' : 'Save'}
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardHeader>
       <CardContent className="space-y-6">
@@ -452,52 +603,136 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
             {/* Awaiting Approval State */}
             {quote.status === 'awaiting_approval' && (
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="po-number">PO Number (Required to Approve)</Label>
-                  <Input
-                    id="po-number"
-                    value={poNumber}
-                    onChange={(e) => setPoNumber(e.target.value)}
-                    placeholder="Enter PO number"
-                  />
-                </div>
-
-                <div className="flex gap-2">
-                  <Button onClick={handleApprove} className="flex-1 gap-2" disabled={!poNumber.trim()}>
-                    <CheckCircle className="h-4 w-4" />
-                    Approve Quote
-                  </Button>
-                </div>
-
-                <div className="pt-4 border-t space-y-2">
-                  <Label htmlFor="decline-reason">Decline Reason</Label>
-                  <Textarea
-                    id="decline-reason"
-                    value={declineReason}
-                    onChange={(e) => setDeclineReason(e.target.value)}
-                    placeholder="Why are you declining this quote?"
-                    className="min-h-[80px]"
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor="preferred-amount">Preferred Amount (Optional)</Label>
-                    <Input
-                      id="preferred-amount"
-                      type="number"
-                      value={preferredAmount}
-                      onChange={(e) => setPreferredAmount(e.target.value)}
-                      placeholder="Enter your preferred amount"
-                    />
+                {!showApprovalForm && !showDeclineForm && (
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowApprovalForm(true)}
+                      className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Approve
+                    </Button>
+                    <Button
+                      onClick={() => setShowDeclineForm(true)}
+                      variant="destructive"
+                      className="flex-1 gap-2"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Decline
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleDecline}
-                    variant="destructive"
-                    className="w-full gap-2"
-                    disabled={!declineReason.trim()}
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Decline Quote
-                  </Button>
-                </div>
+                )}
+
+                {showApprovalForm && (
+                  <div className="space-y-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-green-900">Approve Quote</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowApprovalForm(false);
+                          setPoNumber('');
+                          setApprovedBy('');
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="po-number">PO Number (Optional)</Label>
+                        <Input
+                          id="po-number"
+                          value={poNumber}
+                          onChange={(e) => setPoNumber(e.target.value)}
+                          placeholder="Enter PO number"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="approved-by">Approved By *</Label>
+                        <Input
+                          id="approved-by"
+                          value={approvedBy}
+                          onChange={(e) => setApprovedBy(e.target.value)}
+                          placeholder="Enter approver name"
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button
+                        onClick={() => handleApprove()}
+                        disabled={!approvedBy.trim()}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                      >
+                        Confirm Approval
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {showDeclineForm && (
+                  <div className="space-y-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-red-900">Decline Quote</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setShowDeclineForm(false);
+                          setDeclineReason('');
+                          setPreferredAmount('');
+                          setDeclinedBy('');
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="decline-reason">Decline Reason *</Label>
+                        <Textarea
+                          id="decline-reason"
+                          value={declineReason}
+                          onChange={(e) => setDeclineReason(e.target.value)}
+                          placeholder="Why are you declining this quote?"
+                          rows={3}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="preferred-amount">Preferred Amount (Optional)</Label>
+                        <Input
+                          id="preferred-amount"
+                          type="number"
+                          step="0.01"
+                          value={preferredAmount}
+                          onChange={(e) => setPreferredAmount(e.target.value)}
+                          placeholder="Enter your preferred amount"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="declined-by">Declined By *</Label>
+                        <Input
+                          id="declined-by"
+                          value={declinedBy}
+                          onChange={(e) => setDeclinedBy(e.target.value)}
+                          placeholder="Enter decliner name"
+                          className="mt-1"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleDecline}
+                        variant="destructive"
+                        className="w-full"
+                        disabled={!declineReason.trim() || !declinedBy.trim()}
+                      >
+                        Confirm Decline
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
