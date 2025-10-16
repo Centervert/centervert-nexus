@@ -20,9 +20,14 @@ export interface Ticket {
   type: string | null;
   subtype: string | null;
   end_client_name: string | null;
+  client_id: string | null;
   categories: {
     name: string;
     description: string | null;
+  } | null;
+  client: {
+    name: string;
+    client_type: string;
   } | null;
   creator: {
     full_name: string | null;
@@ -54,6 +59,10 @@ export const useTickets = (params?: UseTicketsParams) => {
           categories (
             name,
             description
+          ),
+          client:clients (
+            name,
+            client_type
           ),
           creator:created_by (
             full_name,

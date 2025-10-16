@@ -274,7 +274,7 @@ const Dashboard = () => {
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
+                          {ticket.client?.name || 'No Client'}
                           {ticket.end_client_name && (
                             <span> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                           )}
@@ -318,7 +318,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
-                        {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
+                        {ticket.client?.name || 'No Client'}
                         {ticket.end_client_name && (
                           <span className="text-muted-foreground"> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                         )}
