@@ -329,7 +329,7 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       sendMessage();
     }
@@ -494,29 +494,35 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
           )}
 
           {/* Input Area */}
-          <div className="flex gap-2">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Describe what you need help with..."
-              disabled={isLoading}
-            />
-            <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={clearConversation}
-              disabled={isLoading}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <Textarea
+                ref={inputRef as any}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="Describe what you need help with... (Ctrl+Enter to send)"
+                disabled={isLoading}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={clearConversation}
+                disabled={isLoading}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
