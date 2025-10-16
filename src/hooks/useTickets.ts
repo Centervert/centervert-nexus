@@ -28,6 +28,9 @@ export interface Ticket {
   client: {
     name: string;
     client_type: string;
+    managing_agency: {
+      name: string;
+    } | null;
   } | null;
   creator: {
     full_name: string | null;
@@ -62,7 +65,10 @@ export const useTickets = (params?: UseTicketsParams) => {
           ),
           client:client_id (
             name,
-            client_type
+            client_type,
+            managing_agency:managing_agency_id (
+              name
+            )
           ),
           creator:created_by (
             full_name,

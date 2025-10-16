@@ -274,7 +274,15 @@ const Dashboard = () => {
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {ticket.client?.name || 'No Client'}
+                          {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+                            <>
+                              {ticket.client.managing_agency.name}
+                              <span className="mx-2">→</span>
+                              {ticket.client.name}
+                            </>
+                          ) : (
+                            ticket.client?.name || 'No Client'
+                          )}
                           {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
                             <span> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                           )}
@@ -318,7 +326,15 @@ const Dashboard = () => {
                         </div>
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
-                        {ticket.client?.name || 'No Client'}
+                        {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+                          <>
+                            {ticket.client.managing_agency.name}
+                            <span className="mx-2 text-muted-foreground">→</span>
+                            {ticket.client.name}
+                          </>
+                        ) : (
+                          ticket.client?.name || 'No Client'
+                        )}
                         {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
                           <span className="text-muted-foreground"> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                         )}
