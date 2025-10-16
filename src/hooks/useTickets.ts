@@ -14,6 +14,7 @@ export interface Ticket {
   updated_at: string;
   resolved_at: string | null;
   closed_at: string | null;
+  due_date: string | null;
   categories: {
     name: string;
     description: string | null;

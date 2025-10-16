@@ -172,12 +172,12 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[auto_2fr_1.5fr_200px_auto] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden md:grid md:grid-cols-[auto_2fr_1.5fr_200px_150px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="w-8"></div>
               <div>TICKET</div>
               <div>CLIENT</div>
               <div>STATUS</div>
-              <div>DETAILS</div>
+              <div>DUE DATE</div>
             </div>
             <div className="divide-y divide-border">
               {ticketsLoading ? (
@@ -201,7 +201,7 @@ const Dashboard = () => {
                   return (
                     <div
                       key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[auto_2fr_1.5fr_200px_auto] md:gap-4 md:px-6 md:py-4"
+                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[auto_2fr_1.5fr_200px_150px] md:gap-4 md:px-6 md:py-4"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
@@ -209,7 +209,18 @@ const Dashboard = () => {
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
                             <div className="font-medium mb-1">{ticket.title}</div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                              <span>#{ticket.id.slice(0, 4)}</span>
+                              <span>→</span>
+                              <span>
+                                {new Date(ticket.created_at).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
                               {ticket.categories?.name || 'Uncategorized'} • {' '}
                               <span className={priorityDisplay.className}>
                                 {ticket.priority.toUpperCase()}
@@ -223,9 +234,19 @@ const Dashboard = () => {
                         <div className="text-sm text-muted-foreground">
                           {ticket.creator?.full_name || ticket.creator?.email || 'Unknown'}
                         </div>
-                        <Button variant="ghost" size="sm" className="w-full">
-                          Details
-                        </Button>
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">Due: </span>
+                          <span className="font-medium">
+                            {ticket.due_date 
+                              ? new Date(ticket.due_date).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  year: 'numeric',
+                                })
+                              : 'N/A'
+                            }
+                          </span>
+                        </div>
                       </div>
 
                       {/* Desktop Layout */}
@@ -239,8 +260,16 @@ const Dashboard = () => {
                       </div>
                       <div className="hidden md:block">
                         <div className="font-medium">{ticket.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          #{ticket.id.slice(0, 4)}
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <span>#{ticket.id.slice(0, 4)}</span>
+                          <span>→</span>
+                          <span>
+                            {new Date(ticket.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </span>
                         </div>
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
@@ -278,10 +307,15 @@ const Dashboard = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <div className="hidden md:flex md:items-center">
-                        <button className="text-sm text-primary hover:underline">
-                          Details
-                        </button>
+                      <div className="hidden md:flex md:items-center text-sm">
+                        {ticket.due_date 
+                          ? new Date(ticket.due_date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })
+                          : 'N/A'
+                        }
                       </div>
                     </div>
                   );
