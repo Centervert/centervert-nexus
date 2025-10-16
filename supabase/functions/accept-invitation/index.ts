@@ -51,13 +51,8 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Check if email matches
-    if (invitation.email !== email) {
-      return new Response(
-        JSON.stringify({ error: "Email does not match invitation" }),
-        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
-      );
-    }
+    // Allow email to be updated from the invitation
+    // The user can change their email during signup if needed
 
     // Create user account
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({

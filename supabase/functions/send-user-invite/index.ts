@@ -34,6 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: `
         <h1>Welcome to Centervert!</h1>
         <p>${inviter_name} has invited you to join as a <strong>${role}</strong>${client_name ? ` for ${client_name}` : ''}.</p>
+        <p>You've been invited to track your projects with Centervert like a pro. Accept today.</p>
         <p>Please click the link below to set up your account:</p>
         <p><a href="${inviteUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Accept Invitation</a></p>
         <p style="color: #666; font-size: 14px; margin-top: 24px;">This invitation expires in 7 days. If you didn't expect this invitation, you can safely ignore this email.</p>

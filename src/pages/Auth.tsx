@@ -293,19 +293,32 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={!!inviteToken}
-                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-11 focus:bg-white/20 focus:border-white/40 transition-all disabled:opacity-50"
+                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-11 focus:bg-white/20 focus:border-white/40 transition-all"
               />
             </div>
+
+            {inviteToken && invitationData?.client_name && (
+              <div className="space-y-2">
+                <Label htmlFor="company" className="text-white text-sm font-medium">
+                  Company
+                </Label>
+                <Input
+                  id="company"
+                  value={invitationData.client_name}
+                  disabled
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 h-11 opacity-70"
+                />
+              </div>
+            )}
             
             <div className="space-y-2">
               <Label htmlFor="password" className="text-white text-sm font-medium">
-                Password
+                {inviteToken ? 'Create password' : 'Password'}
               </Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={inviteToken ? 'Create your password' : 'Enter your password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
