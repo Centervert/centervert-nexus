@@ -56,7 +56,6 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
-    ...(userRole?.isAdmin ? [{ name: 'User Management', href: '/admin', icon: Users }] : []),
   ];
 
   const initials = userProfile?.fullName
@@ -103,6 +102,23 @@ const Sidebar = () => {
 
       <SidebarFooter>
         <Separator />
+        
+        {/* Admin User Management */}
+        {userRole?.isAdmin && (
+          <>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname === '/admin'}>
+                  <Link to="/admin" className="py-3">
+                    <Users className="h-5 w-5" />
+                    <span>User Management</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+            <Separator />
+          </>
+        )}
         
         {/* User Profile */}
         <div className="p-4">
