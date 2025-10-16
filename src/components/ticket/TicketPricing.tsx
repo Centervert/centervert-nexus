@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, CheckCircle, XCircle, Upload, Clock } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { DollarSign, CheckCircle, XCircle, Upload, Clock, Pencil, X, Check } from 'lucide-react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface Quote {
   id: string;
@@ -28,10 +29,14 @@ interface TicketPricingProps {
 
 export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const queryClient = useQueryClient();
+  const { data: userRole } = useUserRole();
   const [poNumber, setPoNumber] = useState('');
   const [declineReason, setDeclineReason] = useState('');
   const [preferredAmount, setPreferredAmount] = useState('');
   const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [isEditingQuote, setIsEditingQuote] = useState(false);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDeliverables, setEditDeliverables] = useState('');
 
   const { data: quote, isLoading } = useQuery({
     queryKey: ['ticket-quote', ticketId],
@@ -43,6 +48,13 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
+      
+      // Initialize edit form when quote loads
+      if (data) {
+        setEditAmount(data.amount.toString());
+        setEditDeliverables(data.deliverables?.join('\n') || '');
+      }
+      
       return data as Quote | null;
     },
   });
@@ -153,6 +165,35 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     }
   };
 
+  const updateQuoteMutation = useMutation({
+    mutationFn: async () => {
+      if (!quote) return;
+
+      const deliverables = editDeliverables
+        .split('\n')
+        .map(d => d.trim())
+        .filter(d => d.length > 0);
+
+      const { error } = await supabase
+        .from('ticket_quotes')
+        .update({
+          amount: parseFloat(editAmount),
+          deliverables: deliverables.length > 0 ? deliverables : null,
+        })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      toast.success('Quote updated successfully');
+      setIsEditingQuote(false);
+    },
+    onError: () => {
+      toast.error('Failed to update quote');
+    },
+  });
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -184,141 +225,213 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Quote & Pricing
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Quote & Pricing
+          </CardTitle>
+          {userRole?.isAdmin && !isEditingQuote && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingQuote(true)}
+              className="gap-2"
+            >
+              <Pencil className="h-4 w-4" />
+              Edit Quote
+            </Button>
+          )}
+          {isEditingQuote && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsEditingQuote(false);
+                  if (quote) {
+                    setEditAmount(quote.amount.toString());
+                    setEditDeliverables(quote.deliverables?.join('\n') || '');
+                  }
+                }}
+                className="gap-2"
+              >
+                <X className="h-4 w-4" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => updateQuoteMutation.mutate()}
+                disabled={updateQuoteMutation.isPending}
+                className="gap-2"
+              >
+                <Check className="h-4 w-4" />
+                {updateQuoteMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Quote Amount */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Quote Amount</p>
-            <p className="text-2xl font-bold">{formatCurrency(quote.amount)}</p>
-          </div>
-          <Badge
-            className={
-              quote.status === 'approved'
-                ? 'bg-green-500'
-                : quote.status === 'declined'
-                ? 'bg-red-500'
-                : 'bg-yellow-500'
-            }
-          >
-            {quote.status.replace('_', ' ').toUpperCase()}
-          </Badge>
-        </div>
-
-        {/* Timer */}
-        {isWithinCancellationWindow && (
-          <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{timeRemaining}</span>
-          </div>
-        )}
-
-        {/* Deliverables */}
-        {quote.deliverables && quote.deliverables.length > 0 && (
-          <div>
-            <p className="text-sm font-medium mb-2">Expected Deliverables:</p>
-            <ul className="space-y-1">
-              {quote.deliverables.map((item, index) => (
-                <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
-                  <CheckCircle className="h-3 w-3" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Awaiting Approval State */}
-        {quote.status === 'awaiting_approval' && (
+        {isEditingQuote ? (
+          // Edit Mode
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="po-number">PO Number (Required to Approve)</Label>
+            <div>
+              <Label htmlFor="edit-amount">Quote Amount ($)</Label>
               <Input
-                id="po-number"
-                value={poNumber}
-                onChange={(e) => setPoNumber(e.target.value)}
-                placeholder="Enter PO number"
+                id="edit-amount"
+                type="number"
+                step="0.01"
+                value={editAmount}
+                onChange={(e) => setEditAmount(e.target.value)}
+                className="mt-1"
               />
             </div>
-
-            <div className="flex gap-2">
-              <Button onClick={handleApprove} className="flex-1 gap-2" disabled={!poNumber.trim()}>
-                <CheckCircle className="h-4 w-4" />
-                Approve Quote
-              </Button>
-            </div>
-
-            <div className="pt-4 border-t space-y-2">
-              <Label htmlFor="decline-reason">Decline Reason</Label>
+            <div>
+              <Label htmlFor="edit-deliverables">Expected Deliverables (one per line)</Label>
               <Textarea
-                id="decline-reason"
-                value={declineReason}
-                onChange={(e) => setDeclineReason(e.target.value)}
-                placeholder="Why are you declining this quote?"
-                className="min-h-[80px]"
+                id="edit-deliverables"
+                value={editDeliverables}
+                onChange={(e) => setEditDeliverables(e.target.value)}
+                placeholder="Enter each deliverable on a new line"
+                rows={6}
+                className="mt-1"
               />
-              <div className="space-y-2">
-                <Label htmlFor="preferred-amount">Preferred Amount (Optional)</Label>
-                <Input
-                  id="preferred-amount"
-                  type="number"
-                  value={preferredAmount}
-                  onChange={(e) => setPreferredAmount(e.target.value)}
-                  placeholder="Enter your preferred amount"
-                />
+            </div>
+          </div>
+        ) : (
+          // View Mode
+          <>
+            {/* Quote Amount */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Quote Amount</p>
+                <p className="text-2xl font-bold">{formatCurrency(quote.amount)}</p>
               </div>
-              <Button
-                onClick={handleDecline}
-                variant="destructive"
-                className="w-full gap-2"
-                disabled={!declineReason.trim()}
+              <Badge
+                className={
+                  quote.status === 'approved'
+                    ? 'bg-green-500'
+                    : quote.status === 'declined'
+                    ? 'bg-red-500'
+                    : 'bg-yellow-500'
+                }
               >
-                <XCircle className="h-4 w-4" />
-                Decline Quote
-              </Button>
+                {quote.status.replace('_', ' ').toUpperCase()}
+              </Badge>
             </div>
-          </div>
-        )}
 
-        {/* Approved State */}
-        {quote.status === 'approved' && (
-          <div className="space-y-4">
-            <div className="p-4 bg-green-50 border border-green-200 rounded-md space-y-2">
-              <p className="text-sm font-medium text-green-900">Quote Approved</p>
-              <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
-            </div>
+            {/* Timer */}
             {isWithinCancellationWindow && (
-              <Button onClick={handleCancel} variant="outline" className="w-full">
-                Cancel Approval
-              </Button>
+              <div className="flex items-center gap-2 p-3 bg-muted rounded-md">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">{timeRemaining}</span>
+              </div>
             )}
-          </div>
-        )}
 
-        {/* Declined State */}
-        {quote.status === 'declined' && (
-          <div className="space-y-4">
-            <div className="p-4 bg-red-50 border border-red-200 rounded-md space-y-2">
-              <p className="text-sm font-medium text-red-900">Quote Declined</p>
-              {quote.decline_reason && (
-                <p className="text-sm text-red-700">Reason: {quote.decline_reason}</p>
-              )}
-              {quote.preferred_amount && (
-                <p className="text-sm text-red-700">
-                  Preferred Amount: {formatCurrency(quote.preferred_amount)}
-                </p>
-              )}
-            </div>
-            {isWithinCancellationWindow && (
-              <Button onClick={handleCancel} variant="outline" className="w-full">
-                Cancel Decline
-              </Button>
+            {/* Deliverables */}
+            {quote.deliverables && quote.deliverables.length > 0 && (
+              <div>
+                <p className="text-sm font-medium mb-2">Expected Deliverables:</p>
+                <ul className="space-y-1">
+                  {quote.deliverables.map((item, index) => (
+                    <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
+                      <CheckCircle className="h-3 w-3" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
-          </div>
+
+            {/* Awaiting Approval State */}
+            {quote.status === 'awaiting_approval' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="po-number">PO Number (Required to Approve)</Label>
+                  <Input
+                    id="po-number"
+                    value={poNumber}
+                    onChange={(e) => setPoNumber(e.target.value)}
+                    placeholder="Enter PO number"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleApprove} className="flex-1 gap-2" disabled={!poNumber.trim()}>
+                    <CheckCircle className="h-4 w-4" />
+                    Approve Quote
+                  </Button>
+                </div>
+
+                <div className="pt-4 border-t space-y-2">
+                  <Label htmlFor="decline-reason">Decline Reason</Label>
+                  <Textarea
+                    id="decline-reason"
+                    value={declineReason}
+                    onChange={(e) => setDeclineReason(e.target.value)}
+                    placeholder="Why are you declining this quote?"
+                    className="min-h-[80px]"
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="preferred-amount">Preferred Amount (Optional)</Label>
+                    <Input
+                      id="preferred-amount"
+                      type="number"
+                      value={preferredAmount}
+                      onChange={(e) => setPreferredAmount(e.target.value)}
+                      placeholder="Enter your preferred amount"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleDecline}
+                    variant="destructive"
+                    className="w-full gap-2"
+                    disabled={!declineReason.trim()}
+                  >
+                    <XCircle className="h-4 w-4" />
+                    Decline Quote
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Approved State */}
+            {quote.status === 'approved' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-md space-y-2">
+                  <p className="text-sm font-medium text-green-900">Quote Approved</p>
+                  <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
+                </div>
+                {isWithinCancellationWindow && (
+                  <Button onClick={handleCancel} variant="outline" className="w-full">
+                    Cancel Approval
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Declined State */}
+            {quote.status === 'declined' && (
+              <div className="space-y-4">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-md space-y-2">
+                  <p className="text-sm font-medium text-red-900">Quote Declined</p>
+                  {quote.decline_reason && (
+                    <p className="text-sm text-red-700">Reason: {quote.decline_reason}</p>
+                  )}
+                  {quote.preferred_amount && (
+                    <p className="text-sm text-red-700">
+                      Preferred Amount: {formatCurrency(quote.preferred_amount)}
+                    </p>
+                  )}
+                </div>
+                {isWithinCancellationWindow && (
+                  <Button onClick={handleCancel} variant="outline" className="w-full">
+                    Cancel Decline
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>
