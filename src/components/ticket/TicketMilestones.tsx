@@ -53,7 +53,7 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'ticket_milestones',
           filter: `ticket_id=eq.${ticketId}`,
@@ -161,14 +161,6 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
                     <div className="space-y-1">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className="text-sm font-medium">{milestone.title}</h4>
-                        {milestone.status !== 'pending' && (
-                          <Badge
-                            variant="secondary"
-                            className="text-xs shrink-0"
-                          >
-                            {milestone.status}
-                          </Badge>
-                        )}
                       </div>
                       {milestone.description && (
                         <p className="text-sm text-muted-foreground">
