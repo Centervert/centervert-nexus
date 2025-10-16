@@ -172,12 +172,12 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[auto_2fr_1.5fr_200px_150px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              <div className="w-8"></div>
+            <div className="hidden md:grid md:grid-cols-[56px_2fr_1.5fr_200px_1fr] gap-6 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              <div></div>
               <div>TICKET</div>
               <div>CLIENT</div>
               <div>STATUS</div>
-              <div>DUE DATE</div>
+              <div className="text-right">DUE DATE</div>
             </div>
             <div className="divide-y divide-border">
               {ticketsLoading ? (
@@ -201,7 +201,7 @@ const Dashboard = () => {
                   return (
                     <div
                       key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[auto_2fr_1.5fr_200px_150px] md:gap-4 md:px-6 md:py-4"
+                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_2fr_1.5fr_200px_1fr] md:gap-6 md:px-6 md:py-4"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
@@ -250,7 +250,7 @@ const Dashboard = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:flex md:items-center md:gap-2.5">
+                      <div className="hidden md:flex md:items-center md:gap-3">
                         <input 
                           type="checkbox" 
                           className="rounded border-border w-4 h-4 shrink-0" 
@@ -258,8 +258,8 @@ const Dashboard = () => {
                         />
                         <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                       </div>
-                      <div className="hidden md:flex md:flex-col md:justify-center">
-                        <div className="font-medium leading-tight">{ticket.title}</div>
+                      <div className="hidden md:flex md:flex-col md:justify-center md:min-w-0">
+                        <div className="font-medium leading-tight truncate">{ticket.title}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
                           <span>#{ticket.id.slice(0, 4)}</span>
                           <span>→</span>
@@ -275,7 +275,7 @@ const Dashboard = () => {
                       <div className="hidden md:flex md:items-center text-sm">
                         {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                       </div>
-                      <div className="hidden md:flex md:items-center">
+                      <div className="hidden md:flex md:items-center md:justify-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             onClick={(e) => e.stopPropagation()}
@@ -307,7 +307,7 @@ const Dashboard = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <div className="hidden md:flex md:items-center text-sm">
+                      <div className="hidden md:flex md:items-center md:justify-end text-sm">
                         {ticket.due_date 
                           ? new Date(ticket.due_date).toLocaleDateString('en-US', {
                               month: 'short',
