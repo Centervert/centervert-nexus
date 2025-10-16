@@ -39,6 +39,9 @@ interface Quote {
   decline_reason: string | null;
   preferred_amount: number | null;
   deliverables: string[] | null;
+  is_recurring: boolean;
+  billing_interval: string | null;
+  billing_cycles: number | null;
 }
 
 interface TicketPricingProps {
@@ -759,6 +762,13 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Quote Amount</p>
                 <p className="text-2xl font-bold">{formatCurrency(quote.amount)}</p>
+                {quote.is_recurring && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Billed {quote.billing_interval}
+                    {quote.billing_cycles && ` for ${quote.billing_cycles} cycle${quote.billing_cycles > 1 ? 's' : ''}`}
+                    {!quote.billing_cycles && ' (ongoing)'}
+                  </p>
+                )}
               </div>
               <Badge
                 className={

@@ -272,10 +272,13 @@ export type Database = {
         Row: {
           amount: number
           approval_window_expires_at: string | null
+          billing_cycles: number | null
+          billing_interval: string | null
           created_at: string
           decline_reason: string | null
           deliverables: string[] | null
           id: string
+          is_recurring: boolean
           po_file_url: string | null
           po_number: string | null
           preferred_amount: number | null
@@ -286,10 +289,13 @@ export type Database = {
         Insert: {
           amount: number
           approval_window_expires_at?: string | null
+          billing_cycles?: number | null
+          billing_interval?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
           id?: string
+          is_recurring?: boolean
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
@@ -300,10 +306,13 @@ export type Database = {
         Update: {
           amount?: number
           approval_window_expires_at?: string | null
+          billing_cycles?: number | null
+          billing_interval?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
           id?: string
+          is_recurring?: boolean
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
