@@ -33,8 +33,8 @@ export const EditTicketDialog = ({ ticket }: EditTicketDialogProps) => {
   const [title, setTitle] = useState(ticket.title);
   const [description, setDescription] = useState(ticket.description || '');
   const [priority, setPriority] = useState(ticket.priority);
-  const [categoryId, setCategoryId] = useState(ticket.category_id || '');
-  const [assignedTo, setAssignedTo] = useState(ticket.assigned_to || '');
+  const [categoryId, setCategoryId] = useState(ticket.category_id || 'none');
+  const [assignedTo, setAssignedTo] = useState(ticket.assigned_to || 'unassigned');
   const [dueDate, setDueDate] = useState(
     ticket.due_date ? new Date(ticket.due_date).toISOString().split('T')[0] : ''
   );
@@ -48,8 +48,8 @@ export const EditTicketDialog = ({ ticket }: EditTicketDialogProps) => {
     setTitle(ticket.title);
     setDescription(ticket.description || '');
     setPriority(ticket.priority);
-    setCategoryId(ticket.category_id || '');
-    setAssignedTo(ticket.assigned_to || '');
+    setCategoryId(ticket.category_id || 'none');
+    setAssignedTo(ticket.assigned_to || 'unassigned');
     setDueDate(ticket.due_date ? new Date(ticket.due_date).toISOString().split('T')[0] : '');
     setBudget(ticket.budget?.toString() || '');
     setType(ticket.type || '');
@@ -89,8 +89,9 @@ export const EditTicketDialog = ({ ticket }: EditTicketDialogProps) => {
         subtype: subtype || null,
       };
 
-      if (categoryId) updates.category_id = categoryId;
-      if (assignedTo) updates.assigned_to = assignedTo;
+      if (categoryId && categoryId !== 'none') updates.category_id = categoryId;
+      if (assignedTo && assignedTo !== 'unassigned') updates.assigned_to = assignedTo;
+      else if (assignedTo === 'unassigned') updates.assigned_to = null;
       if (dueDate) updates.due_date = dueDate;
       if (budget) updates.budget = parseFloat(budget);
 
@@ -169,6 +170,7 @@ export const EditTicketDialog = ({ ticket }: EditTicketDialogProps) => {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">No Category</SelectItem>
                     {categories?.map((cat) => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
@@ -187,7 +189,7 @@ export const EditTicketDialog = ({ ticket }: EditTicketDialogProps) => {
                     <SelectValue placeholder="Select agent" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {agents?.map((agent: any) => (
                       <SelectItem key={agent.id} value={agent.id}>
                         {agent.full_name || agent.email}
