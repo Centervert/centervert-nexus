@@ -137,9 +137,9 @@ const TicketDetail = () => {
 
           <div className="max-w-5xl mx-auto p-4 md:p-8">
             {/* Title & Status */}
-            <div className="mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold mb-3">{ticket.title}</h1>
-              <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium', statusDisplay.className)}>
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <h1 className="text-2xl md:text-3xl font-bold flex-1">{ticket.title}</h1>
+              <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium shrink-0', statusDisplay.className)}>
                 {statusDisplay.label}
               </Badge>
             </div>
