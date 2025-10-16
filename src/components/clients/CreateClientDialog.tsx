@@ -32,6 +32,10 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
     website: '',
     phone: '',
     notes: '',
+    contact_name: '',
+    contact_email: '',
+    contact_phone: '',
+    contact_title: '',
   });
 
   const { data: agencies } = useQuery({
@@ -61,7 +65,7 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         formData.billing_zip
       ].filter(Boolean).join(', ') || null;
 
-      const { error } = await supabase.from('clients').insert([{
+      const { data: newClient, error } = await supabase.from('clients').insert([{
         name: formData.name,
         client_type: formData.client_type as any,
         payment_terms: formData.payment_terms || null,
@@ -71,9 +75,23 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         website: formData.website || null,
         phone: formData.phone || null,
         notes: formData.notes || null,
-      }]);
+      }]).select().single();
 
       if (error) throw error;
+
+      // Create primary contact if provided
+      if (newClient && formData.contact_email) {
+        const { error: contactError } = await supabase.from('client_contacts').insert([{
+          client_id: newClient.id,
+          full_name: formData.contact_name,
+          email: formData.contact_email,
+          phone: formData.contact_phone || null,
+          title: formData.contact_title || null,
+          is_primary: true,
+        }]);
+
+        if (contactError) throw contactError;
+      }
 
       toast({
         title: 'Success',
@@ -94,6 +112,10 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         website: '',
         phone: '',
         notes: '',
+        contact_name: '',
+        contact_email: '',
+        contact_phone: '',
+        contact_title: '',
       });
 
       onSuccess();
@@ -258,6 +280,53 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
             />
+          </div>
+
+          <div className="space-y-4 pt-4 border-t">
+            <h3 className="text-lg font-semibold">Primary Point of Contact</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contact_name">Full Name</Label>
+                <Input
+                  id="contact_name"
+                  value={formData.contact_name}
+                  onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_email">Email</Label>
+                <Input
+                  id="contact_email"
+                  type="email"
+                  value={formData.contact_email}
+                  onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="contact_phone">Phone</Label>
+                <Input
+                  id="contact_phone"
+                  type="tel"
+                  value={formData.contact_phone}
+                  onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact_title">Title</Label>
+                <Input
+                  id="contact_title"
+                  placeholder="e.g., CEO, Manager"
+                  value={formData.contact_title}
+                  onChange={(e) => setFormData({ ...formData, contact_title: e.target.value })}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">
