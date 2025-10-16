@@ -105,13 +105,11 @@ const Sidebar = () => {
         {/* User Profile */}
         <div className="p-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
+            <Users className="h-9 w-9 text-foreground" />
             <div className="flex-1 overflow-hidden">
-              <p className="truncate text-sm font-medium">{userProfile?.fullName}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {userProfile?.company && `${userProfile.company} - `}{displayRole}
+              <p className="truncate text-base font-semibold">CenterVert</p>
+              <p className="truncate text-sm text-muted-foreground">
+                {userProfile?.fullName} • {displayRole}
               </p>
             </div>
             <button
