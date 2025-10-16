@@ -67,7 +67,7 @@ const Sidebar = () => {
       {/* Status Indicator */}
       <div className="flex items-center gap-2 px-6 py-4">
         <div className="h-2 w-2 rounded-full bg-status-complete" />
-        <span className="text-sm text-muted-foreground">All Systems Operational</span>
+        <span className="text-sm font-medium text-status-complete">All Systems Operational</span>
       </div>
 
       <Separator />
