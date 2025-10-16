@@ -60,7 +60,7 @@ export const useTickets = (params?: UseTicketsParams) => {
             name,
             description
           ),
-          client:clients (
+          client:client_id (
             name,
             client_type
           ),
