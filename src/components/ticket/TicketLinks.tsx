@@ -126,7 +126,8 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
     );
   }
 
-  if (links.length === 0) {
+  // Hide card completely for non-admin users when there are no links
+  if (links.length === 0 && !isAdminOrAgent) {
     return null;
   }
 
@@ -152,8 +153,13 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 gap-4">
-            {links.map((link) => (
+          {links.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No deliverables added yet. Click "Manage Deliverables" to add them.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4">
+              {links.map((link) => (
               <div
                 key={link.id}
                 className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -211,7 +217,8 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
