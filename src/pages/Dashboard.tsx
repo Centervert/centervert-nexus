@@ -250,17 +250,17 @@ const Dashboard = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:flex md:items-center md:gap-2">
+                      <div className="hidden md:flex md:items-center md:gap-2.5">
                         <input 
                           type="checkbox" 
-                          className="rounded border-border w-4 h-4" 
+                          className="rounded border-border w-4 h-4 shrink-0" 
                           onClick={(e) => e.stopPropagation()}
                         />
-                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                       </div>
-                      <div className="hidden md:block">
-                        <div className="font-medium">{ticket.title}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                      <div className="hidden md:flex md:flex-col md:justify-center">
+                        <div className="font-medium leading-tight">{ticket.title}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
                           <span>#{ticket.id.slice(0, 4)}</span>
                           <span>→</span>
                           <span>
@@ -279,15 +279,15 @@ const Dashboard = () => {
                         <DropdownMenu>
                           <DropdownMenuTrigger
                             onClick={(e) => e.stopPropagation()}
-                            asChild
+                            className="border-0 bg-transparent p-0 focus:outline-none focus:ring-0"
                           >
-                            <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80', statusDisplay.className)}>
+                            <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80 transition-opacity', statusDisplay.className)}>
                               {statusDisplay.label}
                               <ChevronDown className="h-3 w-3" />
                             </Badge>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent 
-                            className="w-[200px] bg-popover z-50"
+                            className="w-[200px] z-[100]"
                             onClick={(e) => e.stopPropagation()}
                           >
                             {statusOptions.map((option) => (
@@ -297,7 +297,7 @@ const Dashboard = () => {
                                   e.stopPropagation();
                                   handleStatusChange(ticket.id, option.value);
                                 }}
-                                className="cursor-pointer"
+                                className="cursor-pointer p-1"
                               >
                                 <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
                                   {option.label}
@@ -314,7 +314,7 @@ const Dashboard = () => {
                               day: 'numeric',
                               year: 'numeric',
                             })
-                          : 'N/A'
+                          : <span className="text-muted-foreground">N/A</span>
                         }
                       </div>
                     </div>
