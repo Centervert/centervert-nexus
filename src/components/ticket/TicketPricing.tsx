@@ -221,6 +221,28 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     }
   };
 
+  const handleCancel = async () => {
+    if (!quote) return;
+
+    try {
+      const { error } = await supabase
+        .from('ticket_quotes')
+        .update({
+          status: 'cancelled',
+          approval_window_expires_at: null,
+        })
+        .eq('id', quote.id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      toast.success('Approval cancelled');
+    } catch (error) {
+      console.error('Error cancelling approval:', error);
+      toast.error('Failed to cancel approval');
+    }
+  };
+
   const handleCancelRequest = async () => {
     if (!quote || !cancelReason.trim() || !cancelRequestedBy.trim()) {
       toast.error('Please provide reason and your name');
@@ -838,7 +860,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 </div>
                 {isWithinCancellationWindow ? (
                   <Button
-                    onClick={handleCancelRequest}
+                    onClick={handleCancel}
                     variant="destructive"
                     className="w-full gap-2 bg-red-600 hover:bg-red-700"
                   >
@@ -873,7 +895,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 </div>
                 {isWithinCancellationWindow && (
                   <Button
-                    onClick={handleCancelRequest}
+                    onClick={handleCancel}
                     className="w-full gap-2 bg-red-600 hover:bg-red-700"
                   >
                     <Clock className="h-4 w-4" />
