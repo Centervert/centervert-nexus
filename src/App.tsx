@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
+import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,22 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute adminOnly>
+                  <Clients />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients/:id"
+              element={
+                <ProtectedRoute adminOnly>
+                  <ClientDetail />
                 </ProtectedRoute>
               }
             />

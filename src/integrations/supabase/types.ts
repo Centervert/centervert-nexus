@@ -86,6 +86,172 @@ export type Database = {
         }
         Relationships: []
       }
+      client_contacts: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_billing: boolean | null
+          is_primary: boolean | null
+          is_technical: boolean | null
+          notes: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_billing?: boolean | null
+          is_primary?: boolean | null
+          is_technical?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_billing?: boolean | null
+          is_primary?: boolean | null
+          is_technical?: boolean | null
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_users: {
+        Row: {
+          access_level: Database["public"]["Enums"]["client_access_level"]
+          can_approve_quotes: boolean | null
+          can_create_tickets: boolean | null
+          can_view_invoices: boolean | null
+          client_id: string
+          created_at: string | null
+          id: string
+          invited_by: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level?: Database["public"]["Enums"]["client_access_level"]
+          can_approve_quotes?: boolean | null
+          can_create_tickets?: boolean | null
+          can_view_invoices?: boolean | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          invited_by?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: Database["public"]["Enums"]["client_access_level"]
+          can_approve_quotes?: boolean | null
+          can_create_tickets?: boolean | null
+          can_view_invoices?: boolean | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          invited_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_users_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          billing_address: string | null
+          client_type: Database["public"]["Enums"]["client_type"]
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          managing_agency_id: string | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          payment_terms_days: number | null
+          phone: string | null
+          shipping_address: string | null
+          tax_id: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          billing_address?: string | null
+          client_type?: Database["public"]["Enums"]["client_type"]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          managing_agency_id?: string | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          payment_terms_days?: number | null
+          phone?: string | null
+          shipping_address?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          billing_address?: string | null
+          client_type?: Database["public"]["Enums"]["client_type"]
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          managing_agency_id?: string | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          payment_terms_days?: number | null
+          phone?: string | null
+          shipping_address?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_managing_agency_id_fkey"
+            columns: ["managing_agency_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
@@ -127,6 +293,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          client_id: string | null
           company: string | null
           created_at: string | null
           email: string
@@ -136,6 +303,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          client_id?: string | null
           company?: string | null
           created_at?: string | null
           email: string
@@ -145,6 +313,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          client_id?: string | null
           company?: string | null
           created_at?: string | null
           email?: string
@@ -152,7 +321,15 @@ export type Database = {
           id?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ticket_links: {
         Row: {
@@ -274,6 +451,7 @@ export type Database = {
           approval_window_expires_at: string | null
           billing_cycles: number | null
           billing_interval: string | null
+          client_id: string | null
           created_at: string
           decline_reason: string | null
           deliverables: string[] | null
@@ -291,6 +469,7 @@ export type Database = {
           approval_window_expires_at?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
+          client_id?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
@@ -308,6 +487,7 @@ export type Database = {
           approval_window_expires_at?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
+          client_id?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
@@ -322,6 +502,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "ticket_quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ticket_quotes_ticket_id_fkey"
             columns: ["ticket_id"]
             isOneToOne: false
@@ -335,6 +522,7 @@ export type Database = {
           assigned_to: string | null
           budget: number | null
           category_id: string | null
+          client_id: string | null
           closed_at: string | null
           created_at: string | null
           created_by: string
@@ -355,6 +543,7 @@ export type Database = {
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
+          client_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           created_by: string
@@ -375,6 +564,7 @@ export type Database = {
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
+          client_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           created_by?: string
@@ -404,6 +594,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -470,6 +667,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
+      client_access_level: "admin" | "member" | "viewer"
+      client_type: "direct" | "agency" | "agency_managed"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status:
         | "open"
@@ -605,6 +804,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent", "user"],
+      client_access_level: ["admin", "member", "viewer"],
+      client_type: ["direct", "agency", "agency_managed"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: [
         "open",

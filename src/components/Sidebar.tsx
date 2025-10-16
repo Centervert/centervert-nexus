@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, Users, LogOut } from 'lucide-react';
+import { Ticket, Users, LogOut, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -112,6 +112,14 @@ const Sidebar = () => {
                   <Link to="/admin" className="py-3">
                     <Users className="h-5 w-5" />
                     <span>User Management</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/clients')}>
+                  <Link to="/clients" className="py-3">
+                    <Building2 className="h-5 w-5" />
+                    <span>Client Management</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
