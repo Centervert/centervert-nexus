@@ -112,11 +112,6 @@ export const DevUserSwitcher = () => {
   };
 
   const handleReturnToOriginal = async () => {
-    if (!originalUserEmail) {
-      toast.error('No original user account found');
-      return;
-    }
-
     setIsSwitching(true);
     
     try {
@@ -177,7 +172,7 @@ export const DevUserSwitcher = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
-        {originalUserEmail && isTestUser && (
+        {isTestUser && (
           <>
             <DropdownMenuItem
               onClick={handleReturnToOriginal}
