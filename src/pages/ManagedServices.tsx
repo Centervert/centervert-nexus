@@ -4,16 +4,21 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import Sidebar from '@/components/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useManagedServices, useManagedServicesStats } from '@/hooks/useManagedServices';
-import { DollarSign, RefreshCw, Pause, TrendingUp, Search } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
+import { DollarSign, RefreshCw, Pause, TrendingUp, Search, Plus } from 'lucide-react';
 import { format } from 'date-fns';
+import { CreateServiceDialog } from '@/components/managedServices/CreateServiceDialog';
 
 export default function ManagedServices() {
   const navigate = useNavigate();
+  const { data: userRole } = useUserRole();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data: services, isLoading } = useManagedServices({
     search,
@@ -40,11 +45,19 @@ export default function ManagedServices() {
       <div className="min-h-screen flex w-full">
         <Sidebar />
         <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Managed Services</h1>
-            <p className="text-muted-foreground">
-              Track and manage recurring client services
-            </p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Managed Services</h1>
+              <p className="text-muted-foreground">
+                Track and manage recurring client services
+              </p>
+            </div>
+            {(userRole?.isAdmin || userRole?.isAgent) && (
+              <Button onClick={() => setCreateDialogOpen(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Service
+              </Button>
+            )}
           </div>
 
           {/* Stats Cards */}
@@ -174,6 +187,14 @@ export default function ManagedServices() {
               )}
             </CardContent>
           </Card>
+
+          {/* Create Service Dialog */}
+          {(userRole?.isAdmin || userRole?.isAgent) && (
+            <CreateServiceDialog
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
+            />
+          )}
         </main>
       </div>
     </SidebarProvider>
