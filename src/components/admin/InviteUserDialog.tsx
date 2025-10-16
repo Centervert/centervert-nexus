@@ -62,11 +62,32 @@ export const InviteUserDialog = () => {
       const selectedClient = clients?.find(c => c.id === clientId);
       const inviterName = inviterProfile?.full_name || user?.email || 'Admin';
       
+      // Generate unique token
+      const token = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+      // Create invitation record
+      const { error: inviteError } = await supabase
+        .from('invitations')
+        .insert([{
+          email,
+          client_id: role === 'user' && clientId ? clientId : null,
+          role: role as 'user' | 'agent' | 'admin',
+          token,
+          invited_by: user?.id,
+          expires_at: expiresAt.toISOString(),
+        }]);
+
+      if (inviteError) throw inviteError;
+
+      // Send invitation email
       await sendUserInvite({
         email,
         inviter_name: inviterName,
         role,
         client_name: selectedClient?.name,
+        token,
       });
     },
     onSuccess: () => {
@@ -76,7 +97,8 @@ export const InviteUserDialog = () => {
       setRole('user');
       setClientId('');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Invitation error:', error);
       toast.error('Failed to send invitation');
     },
   });

@@ -293,6 +293,53 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          client_id: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          client_id?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       managed_services: {
         Row: {
           billing_interval: string | null
@@ -392,6 +439,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          phone: string | null
           updated_at: string | null
         }
         Insert: {
@@ -402,6 +450,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          phone?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -412,6 +461,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string | null
         }
         Relationships: [

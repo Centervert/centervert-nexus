@@ -40,6 +40,7 @@ interface UserInviteData {
   inviter_name: string;
   role: string;
   client_name?: string;
+  token: string;
 }
 
 // Helper function to send emails without blocking UI
