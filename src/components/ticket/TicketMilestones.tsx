@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -6,11 +7,12 @@ import {
   DollarSign,
   MessageSquare,
   PlayCircle,
+  RefreshCw,
   Send,
   Ticket,
   XCircle,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Milestone {
@@ -28,6 +30,8 @@ interface TicketMilestonesProps {
 }
 
 export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
+  const queryClient = useQueryClient();
+
   const { data: milestones = [], isLoading } = useQuery({
     queryKey: ['ticket-milestones', ticketId],
     queryFn: async () => {
@@ -42,6 +46,29 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
     },
   });
 
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`ticket_milestones:${ticketId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'ticket_milestones',
+          filter: `ticket_id=eq.${ticketId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['ticket-milestones', ticketId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticketId, queryClient]);
+
   const getMilestoneIcon = (type: string) => {
     const icons: Record<string, typeof Ticket> = {
       ticket_created: Ticket,
@@ -52,6 +79,7 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
       work_completed: CheckCircle2,
       payment_received: DollarSign,
       message_sent: MessageSquare,
+      status_change: RefreshCw,
     };
     return icons[type] || Clock;
   };
@@ -69,6 +97,7 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
       work_completed: 'bg-green-500',
       payment_received: 'bg-emerald-500',
       message_sent: 'bg-blue-400',
+      status_change: 'bg-indigo-500',
     };
     return colors[type] || 'bg-gray-500';
   };
