@@ -290,6 +290,81 @@ export type Database = {
           },
         ]
       }
+      managed_services: {
+        Row: {
+          billing_interval: string | null
+          billing_start_date: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          client_id: string
+          created_at: string | null
+          deliverables: string[] | null
+          description: string | null
+          id: string
+          monthly_amount: number
+          next_billing_date: string
+          notes: string | null
+          original_ticket_id: string | null
+          service_name: string
+          service_type: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          billing_interval?: string | null
+          billing_start_date: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          client_id: string
+          created_at?: string | null
+          deliverables?: string[] | null
+          description?: string | null
+          id?: string
+          monthly_amount: number
+          next_billing_date: string
+          notes?: string | null
+          original_ticket_id?: string | null
+          service_name: string
+          service_type: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          billing_interval?: string | null
+          billing_start_date?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          client_id?: string
+          created_at?: string | null
+          deliverables?: string[] | null
+          description?: string | null
+          id?: string
+          monthly_amount?: number
+          next_billing_date?: string
+          notes?: string | null
+          original_ticket_id?: string | null
+          service_name?: string
+          service_type?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "managed_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "managed_services_original_ticket_id_fkey"
+            columns: ["original_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -530,6 +605,7 @@ export type Database = {
           due_date: string | null
           end_client_name: string | null
           id: string
+          managed_service_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolved_at: string | null
           status: Database["public"]["Enums"]["ticket_status"]
@@ -551,6 +627,7 @@ export type Database = {
           due_date?: string | null
           end_client_name?: string | null
           id?: string
+          managed_service_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
@@ -572,6 +649,7 @@ export type Database = {
           due_date?: string | null
           end_client_name?: string | null
           id?: string
+          managed_service_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
@@ -610,6 +688,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tickets_managed_service_id_fkey"
+            columns: ["managed_service_id"]
+            isOneToOne: false
+            referencedRelation: "managed_services"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_roles: {
@@ -638,6 +723,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_billing_start_date: {
+        Args: { ticket_resolved_at: string }
+        Returns: string
+      }
       get_available_agents: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -645,6 +734,10 @@ export type Database = {
           full_name: string
           id: string
         }[]
+      }
+      get_total_mrr: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       get_users_with_roles: {
         Args: Record<PropertyKey, never>
