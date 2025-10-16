@@ -5,7 +5,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, CheckCircle, XCircle, Upload, Clock, Pencil, X, Check } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { DollarSign, CheckCircle, XCircle, Upload, Clock, Pencil, X, Check, AlertTriangle } from 'lucide-react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -37,6 +47,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editAmount, setEditAmount] = useState('');
   const [editDeliverables, setEditDeliverables] = useState('');
+  const [showApprovedWarning, setShowApprovedWarning] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
 
   const { data: quote, isLoading } = useQuery({
     queryKey: ['ticket-quote', ticketId],
@@ -166,7 +178,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   };
 
   const updateQuoteMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (keepApproved: boolean) => {
       if (!quote) return;
 
       const deliverables = editDeliverables
@@ -174,12 +186,21 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         .map(d => d.trim())
         .filter(d => d.length > 0);
 
+      const updates: any = {
+        amount: parseFloat(editAmount),
+        deliverables: deliverables.length > 0 ? deliverables : null,
+      };
+
+      // If not keeping approved status and quote was approved, reset to awaiting_approval
+      if (!keepApproved && quote.status === 'approved') {
+        updates.status = 'awaiting_approval';
+        updates.po_number = null;
+        updates.approval_window_expires_at = null;
+      }
+
       const { error } = await supabase
         .from('ticket_quotes')
-        .update({
-          amount: parseFloat(editAmount),
-          deliverables: deliverables.length > 0 ? deliverables : null,
-        })
+        .update(updates)
         .eq('id', quote.id);
 
       if (error) throw error;
@@ -188,11 +209,28 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote updated successfully');
       setIsEditingQuote(false);
+      setShowSaveDialog(false);
     },
     onError: () => {
       toast.error('Failed to update quote');
     },
   });
+
+  const handleEditClick = () => {
+    if (quote?.status === 'approved') {
+      setShowApprovedWarning(true);
+    } else {
+      setIsEditingQuote(true);
+    }
+  };
+
+  const handleSaveClick = () => {
+    if (quote?.status === 'approved') {
+      setShowSaveDialog(true);
+    } else {
+      updateQuoteMutation.mutate(false);
+    }
+  };
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -223,54 +261,122 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     new Date(quote.approval_window_expires_at) > new Date();
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Quote & Pricing
-          </CardTitle>
-          {userRole?.isAdmin && !isEditingQuote && (
+    <>
+      {/* Warning Dialog for Editing Approved Quote */}
+      <AlertDialog open={showApprovedWarning} onOpenChange={setShowApprovedWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Edit Approved Quote
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This quote has already been approved. Editing it may require customer reapproval. 
+              Are you sure you want to proceed?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => setIsEditingQuote(true)}>
+              Continue Editing
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Save Dialog - Choose Approval Status */}
+      <AlertDialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>How would you like to save this quote?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This quote was previously approved. Choose how to handle the approval status:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-3">
             <Button
+              className="w-full justify-start text-left h-auto py-4"
               variant="outline"
-              size="sm"
-              onClick={() => setIsEditingQuote(true)}
-              className="gap-2"
+              onClick={() => updateQuoteMutation.mutate(false)}
+              disabled={updateQuoteMutation.isPending}
             >
-              <Pencil className="h-4 w-4" />
-              Edit Quote
+              <div>
+                <div className="font-semibold">Require Reapproval</div>
+                <div className="text-sm text-muted-foreground">
+                  Customer must approve the new quote amount
+                </div>
+              </div>
             </Button>
-          )}
-          {isEditingQuote && (
-            <div className="flex gap-2">
+            <Button
+              className="w-full justify-start text-left h-auto py-4"
+              variant="outline"
+              onClick={() => updateQuoteMutation.mutate(true)}
+              disabled={updateQuoteMutation.isPending}
+            >
+              <div>
+                <div className="font-semibold">Keep Pre-Approved</div>
+                <div className="text-sm text-muted-foreground">
+                  Save changes without requiring new approval
+                </div>
+              </div>
+            </Button>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={updateQuoteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Quote & Pricing
+            </CardTitle>
+            {userRole?.isAdmin && !isEditingQuote && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setIsEditingQuote(false);
-                  if (quote) {
-                    setEditAmount(quote.amount.toString());
-                    setEditDeliverables(quote.deliverables?.join('\n') || '');
-                  }
-                }}
+                onClick={handleEditClick}
                 className="gap-2"
               >
-                <X className="h-4 w-4" />
-                Cancel
+                <Pencil className="h-4 w-4" />
+                Edit Quote
               </Button>
-              <Button
-                size="sm"
-                onClick={() => updateQuoteMutation.mutate()}
-                disabled={updateQuoteMutation.isPending}
-                className="gap-2"
-              >
-                <Check className="h-4 w-4" />
-                {updateQuoteMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          )}
-        </div>
-      </CardHeader>
+            )}
+            {isEditingQuote && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setIsEditingQuote(false);
+                    if (quote) {
+                      setEditAmount(quote.amount.toString());
+                      setEditDeliverables(quote.deliverables?.join('\n') || '');
+                    }
+                  }}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveClick}
+                  disabled={updateQuoteMutation.isPending}
+                  className="gap-2"
+                >
+                  <Check className="h-4 w-4" />
+                  {updateQuoteMutation.isPending ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardHeader>
       <CardContent className="space-y-6">
         {isEditingQuote ? (
           // Edit Mode
@@ -435,5 +541,6 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         )}
       </CardContent>
     </Card>
+    </>
   );
 };
