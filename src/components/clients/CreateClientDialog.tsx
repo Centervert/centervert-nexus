@@ -22,7 +22,6 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
     name: '',
     client_type: 'direct',
     payment_terms: '',
-    payment_terms_days: '',
     managing_agency_id: '',
     billing_street1: '',
     billing_street2: '',
@@ -66,7 +65,6 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         name: formData.name,
         client_type: formData.client_type as any,
         payment_terms: formData.payment_terms || null,
-        payment_terms_days: formData.payment_terms_days ? parseInt(formData.payment_terms_days) : null,
         managing_agency_id: formData.managing_agency_id || null,
         billing_address: billingAddress,
         tax_id: formData.tax_id || null,
@@ -86,7 +84,6 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
         name: '',
         client_type: 'direct',
         payment_terms: '',
-        payment_terms_days: '',
         managing_agency_id: '',
         billing_street1: '',
         billing_street2: '',
@@ -170,35 +167,22 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="payment_terms">Payment Terms</Label>
-              <Select
-                value={formData.payment_terms}
-                onValueChange={(value) => setFormData({ ...formData, payment_terms: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select payment terms" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Due on receipt">Due on receipt</SelectItem>
-                  <SelectItem value="Net 30">Net 30</SelectItem>
-                  <SelectItem value="Net 90">Net 90</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="payment_terms_days">Payment Days</Label>
-              <Input
-                id="payment_terms_days"
-                type="number"
-                placeholder="e.g., 30"
-                value={formData.payment_terms_days}
-                onChange={(e) => setFormData({ ...formData, payment_terms_days: e.target.value })}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="payment_terms">Payment Terms</Label>
+            <Select
+              value={formData.payment_terms}
+              onValueChange={(value) => setFormData({ ...formData, payment_terms: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment terms" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Due on receipt">Due on receipt</SelectItem>
+                <SelectItem value="Net 30">Net 30</SelectItem>
+                <SelectItem value="Net 90">Net 90</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
