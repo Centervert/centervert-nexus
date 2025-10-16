@@ -128,11 +128,11 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
   }
 
   return (
-    <Card>
+    <Card className="flex flex-col h-[600px]">
       <CardHeader>
         <CardTitle>Milestones</CardTitle>
       </CardHeader>
-      <CardContent className="max-h-[600px] overflow-y-auto">
+      <CardContent className="flex-1 overflow-y-auto">
         {milestones.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             No milestones yet
