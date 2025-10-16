@@ -1,1 +1,4 @@
 project_id = "tcuxcnszolrkozktpilz"
+
+[functions.ai-ticket-assistant]
+verify_jwt = true

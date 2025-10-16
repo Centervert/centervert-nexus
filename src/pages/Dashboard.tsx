@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles } from 'lucide-react';
 import { useTickets, useTicketStats } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DevUserSwitcher } from '@/components/DevUserSwitcher';
+import { AITicketDialog } from '@/components/ticket/AITicketDialog';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
@@ -445,6 +447,20 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+
+      {/* AI Ticket Assistant FAB - Admin Only */}
+      {userRole?.isAdmin && (
+        <>
+          <button
+            onClick={() => setAiDialogOpen(true)}
+            className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group z-50"
+            aria-label="AI Ticket Assistant"
+          >
+            <Sparkles className="h-6 w-6 group-hover:scale-110 transition-transform" />
+          </button>
+          <AITicketDialog open={aiDialogOpen} onOpenChange={setAiDialogOpen} />
+        </>
+      )}
       </div>
     </SidebarProvider>
   );
