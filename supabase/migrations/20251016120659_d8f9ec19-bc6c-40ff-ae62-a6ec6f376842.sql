@@ -1,0 +1,1 @@
+UPDATE profiles SET company = 'Ridge Media' WHERE id = '93047da8-89d9-440d-ad29-f613f39395f8';
