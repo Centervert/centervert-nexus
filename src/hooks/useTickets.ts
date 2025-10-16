@@ -15,6 +15,10 @@ export interface Ticket {
   resolved_at: string | null;
   closed_at: string | null;
   due_date: string | null;
+  ticket_number: number | null;
+  budget: number | null;
+  type: string | null;
+  subtype: string | null;
   categories: {
     name: string;
     description: string | null;

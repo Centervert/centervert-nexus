@@ -4,11 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import Sidebar from '@/components/Sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Calendar, User, Building2, Tag } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { TicketDetails } from '@/components/ticket/TicketDetails';
+import { TicketUpdates } from '@/components/ticket/TicketUpdates';
+import { TicketMilestones } from '@/components/ticket/TicketMilestones';
+import { TicketPricing } from '@/components/ticket/TicketPricing';
+import { TicketLinks } from '@/components/ticket/TicketLinks';
+import { TicketFiles } from '@/components/ticket/TicketFiles';
 
 const TicketDetail = () => {
   const { id } = useParams();
@@ -36,7 +41,7 @@ const TicketDetail = () => {
           )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
@@ -121,119 +126,50 @@ const TicketDetail = () => {
               className="gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Tickets
+              Back to Dashboard
             </Button>
+            {!isLoading && ticket && (
+              <span className="text-sm text-muted-foreground">
+                Ticket #{ticket.ticket_number || ticket.id.slice(0, 8)}
+              </span>
+            )}
           </div>
 
-          <div className="p-4 md:p-8">
-            {/* Header */}
+          <div className="max-w-5xl mx-auto p-4 md:p-8">
+            {/* Title & Status */}
             <div className="mb-6">
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div className="flex-1">
-                  <h1 className="text-2xl md:text-3xl font-bold mb-2">{ticket.title}</h1>
-                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    <span>#{ticket.id.slice(0, 8)}</span>
-                    <span>•</span>
-                    <span className={priorityDisplay.className}>
-                      {ticket.priority.toUpperCase()} PRIORITY
-                    </span>
-                  </div>
-                </div>
-                <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium', statusDisplay.className)}>
-                  {statusDisplay.label}
-                </Badge>
-              </div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-3">{ticket.title}</h1>
+              <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium', statusDisplay.className)}>
+                {statusDisplay.label}
+              </Badge>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
-              {/* Main Content */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Description</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-wrap">
-                      {ticket.description || 'No description provided'}
-                    </p>
-                  </CardContent>
-                </Card>
+            {/* Main Content Sections */}
+            <div className="space-y-6">
+              <TicketDetails ticket={ticket} />
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No activity yet
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Description */}
+              {ticket.description && (
+                <div className="bg-card border rounded-lg p-6">
+                  <h2 className="text-lg font-semibold mb-3">Description</h2>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    {ticket.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Two-column layout for chat and milestones */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TicketUpdates ticketId={ticket.id} />
+                <TicketMilestones ticketId={ticket.id} />
               </div>
 
-              {/* Sidebar Info */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Ticket Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1">Client</p>
-                        <p className="text-sm font-medium">
-                          {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
-                        </p>
-                      </div>
-                    </div>
+              {/* Pricing section */}
+              <TicketPricing ticketId={ticket.id} />
 
-                    <div className="flex items-start gap-3">
-                      <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1">Created By</p>
-                        <p className="text-sm font-medium">
-                          {ticket.creator?.full_name || ticket.creator?.email || 'Unknown'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1">Assigned To</p>
-                        <p className="text-sm font-medium">
-                          {ticket.assigned_profile?.full_name || 'Unassigned'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Tag className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1">Category</p>
-                        <p className="text-sm font-medium">
-                          {ticket.categories?.name || 'Uncategorized'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-xs text-muted-foreground mb-1">Created</p>
-                        <p className="text-sm font-medium">
-                          {new Date(ticket.created_at).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              {/* Links and Files */}
+              <TicketLinks ticketId={ticket.id} />
+              <TicketFiles ticketId={ticket.id} />
             </div>
           </div>
         </main>

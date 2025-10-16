@@ -154,47 +154,229 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_links: {
+        Row: {
+          created_at: string
+          id: string
+          link_type: string
+          ticket_id: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link_type: string
+          ticket_id: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link_type?: string
+          ticket_id?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_links_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          ticket_id: string
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+          updated_at?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_milestones: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          person_name: string | null
+          status: string
+          ticket_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          person_name?: string | null
+          status?: string
+          ticket_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          person_name?: string | null
+          status?: string
+          ticket_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_milestones_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_quotes: {
+        Row: {
+          amount: number
+          approval_window_expires_at: string | null
+          created_at: string
+          decline_reason: string | null
+          deliverables: string[] | null
+          id: string
+          po_file_url: string | null
+          po_number: string | null
+          preferred_amount: number | null
+          status: string
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approval_window_expires_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          deliverables?: string[] | null
+          id?: string
+          po_file_url?: string | null
+          po_number?: string | null
+          preferred_amount?: number | null
+          status?: string
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          approval_window_expires_at?: string | null
+          created_at?: string
+          decline_reason?: string | null
+          deliverables?: string[] | null
+          id?: string
+          po_file_url?: string | null
+          po_number?: string | null
+          preferred_amount?: number | null
+          status?: string
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_quotes_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tickets: {
         Row: {
           assigned_to: string | null
+          budget: number | null
           category_id: string | null
           closed_at: string | null
           created_at: string | null
           created_by: string
           description: string
+          due_date: string | null
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolved_at: string | null
           status: Database["public"]["Enums"]["ticket_status"]
+          subtype: string | null
+          ticket_number: number
           title: string
+          type: string | null
           updated_at: string | null
         }
         Insert: {
           assigned_to?: string | null
+          budget?: number | null
           category_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           created_by: string
           description: string
+          due_date?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          subtype?: string | null
+          ticket_number?: number
           title: string
+          type?: string | null
           updated_at?: string | null
         }
         Update: {
           assigned_to?: string | null
+          budget?: number | null
           category_id?: string | null
           closed_at?: string | null
           created_at?: string | null
           created_by?: string
           description?: string
+          due_date?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
+          subtype?: string | null
+          ticket_number?: number
           title?: string
+          type?: string | null
           updated_at?: string | null
         }
         Relationships: [
