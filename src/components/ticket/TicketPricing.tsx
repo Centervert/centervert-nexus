@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useStripeSetting } from '@/hooks/useSystemSettings';
+import { sendQuoteNotification, getTicketDetails, getUserDetails } from '@/lib/emailNotifications';
 import { cn } from '@/lib/utils';
 
 interface Quote {
@@ -184,6 +185,30 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
 
+      // Send email notification
+      const ticketDetails = await getTicketDetails(ticketId);
+      if (ticketDetails) {
+        // Notify agents/admins about the approval
+        const { data: agents } = await supabase
+          .from('user_roles')
+          .select('user_id, profiles!inner(email, full_name)')
+          .in('role', ['admin', 'agent']);
+
+        agents?.forEach(async (agent: any) => {
+          await sendQuoteNotification({
+            to_email: agent.profiles.email,
+            to_name: agent.profiles.full_name || agent.profiles.email,
+            ticket_number: ticketDetails.ticket_number,
+            ticket_title: ticketDetails.title,
+            ticket_id: ticketId,
+            quote_amount: quote.amount,
+            event_type: 'approved',
+            actor_name: approvedBy,
+            deliverables: quote.deliverables || undefined,
+          });
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote approved successfully');
       setShowApprovalForm(false);
@@ -220,6 +245,30 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         .eq('id', quote.id);
 
       if (error) throw error;
+
+      // Send email notification
+      const ticketDetails = await getTicketDetails(ticketId);
+      if (ticketDetails) {
+        // Notify agents/admins about the decline
+        const { data: agents } = await supabase
+          .from('user_roles')
+          .select('user_id, profiles!inner(email, full_name)')
+          .in('role', ['admin', 'agent']);
+
+        agents?.forEach(async (agent: any) => {
+          await sendQuoteNotification({
+            to_email: agent.profiles.email,
+            to_name: agent.profiles.full_name || agent.profiles.email,
+            ticket_number: ticketDetails.ticket_number,
+            ticket_title: ticketDetails.title,
+            ticket_id: ticketId,
+            quote_amount: quote.amount,
+            event_type: 'declined',
+            actor_name: declinedBy,
+            deliverables: quote.deliverables || undefined,
+          });
+        });
+      }
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote declined');

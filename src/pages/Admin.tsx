@@ -5,6 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useStripeSetting, useUpdateStripeSetting } from '@/hooks/useSystemSettings';
+import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
 import { CreditCard } from 'lucide-react';
 
 const Admin = () => {
@@ -26,9 +27,12 @@ const Admin = () => {
           </div>
 
           <div className="p-8">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold">Admin Settings</h1>
-              <p className="text-muted-foreground">Manage system settings and configuration</p>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">Admin Settings</h1>
+                <p className="text-muted-foreground">Manage system settings and configuration</p>
+              </div>
+              <InviteUserDialog />
             </div>
 
             <div className="space-y-6">

@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
+import { sendQuoteNotification, getTicketDetails, getUserDetails } from '@/lib/emailNotifications';
 
 interface CreateQuoteDialogProps {
   ticketId: string;
@@ -57,9 +58,27 @@ export const CreateQuoteDialog = ({ ticketId }: CreateQuoteDialogProps) => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote created successfully');
+      
+      // Send email notification to ticket creator
+      const ticketDetails = await getTicketDetails(ticketId);
+      if (ticketDetails?.created_by) {
+        const userDetails = await getUserDetails(ticketDetails.created_by);
+        if (userDetails) {
+          await sendQuoteNotification({
+            to_email: userDetails.email,
+            to_name: userDetails.full_name || userDetails.email,
+            ticket_number: ticketDetails.ticket_number,
+            ticket_title: ticketDetails.title,
+            ticket_id: ticketId,
+            quote_amount: parseFloat(amount),
+            event_type: 'created',
+          });
+        }
+      }
+      
       setOpen(false);
       setAmount('');
       setIsRecurring(false);
