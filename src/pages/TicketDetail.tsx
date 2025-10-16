@@ -130,7 +130,7 @@ const TicketDetail = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ticket_quotes')
-        .select('amount, deliverables, billing_interval, is_recurring')
+        .select('id, amount, deliverables, billing_interval, is_recurring')
         .eq('ticket_id', id)
         .eq('status', 'approved')
         .maybeSingle();
