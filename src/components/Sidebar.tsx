@@ -5,17 +5,52 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import centervertLogo from '@/assets/centervert-logo.png';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Sidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
+
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, company')
+        .eq('id', user.id)
+        .single();
+      
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id);
+      
+      return {
+        fullName: profile?.full_name || user.email,
+        company: profile?.company || '',
+        role: roles?.[0]?.role || 'user'
+      };
+    },
+    enabled: !!user?.id
+  });
 
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
     { name: 'User Management', href: '/admin', icon: Users },
   ];
 
-  const initials = user?.email?.substring(0, 2).toUpperCase() || 'U';
+  const initials = userProfile?.fullName
+    ?.split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase() || user?.email?.substring(0, 2).toUpperCase() || 'U';
+  
+  const displayRole = userProfile?.role 
+    ? userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)
+    : 'User';
 
   return (
     <div className="flex h-screen w-64 flex-col border-r border-sidebar-border bg-sidebar-bg">
@@ -63,8 +98,11 @@ const Sidebar = () => {
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">
-            <p className="truncate text-sm font-medium">{user?.email}</p>
-            <p className="text-xs text-muted-foreground">User</p>
+            <p className="truncate text-sm font-medium">{userProfile?.fullName}</p>
+            {userProfile?.company && (
+              <p className="truncate text-xs text-muted-foreground">{userProfile.company}</p>
+            )}
+            <p className="text-xs text-muted-foreground">{displayRole}</p>
           </div>
           <button
             onClick={signOut}
