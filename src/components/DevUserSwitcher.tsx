@@ -4,25 +4,62 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { User, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { User, Loader2, Settings } from 'lucide-react';
+import { toast } from 'sonner';
 
 const TEST_USERS = [
-  { email: 'test-admin@dev.local', password: 'admin123', label: 'Admin', color: 'bg-red-500' },
-  { email: 'test-agent@dev.local', password: 'agent123', label: 'Agent', color: 'bg-blue-500' },
-  { email: 'test-user@dev.local', password: 'user123', label: 'User', color: 'bg-green-500' },
+  { email: 'test-admin@dev.local', password: 'TestAdmin123!', label: 'Admin', color: 'bg-red-500' },
+  { email: 'test-agent@dev.local', password: 'TestAgent123!', label: 'Agent', color: 'bg-blue-500' },
+  { email: 'test-user@dev.local', password: 'TestUser123!', label: 'User', color: 'bg-green-500' },
 ];
 
 export const DevUserSwitcher = () => {
   const { user } = useAuth();
   const { data: userRole } = useUserRole();
-  const { toast } = useToast();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
 
   // Only show in development
   if (!import.meta.env.DEV) return null;
+
+  const setupTestUsers = async () => {
+    setIsSettingUp(true);
+    let successCount = 0;
+    
+    for (const testUser of TEST_USERS) {
+      try {
+        const { error } = await supabase.auth.signUp({
+          email: testUser.email,
+          password: testUser.password,
+          options: {
+            data: {
+              full_name: `Test ${testUser.label}`,
+            }
+          }
+        });
+        
+        if (!error) successCount++;
+      } catch (err) {
+        console.error(`Failed to create ${testUser.email}:`, err);
+      }
+    }
+    
+    setIsSettingUp(false);
+    
+    if (successCount > 0) {
+      toast.success(`Created ${successCount} test users. You can now switch between them.`);
+    } else {
+      toast.error('Test users may already exist. Try switching directly.');
+    }
+  };
 
   const handleSwitchUser = async (email: string, password: string, label: string) => {
     setIsSwitching(true);
@@ -32,12 +69,17 @@ export const DevUserSwitcher = () => {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          toast.error('Test users not set up yet. Click "Setup Test Users" first.');
+        } else {
+          throw error;
+        }
+        setIsSwitching(false);
+        return;
+      }
 
-      toast({
-        title: 'Switched User',
-        description: `Now viewing as ${label}`,
-      });
+      toast.success(`Switched to ${label}`);
 
       // Reload to ensure all queries refresh
       setTimeout(() => {
@@ -45,11 +87,7 @@ export const DevUserSwitcher = () => {
       }, 500);
     } catch (error) {
       console.error('Switch user error:', error);
-      toast({
-        title: 'Switch Failed',
-        description: 'Could not switch user account',
-        variant: 'destructive',
-      });
+      toast.error('Could not switch user account');
       setIsSwitching(false);
     }
   };
@@ -58,72 +96,61 @@ export const DevUserSwitcher = () => {
   const currentColor = userRole?.isAdmin ? 'bg-red-500' : userRole?.isAgent ? 'bg-blue-500' : 'bg-green-500';
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Card className="shadow-lg border-2 border-primary/20">
-        <CardContent className="p-3">
-          {/* Current User Display */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`w-2 h-2 rounded-full ${currentColor} animate-pulse`} />
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-semibold truncate">{user?.email}</div>
-              <Badge variant="outline" className="text-xs mt-1">
-                {currentUserType}
-                {userRole?.roles && userRole.roles.length > 1 && ` +${userRole.roles.length - 1}`}
-              </Badge>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              disabled={isSwitching}
-              className="h-8 w-8 p-0"
-            >
-              {isSwitching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronUp className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-
-          {/* User Switcher Buttons */}
-          {isExpanded && (
-            <div className="space-y-1 pt-2 border-t">
-              <div className="text-xs text-muted-foreground mb-2 font-semibold">
-                <User className="h-3 w-3 inline mr-1" />
-                Switch Test User
-              </div>
-              {TEST_USERS.map((testUser) => (
-                <Button
-                  key={testUser.email}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleSwitchUser(testUser.email, testUser.password, testUser.label)}
-                  disabled={isSwitching || user?.email === testUser.email}
-                  className="w-full justify-start text-xs h-8"
-                >
-                  <div className={`w-2 h-2 rounded-full ${testUser.color} mr-2`} />
-                  {testUser.label}
-                  {user?.email === testUser.email && (
-                    <Badge variant="secondary" className="ml-auto text-xs">
-                      Active
-                    </Badge>
-                  )}
-                </Button>
-              ))}
-            </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="gap-2"
+          disabled={isSwitching || isSettingUp}
+        >
+          {isSwitching || isSettingUp ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <div className={`w-2 h-2 rounded-full ${currentColor} animate-pulse`} />
+              <span className="text-xs font-medium">{currentUserType}</span>
+              <Badge variant="secondary" className="text-xs">DEV</Badge>
+            </>
           )}
-
-          {/* Dev Mode Badge */}
-          <div className="mt-2 pt-2 border-t">
-            <Badge variant="secondary" className="text-xs w-full justify-center">
-              🔧 DEV MODE
-            </Badge>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium">Dev User Switcher</p>
+            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        {TEST_USERS.map((testUser) => (
+          <DropdownMenuItem
+            key={testUser.email}
+            onClick={() => handleSwitchUser(testUser.email, testUser.password, testUser.label)}
+            disabled={isSwitching || user?.email === testUser.email}
+            className="cursor-pointer"
+          >
+            <div className={`w-2 h-2 rounded-full ${testUser.color} mr-2`} />
+            <span>{testUser.label}</span>
+            {user?.email === testUser.email && (
+              <Badge variant="secondary" className="ml-auto text-xs">
+                Active
+              </Badge>
+            )}
+          </DropdownMenuItem>
+        ))}
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={setupTestUsers}
+          disabled={isSettingUp}
+          className="cursor-pointer"
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          <span>Setup Test Users</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

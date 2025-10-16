@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { DevUserSwitcher } from '@/components/DevUserSwitcher';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -108,6 +109,9 @@ const Dashboard = () => {
             <div className="flex items-center gap-2.5 rounded-full bg-emerald-50 px-5 py-2.5">
               <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="text-sm font-medium text-emerald-700">All Systems Operational</span>
+            </div>
+            <div className="ml-auto">
+              <DevUserSwitcher />
             </div>
           </div>
 
