@@ -107,7 +107,9 @@ const Sidebar = () => {
           <div className="flex items-center gap-2.5">
             <Users className="h-7 w-7 text-foreground shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="truncate text-sm font-semibold">CenterVert</p>
+              <p className="truncate text-sm font-semibold">
+                {userProfile?.company || 'Your Company'}
+              </p>
               <p className="truncate text-xs text-muted-foreground">
                 {userProfile?.fullName} • {displayRole}
               </p>
