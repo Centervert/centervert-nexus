@@ -275,7 +275,7 @@ const Dashboard = () => {
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {ticket.client?.name || 'No Client'}
-                          {ticket.end_client_name && (
+                          {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
                             <span> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                           )}
                         </div>
@@ -319,7 +319,7 @@ const Dashboard = () => {
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
                         {ticket.client?.name || 'No Client'}
-                        {ticket.end_client_name && (
+                        {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
                           <span className="text-muted-foreground"> <span className="mx-2">→</span> {ticket.end_client_name}</span>
                         )}
                       </div>
