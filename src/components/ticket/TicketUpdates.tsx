@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Send, Paperclip } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,15 +105,6 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
   const formatTime = (date: string) => {
     const messageDate = new Date(date);
     const now = new Date();
@@ -133,93 +123,79 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-[600px]">
-      <CardHeader>
-        <CardTitle>Updates & Communication</CardTitle>
+    <Card className="flex flex-col h-[600px] bg-black">
+      <CardHeader className="border-b border-gray-800">
+        <CardTitle className="text-white">Updates & Communication</CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col min-h-0">
+      <CardContent className="flex-1 flex flex-col min-h-0 bg-black">
         {/* Messages Container */}
-        <div className="flex-1 overflow-y-auto mb-4 space-y-4 pr-2">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-2 pr-2">
           {isLoading ? (
-            <p className="text-center text-sm text-muted-foreground">Loading messages...</p>
+            <p className="text-center text-sm text-gray-400">Loading messages...</p>
           ) : messages.length === 0 ? (
-            <p className="text-center text-sm text-muted-foreground py-8">
+            <p className="text-center text-sm text-gray-400 py-8">
               No messages yet. Start the conversation!
             </p>
           ) : (
-            messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  message.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'
-                }`}
-              >
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className="text-xs">
-                    {getInitials(message.user_name)}
-                  </AvatarFallback>
-                </Avatar>
-                <div
-                  className={`flex flex-col ${
-                    message.user_id === user?.id ? 'items-end' : 'items-start'
-                  } max-w-[80%]`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium">{message.user_name}</span>
-                    <span className="text-xs text-muted-foreground">
+            messages.map((message, index) => {
+              const isCurrentUser = message.user_id === user?.id;
+              const showTime = index === 0 || 
+                new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 3600000;
+              
+              return (
+                <div key={message.id}>
+                  {showTime && (
+                    <div className="text-center text-xs text-gray-500 my-4">
                       {formatTime(message.created_at)}
-                    </span>
-                  </div>
+                    </div>
+                  )}
                   <div
-                    className={`rounded-lg px-4 py-2 ${
-                      message.user_id === user?.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
+                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div
+                      className={`rounded-[18px] px-4 py-2 max-w-[75%] ${
+                        isCurrentUser
+                          ? 'bg-[#007AFF] text-white'
+                          : 'bg-[#3A3A3C] text-white'
+                      }`}
+                    >
+                      <p className="text-[15px] leading-[20px] whitespace-pre-wrap">{message.content}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input Area */}
         <div className="space-y-2">
-          <Textarea
-            placeholder="Type your message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            className="min-h-[80px] resize-none"
-            maxLength={1000}
-          />
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Paperclip className="h-4 w-4" />
-              Attach File
+          <div className="flex items-center gap-2 bg-[#1C1C1E] rounded-full px-4 py-2">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-white">
+              <Paperclip className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {newMessage.length}/1000
-              </span>
-              <Button
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim() || sending}
-                size="sm"
-                className="gap-2"
-              >
-                <Send className="h-4 w-4" />
-                Send
-              </Button>
-            </div>
+            <Textarea
+              placeholder="iMessage"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+              className="min-h-[36px] max-h-[120px] resize-none border-0 bg-transparent text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 py-2"
+              maxLength={1000}
+            />
+            <Button 
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim() || sending}
+              size="icon"
+              className="h-8 w-8 rounded-full bg-[#007AFF] hover:bg-[#0051D5] disabled:bg-gray-700"
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </CardContent>
