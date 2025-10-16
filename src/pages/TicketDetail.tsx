@@ -105,8 +105,16 @@ const TicketDetail = () => {
 
       const userName = profile?.full_name || user.email || 'Unknown User';
       
-      // Get status label for display
-      const statusLabel = statusOptions.find(opt => opt.value === newStatus)?.label || newStatus;
+      // Get current ticket status before updating
+      const { data: currentTicket } = await supabase
+        .from('tickets')
+        .select('status')
+        .eq('id', id)
+        .single();
+
+      const oldStatus = currentTicket?.status;
+      const oldStatusLabel = statusOptions.find(opt => opt.value === oldStatus)?.label || oldStatus;
+      const newStatusLabel = statusOptions.find(opt => opt.value === newStatus)?.label || newStatus;
 
       // Update ticket status
       const { error: ticketError } = await supabase
@@ -122,7 +130,7 @@ const TicketDetail = () => {
         .insert({
           ticket_id: id,
           type: 'status_change',
-          title: `${userName} updated the status to ${statusLabel}`,
+          title: `${userName} updated the status from ${oldStatusLabel} to ${newStatusLabel}`,
           status: 'completed'
         });
 
