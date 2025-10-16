@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Building2 } from 'lucide-react';
+import { Plus, Search, Building2, LayoutGrid, List } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CreateClientDialog } from '@/components/clients/CreateClientDialog';
 
@@ -16,6 +16,7 @@ const Clients = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [clientTypeFilter, setClientTypeFilter] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const { data: clients, isLoading, refetch } = useQuery({
     queryKey: ['clients', searchQuery, clientTypeFilter],
@@ -109,6 +110,24 @@ const Clients = () => {
               </div>
               <div className="flex gap-2">
                 <Button
+                  variant={viewMode === 'card' ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={() => setViewMode('card')}
+                  title="Card view"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="icon"
+                  onClick={() => setViewMode('list')}
+                  title="List view"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
                   variant={clientTypeFilter === null ? 'default' : 'outline'}
                   onClick={() => setClientTypeFilter(null)}
                 >
@@ -138,50 +157,88 @@ const Clients = () => {
             {isLoading ? (
               <div className="text-center py-12 text-muted-foreground">Loading clients...</div>
             ) : clients && clients.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {clients.map((client) => (
-                  <Card
-                    key={client.id}
-                    className="cursor-pointer transition-shadow hover:shadow-md"
-                    onClick={() => navigate(`/clients/${client.id}`)}
-                  >
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-lg">{client.name}</CardTitle>
-                        </div>
-                        {getClientTypeBadge(client.client_type)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2 text-sm">
-                        {(client as any).managing_agency && (
-                          <div>
-                            <span className="text-muted-foreground">Managed by: </span>
-                            <span className="font-medium">{(client as any).managing_agency?.name}</span>
+              viewMode === 'card' ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {clients.map((client) => (
+                    <Card
+                      key={client.id}
+                      className="cursor-pointer transition-shadow hover:shadow-md"
+                      onClick={() => navigate(`/clients/${client.id}`)}
+                    >
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="h-5 w-5 text-primary" />
+                            <CardTitle className="text-lg">{client.name}</CardTitle>
                           </div>
-                        )}
-                        {client.payment_terms && (
-                          <div>
-                            <span className="text-muted-foreground">Payment Terms: </span>
-                            <span className="font-medium">{client.payment_terms}</span>
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-muted-foreground">Active Users: </span>
-                          <span className="font-medium">{client.client_users?.[0]?.count || 0}</span>
+                          {getClientTypeBadge(client.client_type)}
                         </div>
-                        <div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          {(client as any).managing_agency && (
+                            <div>
+                              <span className="text-muted-foreground">Managed by: </span>
+                              <span className="font-medium">{(client as any).managing_agency?.name}</span>
+                            </div>
+                          )}
+                          {client.payment_terms && (
+                            <div>
+                              <span className="text-muted-foreground">Payment Terms: </span>
+                              <span className="font-medium">{client.payment_terms}</span>
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-muted-foreground">Active Users: </span>
+                            <span className="font-medium">{client.client_users?.[0]?.count || 0}</span>
+                          </div>
+                          <div>
+                            <Badge variant={client.is_active ? 'default' : 'secondary'}>
+                              {client.is_active ? 'Active' : 'Inactive'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {clients.map((client) => (
+                        <div
+                          key={client.id}
+                          className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                          onClick={() => navigate(`/clients/${client.id}`)}
+                        >
+                          <div className="flex items-center gap-4 flex-1">
+                            <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="font-semibold truncate">{client.name}</h3>
+                                {getClientTypeBadge(client.client_type)}
+                              </div>
+                              <div className="flex gap-4 text-sm text-muted-foreground">
+                                {(client as any).managing_agency && (
+                                  <span>Managed by: {(client as any).managing_agency?.name}</span>
+                                )}
+                                {client.payment_terms && (
+                                  <span>Payment: {client.payment_terms}</span>
+                                )}
+                                <span>{client.client_users?.[0]?.count || 0} users</span>
+                              </div>
+                            </div>
+                          </div>
                           <Badge variant={client.is_active ? 'default' : 'secondary'}>
                             {client.is_active ? 'Active' : 'Inactive'}
                           </Badge>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
             ) : (
               <Card>
                 <CardContent className="text-center py-12 text-muted-foreground">
