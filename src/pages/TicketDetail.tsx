@@ -46,11 +46,12 @@ const TicketDetail = () => {
 
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      open: { label: 'New Request', className: 'bg-slate-900 text-white' },
-      in_progress: { label: 'In Progress', className: 'bg-blue-400 text-blue-900' },
-      awaiting_response: { label: 'Awaiting Your Response', className: 'bg-amber-400 text-amber-900' },
-      resolved: { label: 'Complete', className: 'bg-green-400 text-green-900' },
-      closed: { label: 'Awaiting Finance Approval', className: 'bg-purple-400 text-purple-900' },
+      open: { label: 'New Request', className: 'bg-gray-900 text-white' },
+      in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
+      awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
+      awaiting_finance: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+      resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
+      cancelled: { label: 'Cancelled', className: 'bg-slate-400 text-white' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
   };
