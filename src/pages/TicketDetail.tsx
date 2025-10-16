@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Sidebar from '@/components/Sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TicketDetails } from '@/components/ticket/TicketDetails';
 import { TicketUpdates } from '@/components/ticket/TicketUpdates';
@@ -14,10 +14,19 @@ import { TicketMilestones } from '@/components/ticket/TicketMilestones';
 import { TicketPricing } from '@/components/ticket/TicketPricing';
 import { TicketLinks } from '@/components/ticket/TicketLinks';
 import { TicketFiles } from '@/components/ticket/TicketFiles';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 const TicketDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ['ticket', id],
@@ -69,6 +78,44 @@ const TicketDetail = () => {
     };
     return priorityMap[priority] || { className: 'text-gray-600' };
   };
+
+  const statusOptions: Array<{
+    value: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed';
+    label: string;
+    className: string;
+  }> = [
+    { value: 'open', label: 'New Request', className: 'bg-gray-900 text-white' },
+    { value: 'in_progress', label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
+    { value: 'awaiting_response', label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
+    { value: 'closed', label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+    { value: 'resolved', label: 'Complete', className: 'bg-green-100 text-green-800' },
+  ];
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed') => {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      toast({
+        title: 'Status updated',
+        description: 'Ticket status has been updated successfully.',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update ticket status.',
+        variant: 'destructive',
+      });
+      console.error('Error updating status:', error);
+    },
+  });
 
   if (isLoading) {
     return (
@@ -139,9 +186,33 @@ const TicketDetail = () => {
             {/* Title & Status */}
             <div className="flex items-start justify-between gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold flex-1">{ticket.title}</h1>
-              <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium shrink-0', statusDisplay.className)}>
-                {statusDisplay.label}
-              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      'rounded-md px-4 py-2 text-sm font-medium shrink-0 gap-2',
+                      statusDisplay.className
+                    )}
+                  >
+                    {statusDisplay.label}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {statusOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => updateStatusMutation.mutate(option.value)}
+                      className="cursor-pointer"
+                    >
+                      <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                        {option.label}
+                      </Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Main Content Sections */}
