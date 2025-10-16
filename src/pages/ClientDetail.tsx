@@ -7,9 +7,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Trash2 } from 'lucide-react';
-import { ClientOverview } from '@/components/clients/ClientOverview';
-import { ClientContacts } from '@/components/clients/ClientContacts';
-import { ClientUsers } from '@/components/clients/ClientUsers';
+import { UnifiedClientView } from '@/components/clients/UnifiedClientView';
 import { ClientTickets } from '@/components/clients/ClientTickets';
 import { DeleteClientDialog } from '@/components/clients/DeleteClientDialog';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -114,22 +112,12 @@ const ClientDetail = () => {
 
             <Tabs defaultValue="overview" className="space-y-6">
               <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                <TabsTrigger value="users">Users</TabsTrigger>
+                <TabsTrigger value="overview">Overview & Contacts</TabsTrigger>
                 <TabsTrigger value="tickets">Tickets</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview">
-                <ClientOverview client={client} />
-              </TabsContent>
-
-              <TabsContent value="contacts">
-                <ClientContacts clientId={client.id} />
-              </TabsContent>
-
-              <TabsContent value="users">
-                <ClientUsers clientId={client.id} />
+                <UnifiedClientView client={client} />
               </TabsContent>
 
               <TabsContent value="tickets">
