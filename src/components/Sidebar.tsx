@@ -104,10 +104,9 @@ const Sidebar = () => {
           </Avatar>
           <div className="flex-1 overflow-hidden">
             <p className="truncate text-sm font-medium">{userProfile?.fullName}</p>
-            {userProfile?.company && (
-              <p className="truncate text-xs text-muted-foreground">{userProfile.company}</p>
-            )}
-            <p className="text-xs text-muted-foreground">{displayRole}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {userProfile?.company && `${userProfile.company} - `}{displayRole}
+            </p>
           </div>
           <button
             onClick={signOut}
