@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
+import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
 
 interface ClientUsersProps {
   clientId: string;
@@ -32,10 +33,15 @@ export const ClientUsers = ({ clientId }: ClientUsersProps) => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Portal Users</CardTitle>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Invite User
-          </Button>
+          <InviteUserDialog 
+            preSelectedClientId={clientId}
+            trigger={
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Invite User
+              </Button>
+            }
+          />
         </div>
       </CardHeader>
       <CardContent>

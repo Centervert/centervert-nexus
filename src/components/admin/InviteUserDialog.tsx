@@ -24,12 +24,17 @@ import { sendUserInvite } from '@/lib/emailNotifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
-export const InviteUserDialog = () => {
+interface InviteUserDialogProps {
+  preSelectedClientId?: string;
+  trigger?: React.ReactNode;
+}
+
+export const InviteUserDialog = ({ preSelectedClientId, trigger }: InviteUserDialogProps) => {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<string>('user');
-  const [clientId, setClientId] = useState('');
+  const [clientId, setClientId] = useState(preSelectedClientId || '');
 
   const { data: clients } = useQuery({
     queryKey: ['clients-list'],
@@ -106,10 +111,12 @@ export const InviteUserDialog = () => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Invite User
-        </Button>
+        {trigger || (
+          <Button className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Invite User
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -149,7 +156,7 @@ export const InviteUserDialog = () => {
               <Label htmlFor="client">
                 Client <span className="text-muted-foreground">(optional)</span>
               </Label>
-              <Select value={clientId} onValueChange={setClientId}>
+              <Select value={clientId} onValueChange={setClientId} disabled={!!preSelectedClientId}>
                 <SelectTrigger id="client">
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
