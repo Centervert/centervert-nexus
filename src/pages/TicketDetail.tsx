@@ -93,12 +93,40 @@ const TicketDetail = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed') => {
-      const { error } = await supabase
+      // Get current user profile
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      const userName = profile?.full_name || user.email || 'Unknown User';
+      
+      // Get status label for display
+      const statusLabel = statusOptions.find(opt => opt.value === newStatus)?.label || newStatus;
+
+      // Update ticket status
+      const { error: ticketError } = await supabase
         .from('tickets')
         .update({ status: newStatus })
         .eq('id', id);
       
-      if (error) throw error;
+      if (ticketError) throw ticketError;
+
+      // Create milestone for status change
+      const { error: milestoneError } = await supabase
+        .from('ticket_milestones')
+        .insert({
+          ticket_id: id,
+          type: 'status_change',
+          title: `${userName} updated the status to ${statusLabel}`,
+          status: 'completed'
+        });
+
+      if (milestoneError) throw milestoneError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ticket', id] });
