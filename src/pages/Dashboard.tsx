@@ -55,10 +55,10 @@ const Dashboard = () => {
 
       <main className="flex-1 overflow-y-auto">
         {/* Top Bar */}
-        <div className="flex h-16 items-center border-b border-border bg-card px-8">
-          <div className="flex items-center gap-2 rounded-full bg-status-complete/10 px-4 py-2">
-            <div className="h-2 w-2 rounded-full bg-status-complete" />
-            <span className="text-sm font-medium text-status-complete">All Systems Operational</span>
+        <div className="flex h-16 items-center border-b border-border bg-muted/30 px-8">
+          <div className="flex items-center gap-2.5 rounded-full bg-emerald-50 px-5 py-2.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="text-sm font-medium text-emerald-700">All Systems Operational</span>
           </div>
         </div>
 
