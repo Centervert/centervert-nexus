@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -31,6 +31,7 @@ interface TicketMilestonesProps {
 
 export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
   const queryClient = useQueryClient();
+  const milestonesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: milestones = [], isLoading } = useQuery({
     queryKey: ['ticket-milestones', ticketId],
@@ -68,6 +69,13 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
       supabase.removeChannel(channel);
     };
   }, [ticketId, queryClient]);
+
+  // Auto-scroll to bottom when milestones load or update
+  useEffect(() => {
+    if (milestones.length > 0) {
+      milestonesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [milestones]);
 
   const getMilestoneIcon = (type: string) => {
     const icons: Record<string, typeof Ticket> = {
@@ -183,6 +191,7 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
                   </div>
                 );
               })}
+              <div ref={milestonesEndRef} />
             </div>
           </div>
         )}
