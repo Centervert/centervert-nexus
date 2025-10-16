@@ -62,6 +62,7 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [newClientId, setNewClientId] = useState<string | null>(null);
   
   const { user } = useAuth();
   const { toast } = useToast();
@@ -186,7 +187,58 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
         return;
       }
 
-      if (data.type === 'ticket_data') {
+      if (data.type === 'create_client') {
+        // AI wants to create a new client
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            name: data.clientData.name,
+            client_type: data.clientData.client_type,
+            is_active: true
+          })
+          .select()
+          .single();
+
+        if (clientError) {
+          console.error('Error creating client:', clientError);
+          toast({
+            title: 'Error',
+            description: 'Failed to create new client. Please try again.',
+            variant: 'destructive'
+          });
+          setIsLoading(false);
+          return;
+        }
+
+        // Store the new client ID for later reminder
+        setNewClientId(newClient.id);
+
+        // Update clients list
+        setClients(prev => [...prev, {
+          id: newClient.id,
+          name: newClient.name,
+          client_type: newClient.client_type
+        }]);
+
+        // Show confirmation message
+        const confirmMessage = `Great! I've created "${newClient.name}" as a new ${data.clientData.client_type} client. Now I can proceed with creating your ticket.`;
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: confirmMessage
+        }]);
+        
+        setIsLoading(false);
+        
+        // Give AI a moment to process before continuing
+        setTimeout(() => {
+          // Add a system message to continue with ticket creation
+          const continueMessage = "Please tell me more about the ticket you'd like to create for this client.";
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: continueMessage
+          }]);
+        }, 500);
+      } else if (data.type === 'ticket_data') {
         // AI extracted ticket data
         setTicketData(data.ticketData);
         setMessages(prev => [...prev, {
@@ -238,9 +290,15 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
 
       if (error) throw error;
 
+      // Check if we created a new client during this conversation
+      const clientReminder = newClientId 
+        ? " Don't forget to visit the client record to add additional information like contact details, billing address, and other details."
+        : "";
+
       toast({
         title: 'Success',
-        description: 'Ticket created successfully!',
+        description: `Ticket created successfully!${clientReminder}`,
+        duration: clientReminder ? 7000 : 3000,
       });
 
       onOpenChange(false);
@@ -267,6 +325,7 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
       content: "Hi! I'm your AI ticket assistant. Tell me what you need help with, and I'll create a ticket for you."
     }]);
     setTicketData(null);
+    setNewClientId(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

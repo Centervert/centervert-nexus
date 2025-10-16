@@ -77,8 +77,13 @@ Your behavior:
    - Budget: only ask if costs are mentioned
 5. Never ask all questions at once - have a natural conversation
 6. When you have the required information (title, description, client_id), call the create_ticket tool
-7. Match client names flexibly (e.g., "Google" matches "Google Inc.")
-8. Be helpful in understanding what the user wants
+7. If a client doesn't exist in the provided list, ask what type of client it is:
+   - "direct" for direct clients
+   - "agency" for agency partners
+   - "end_client" for end clients of agencies
+   Then call create_client before proceeding with the ticket
+8. Match client names flexibly (e.g., "Google" matches "Google Inc.")
+9. Be helpful in understanding what the user wants
 
 Priority keywords:
 - "urgent", "emergency", "critical", "asap" → urgent
@@ -94,8 +99,30 @@ Agent assignment:
 - Only assign if user mentions a specific person or if expertise is clearly needed
 - Otherwise leave unassigned`;
 
-    // Define the tool for ticket creation
+    // Define the tools for ticket and client creation
     const tools = [
+      {
+        type: "function",
+        function: {
+          name: "create_client",
+          description: "Create a new client when the client mentioned doesn't exist in the system. Always ask for client_type before calling this.",
+          parameters: {
+            type: "object",
+            properties: {
+              name: { 
+                type: "string", 
+                description: "The name of the client company/organization" 
+              },
+              client_type: { 
+                type: "string", 
+                enum: ["direct", "agency", "end_client"],
+                description: "Type of client: 'direct' (direct client), 'agency' (agency partner), or 'end_client' (end client of an agency)" 
+              }
+            },
+            required: ["name", "client_type"]
+          }
+        }
+      },
       {
         type: "function",
         function: {
@@ -209,9 +236,26 @@ Agent assignment:
       throw new Error('No response from AI');
     }
 
-    // Check if AI called the create_ticket tool
+    // Check if AI called any tools
     if (choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
       const toolCall = choice.message.tool_calls[0];
+      
+      if (toolCall.function.name === 'create_client') {
+        const clientData = JSON.parse(toolCall.function.arguments);
+        
+        // Return client creation request
+        return new Response(
+          JSON.stringify({ 
+            type: 'create_client',
+            clientData,
+            message: choice.message.content || "Creating new client..."
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+      
       if (toolCall.function.name === 'create_ticket') {
         const ticketData: TicketData = JSON.parse(toolCall.function.arguments);
         
