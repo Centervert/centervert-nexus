@@ -169,19 +169,21 @@ const Clients = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-2">
                             <Building2 className="h-5 w-5 text-primary" />
-                            <CardTitle className="text-lg">{client.name}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {(client as any).managing_agency?.name && (
+                                <span className="text-muted-foreground font-normal">
+                                  {(client as any).managing_agency?.name}
+                                  <span className="mx-2">→</span>
+                                </span>
+                              )}
+                              {client.name}
+                            </CardTitle>
                           </div>
                           {getClientTypeBadge(client.client_type)}
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 text-sm">
-                          {(client as any).managing_agency && (
-                            <div>
-                              <span className="text-muted-foreground">Managed by: </span>
-                              <span className="font-medium">{(client as any).managing_agency?.name}</span>
-                            </div>
-                          )}
                           {client.payment_terms && (
                             <div>
                               <span className="text-muted-foreground">Payment Terms: </span>
@@ -216,13 +218,18 @@ const Clients = () => {
                             <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold truncate">{client.name}</h3>
+                                <h3 className="font-semibold truncate">
+                                  {(client as any).managing_agency?.name && (
+                                    <span className="text-muted-foreground font-normal">
+                                      {(client as any).managing_agency?.name}
+                                      <span className="mx-2">→</span>
+                                    </span>
+                                  )}
+                                  {client.name}
+                                </h3>
                                 {getClientTypeBadge(client.client_type)}
                               </div>
                               <div className="flex gap-4 text-sm text-muted-foreground">
-                                {(client as any).managing_agency && (
-                                  <span>Managed by: {(client as any).managing_agency?.name}</span>
-                                )}
                                 {client.payment_terms && (
                                   <span>Payment: {client.payment_terms}</span>
                                 )}
