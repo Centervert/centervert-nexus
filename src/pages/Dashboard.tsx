@@ -54,6 +54,14 @@ const Dashboard = () => {
       <Sidebar />
 
       <main className="flex-1 overflow-y-auto">
+        {/* Top Bar */}
+        <div className="flex h-16 items-center justify-center border-b border-border bg-card px-8">
+          <div className="flex items-center gap-2 rounded-full bg-status-complete/10 px-4 py-2">
+            <div className="h-2 w-2 rounded-full bg-status-complete" />
+            <span className="text-sm font-medium text-status-complete">All Systems Operational</span>
+          </div>
+        </div>
+
         <div className="p-8">
           {/* Stats Cards */}
           <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
