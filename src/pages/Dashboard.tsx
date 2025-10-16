@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown } from 'lucide-react';
 import { useTickets, useTicketStats } from '@/hooks/useTickets';
+import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,8 +27,9 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status'>('created_at');
+  const { data: userRole } = useUserRole();
 
-  const { data: tickets, isLoading: ticketsLoading } = useTickets({ 
+  const { data: tickets, isLoading: ticketsLoading } = useTickets({
     search: searchQuery, 
     status: statusFilter,
     sortBy 
@@ -276,36 +278,42 @@ const Dashboard = () => {
                         {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            onClick={(e) => e.stopPropagation()}
-                            className="border-0 bg-transparent p-0 focus:outline-none focus:ring-0"
-                          >
-                            <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80 transition-opacity', statusDisplay.className)}>
-                              {statusDisplay.label}
-                              <ChevronDown className="h-3 w-3" />
-                            </Badge>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent 
-                            className="w-[200px] z-[100]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {statusOptions.map((option) => (
-                              <DropdownMenuItem
-                                key={option.value}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleStatusChange(ticket.id, option.value);
-                                }}
-                                className="cursor-pointer p-1"
-                              >
-                                <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
-                                  {option.label}
-                                </Badge>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        {userRole?.isAdmin ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              onClick={(e) => e.stopPropagation()}
+                              className="border-0 bg-transparent p-0 focus:outline-none focus:ring-0"
+                            >
+                              <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80 transition-opacity', statusDisplay.className)}>
+                                {statusDisplay.label}
+                                <ChevronDown className="h-3 w-3" />
+                              </Badge>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              className="w-[200px] z-[100]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {statusOptions.map((option) => (
+                                <DropdownMenuItem
+                                  key={option.value}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStatusChange(ticket.id, option.value);
+                                  }}
+                                  className="cursor-pointer p-1"
+                                >
+                                  <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                                    {option.label}
+                                  </Badge>
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium min-w-[200px] justify-center', statusDisplay.className)}>
+                            {statusDisplay.label}
+                          </Badge>
+                        )}
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-end text-sm">
                         {ticket.due_date 

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Ticket, Users, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -21,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 const Sidebar = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { data: userRole } = useUserRole();
 
   const { data: userProfile } = useQuery({
     queryKey: ['user-profile', user?.id],
@@ -54,7 +56,7 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
-    { name: 'User Management', href: '/admin', icon: Users },
+    ...(userRole?.isAdmin ? [{ name: 'User Management', href: '/admin', icon: Users }] : []),
   ];
 
   const initials = userProfile?.fullName

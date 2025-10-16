@@ -14,6 +14,8 @@ import { TicketMilestones } from '@/components/ticket/TicketMilestones';
 import { TicketPricing } from '@/components/ticket/TicketPricing';
 import { TicketLinks } from '@/components/ticket/TicketLinks';
 import { TicketFiles } from '@/components/ticket/TicketFiles';
+import { EditTicketDialog } from '@/components/ticket/EditTicketDialog';
+import { CreateQuoteDialog } from '@/components/ticket/CreateQuoteDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,12 +23,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const TicketDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: userRole } = useUserRole();
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ['ticket', id],
@@ -219,36 +223,50 @@ const TicketDetail = () => {
           </div>
 
           <div className="max-w-5xl mx-auto p-4 md:p-8">
-            {/* Title & Status */}
+            {/* Title, Status, and Admin Actions */}
             <div className="flex items-start justify-between gap-4 mb-6">
               <h1 className="text-2xl md:text-3xl font-bold flex-1">{ticket.title}</h1>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      'rounded-md px-4 py-2 text-sm font-medium shrink-0 gap-2',
-                      statusDisplay.className
-                    )}
-                  >
+              <div className="flex items-center gap-2 shrink-0">
+                {userRole?.isAdmin && (
+                  <>
+                    <EditTicketDialog ticket={ticket} />
+                    <CreateQuoteDialog ticketId={ticket.id} />
+                  </>
+                )}
+                {userRole?.isAdmin ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          'rounded-md px-4 py-2 text-sm font-medium gap-2',
+                          statusDisplay.className
+                        )}
+                      >
+                        {statusDisplay.label}
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {statusOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() => updateStatusMutation.mutate(option.value)}
+                          className="cursor-pointer"
+                        >
+                          <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                            {option.label}
+                          </Badge>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Badge className={cn('rounded-md px-4 py-2 text-sm font-medium', statusDisplay.className)}>
                     {statusDisplay.label}
-                    <ChevronDown className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {statusOptions.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() => updateStatusMutation.mutate(option.value)}
-                      className="cursor-pointer"
-                    >
-                      <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
-                        {option.label}
-                      </Badge>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </Badge>
+                )}
+              </div>
             </div>
 
             {/* Main Content Sections */}
