@@ -72,6 +72,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const [showCancelRequestDialog, setShowCancelRequestDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [cancelRequestedBy, setCancelRequestedBy] = useState('');
+  
+  // Cancel dialog (within cancellation window)
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   // Fetch current user profile for auto-fill
   const { data: currentUser } = useQuery({
@@ -96,8 +99,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       if (showApprovalForm && !approvedBy) setApprovedBy(currentUser);
       if (showDeclineForm && !declinedBy) setDeclinedBy(currentUser);
       if (showCancelRequestDialog && !cancelRequestedBy) setCancelRequestedBy(currentUser);
+      if (showCancelDialog && !cancelRequestedBy) setCancelRequestedBy(currentUser);
     }
-  }, [currentUser, showApprovalForm, showDeclineForm, showCancelRequestDialog]);
+  }, [currentUser, showApprovalForm, showDeclineForm, showCancelRequestDialog, showCancelDialog]);
 
   const { data: quote, isLoading } = useQuery({
     queryKey: ['ticket-quote', ticketId],
@@ -221,22 +225,42 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     }
   };
 
-  const handleCancel = async () => {
-    if (!quote) return;
+  const submitCancel = async () => {
+    if (!quote || !cancelReason.trim() || !cancelRequestedBy.trim()) {
+      toast.error('Please provide reason and your name');
+      return;
+    }
 
     try {
+      // Create milestone for the cancellation
+      await supabase
+        .from('ticket_milestones')
+        .insert({
+          ticket_id: ticketId,
+          type: 'approval_cancelled',
+          title: `Approval cancelled by ${cancelRequestedBy}`,
+          description: cancelReason,
+          person_name: cancelRequestedBy,
+          status: 'completed',
+        });
+
+      // Reset quote to awaiting approval
       const { error } = await supabase
         .from('ticket_quotes')
         .update({
-          status: 'cancelled',
+          status: 'awaiting_approval',
           approval_window_expires_at: null,
+          decline_reason: `Last approval cancelled by ${cancelRequestedBy}: ${cancelReason}`,
         })
         .eq('id', quote.id);
 
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
-      toast.success('Approval cancelled');
+      toast.success('Approval cancelled - returned to awaiting approval');
+      setShowCancelDialog(false);
+      setCancelReason('');
+      setCancelRequestedBy('');
     } catch (error) {
       console.error('Error cancelling approval:', error);
       toast.error('Failed to cancel approval');
@@ -250,10 +274,23 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     }
 
     try {
+      // Create milestone for the cancellation request
+      await supabase
+        .from('ticket_milestones')
+        .insert({
+          ticket_id: ticketId,
+          type: 'cancellation_requested',
+          title: `Cancellation requested by ${cancelRequestedBy}`,
+          description: cancelReason,
+          person_name: cancelRequestedBy,
+          status: 'completed',
+        });
+
+      // Reset quote to awaiting approval
       const { error } = await supabase
         .from('ticket_quotes')
         .update({
-          status: 'cancelled',
+          status: 'awaiting_approval',
           decline_reason: `Cancellation requested by ${cancelRequestedBy}: ${cancelReason}`,
           approval_window_expires_at: null,
         })
@@ -262,7 +299,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
-      toast.success('Cancellation request submitted');
+      toast.success('Cancellation request submitted - returned to awaiting approval');
       setShowCancelRequestDialog(false);
       setCancelReason('');
       setCancelRequestedBy('');
@@ -397,8 +434,54 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
   const needsPO = quote?.status === 'approved' && !quote?.po_number && !dismissedPOWarning;
 
+  // Check if there was a previous cancellation
+  const hasPreviousCancellation = quote?.decline_reason?.includes('cancelled') || quote?.decline_reason?.includes('Cancellation');
+
   return (
     <>
+      {/* Cancel Dialog (within cancellation window) */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Approval</AlertDialogTitle>
+            <AlertDialogDescription>
+              Please provide a reason for cancelling this approval.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="cancel-dialog-reason">Reason *</Label>
+              <Textarea
+                id="cancel-dialog-reason"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Why are you cancelling this approval?"
+                rows={3}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="cancel-dialog-by">Cancelled By *</Label>
+              <Input
+                id="cancel-dialog-by"
+                value={cancelRequestedBy}
+                onChange={(e) => setCancelRequestedBy(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={submitCancel}
+              disabled={!cancelReason.trim() || !cancelRequestedBy.trim()}
+            >
+              Confirm Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Cancel Request Dialog */}
       <AlertDialog open={showCancelRequestDialog} onOpenChange={setShowCancelRequestDialog}>
         <AlertDialogContent>
@@ -723,7 +806,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                       className="flex-1 gap-2 bg-green-600 hover:bg-green-700"
                     >
                       <CheckCircle className="h-4 w-4" />
-                      Approve
+                      {hasPreviousCancellation ? 'Approve (last approval cancelled)' : 'Approve'}
                     </Button>
                     <Button
                       onClick={() => setShowDeclineForm(true)}
@@ -860,7 +943,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 </div>
                 {isWithinCancellationWindow ? (
                   <Button
-                    onClick={handleCancel}
+                    onClick={() => setShowCancelDialog(true)}
                     variant="destructive"
                     className="w-full gap-2 bg-red-600 hover:bg-red-700"
                   >
@@ -895,7 +978,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 </div>
                 {isWithinCancellationWindow && (
                   <Button
-                    onClick={handleCancel}
+                    onClick={() => setShowCancelDialog(true)}
                     className="w-full gap-2 bg-red-600 hover:bg-red-700"
                   >
                     <Clock className="h-4 w-4" />
