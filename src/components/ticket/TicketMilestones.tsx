@@ -132,45 +132,48 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
       <CardHeader>
         <CardTitle>Milestones</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="max-h-[600px] overflow-y-auto">
         {milestones.length === 0 ? (
           <p className="text-sm text-muted-foreground text-center py-8">
             No milestones yet
           </p>
         ) : (
-          <div className="relative">
+          <div className="relative pr-2">
             {/* Timeline line */}
-            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+            <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-border" />
 
             {/* Milestones */}
-            <div className="space-y-6">
+            <div className="space-y-3">
               {milestones.map((milestone, index) => {
                 const Icon = getMilestoneIcon(milestone.type);
                 const colorClass = getMilestoneColor(milestone.type, milestone.status);
 
                 return (
-                  <div key={milestone.id} className="relative pl-10">
+                  <div 
+                    key={milestone.id} 
+                    className="relative pl-10 pr-2 py-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors border border-border/50"
+                  >
                     {/* Icon */}
                     <div
-                      className={`absolute left-0 top-0 w-8 h-8 rounded-full ${colorClass} flex items-center justify-center`}
+                      className={`absolute left-0 top-3 w-8 h-8 rounded-full ${colorClass} flex items-center justify-center shadow-sm`}
                     >
                       <Icon className="h-4 w-4 text-white" />
                     </div>
 
                     {/* Content */}
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-medium">{milestone.title}</h4>
+                        <h4 className="text-sm font-medium leading-snug">{milestone.title}</h4>
                       </div>
                       {milestone.description && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground leading-relaxed">
                           {milestone.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1">
                         {milestone.person_name && (
                           <>
-                            <span>{milestone.person_name}</span>
+                            <span className="font-medium">{milestone.person_name}</span>
                             <span>•</span>
                           </>
                         )}
