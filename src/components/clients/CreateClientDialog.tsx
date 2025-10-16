@@ -157,12 +157,20 @@ export const CreateClientDialog = ({ open, onOpenChange, onSuccess }: CreateClie
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="payment_terms">Payment Terms</Label>
-              <Input
-                id="payment_terms"
-                placeholder="e.g., Net 30"
+              <Select
                 value={formData.payment_terms}
-                onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, payment_terms: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment terms" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Due on receipt">Due on receipt</SelectItem>
+                  <SelectItem value="Net 30">Net 30</SelectItem>
+                  <SelectItem value="Net 90">Net 90</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
