@@ -80,7 +80,7 @@ Your behavior:
 7. If a client doesn't exist in the provided list, ask what type of client it is:
    - "direct" for direct clients
    - "agency" for agency partners
-   - "end_client" for end clients of agencies
+   - "agency_managed" for end clients managed by agencies
    Then call create_client before proceeding with the ticket
 8. Match client names flexibly (e.g., "Google" matches "Google Inc.")
 9. Be helpful in understanding what the user wants
@@ -115,8 +115,8 @@ Agent assignment:
               },
               client_type: { 
                 type: "string", 
-                enum: ["direct", "agency", "end_client"],
-                description: "Type of client: 'direct' (direct client), 'agency' (agency partner), or 'end_client' (end client of an agency)" 
+                enum: ["direct", "agency", "agency_managed"],
+                description: "Type of client: 'direct' (direct client), 'agency' (agency partner), or 'agency_managed' (end client managed by an agency)" 
               }
             },
             required: ["name", "client_type"]
