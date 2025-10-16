@@ -27,7 +27,7 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status'>('created_at');
+  const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { data: userRole } = useUserRole();
 
@@ -196,18 +196,64 @@ const Dashboard = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2 flex-1 sm:flex-initial"
-                onClick={() => {
-                  setSortBy('created_at');
-                  setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-                }}
-              >
-                <ArrowUpDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Date {sortDirection === 'asc' ? '↑' : '↓'}</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
+                    <ArrowUpDown className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      Sort: {sortBy === 'created_at' ? 'Date' : sortBy === 'client' ? 'Client' : sortBy.charAt(0).toUpperCase() + sortBy.slice(1)} {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[180px]">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('created_at');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Date Created
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('title');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Title
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('priority');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Priority
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('status');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Status
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('client');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Client
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

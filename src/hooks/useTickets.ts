@@ -47,7 +47,7 @@ export interface Ticket {
 interface UseTicketsParams {
   search?: string;
   status?: string;
-  sortBy?: 'created_at' | 'title' | 'priority' | 'status';
+  sortBy?: 'created_at' | 'title' | 'priority' | 'status' | 'client';
   sortDirection?: 'asc' | 'desc';
 }
 
@@ -92,7 +92,12 @@ export const useTickets = (params?: UseTicketsParams) => {
 
       const sortField = params?.sortBy || 'created_at';
       const ascending = params?.sortDirection === 'asc';
-      query = query.order(sortField, { ascending });
+      
+      if (sortField === 'client') {
+        query = query.order('client_id', { ascending, nullsFirst: false });
+      } else {
+        query = query.order(sortField, { ascending });
+      }
 
       const { data, error } = await query;
 
