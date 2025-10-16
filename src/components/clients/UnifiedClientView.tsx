@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save, X, Plus, Mail, Phone, Trash2, UserCheck } from 'lucide-react';
-import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
+import { Edit, Save, X, Plus, Mail, Phone, Trash2, UserCheck, Send, Clock, AlertCircle, RotateCw, KeyRound } from 'lucide-react';
+import { sendUserInvite } from '@/lib/emailNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface UnifiedClientViewProps {
   client: any;
@@ -18,6 +19,7 @@ interface UnifiedClientViewProps {
 
 export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditingClient, setIsEditingClient] = useState(false);
   const [showAddContactDialog, setShowAddContactDialog] = useState(false);
@@ -72,6 +74,35 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch invitations for all contacts
+  const { data: invitations } = useQuery({
+    queryKey: ['client-invitations', client.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('*')
+        .eq('client_id', client.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch inviter profile
+  const { data: inviterProfile } = useQuery({
+    queryKey: ['inviter-profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
   });
 
   const updateClientMutation = useMutation({
@@ -143,9 +174,119 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
     },
   });
 
-  // Check if a contact email matches a portal user
-  const isPortalUser = (email: string) => {
-    return portalUsers?.some(user => user.profile?.email === email);
+  const inviteContactMutation = useMutation({
+    mutationFn: async ({ email, fullName }: { email: string; fullName: string }) => {
+      const inviterName = inviterProfile?.full_name || user?.email || 'Admin';
+      const token = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const { error: inviteError } = await supabase
+        .from('invitations')
+        .insert([{
+          email,
+          client_id: client.id,
+          role: 'user',
+          token,
+          invited_by: user?.id,
+          expires_at: expiresAt.toISOString(),
+        }]);
+
+      if (inviteError) throw inviteError;
+
+      await sendUserInvite({
+        email,
+        inviter_name: inviterName,
+        role: 'user',
+        client_name: client.name,
+        token,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-invitations', client.id] });
+      toast({ title: 'Success', description: 'Invitation sent successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const resendInviteMutation = useMutation({
+    mutationFn: async ({ email, fullName, oldToken }: { email: string; fullName: string; oldToken: string }) => {
+      const inviterName = inviterProfile?.full_name || user?.email || 'Admin';
+      const newToken = crypto.randomUUID();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      // Update existing invitation
+      const { error: updateError } = await supabase
+        .from('invitations')
+        .update({
+          token: newToken,
+          expires_at: expiresAt.toISOString(),
+          status: 'pending',
+        })
+        .eq('token', oldToken);
+
+      if (updateError) throw updateError;
+
+      await sendUserInvite({
+        email,
+        inviter_name: inviterName,
+        role: 'user',
+        client_name: client.name,
+        token: newToken,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-invitations', client.id] });
+      toast({ title: 'Success', description: 'Invitation resent successfully' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const sendPasswordResetMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Password reset link sent' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Get contact status and invitation details
+  const getContactStatus = (email: string) => {
+    const portalUser = portalUsers?.find(user => user.profile?.email === email);
+    if (portalUser) {
+      return { type: 'portal_user' as const, data: portalUser };
+    }
+
+    const contactInvites = invitations?.filter(inv => inv.email === email) || [];
+    const pendingInvite = contactInvites.find(inv => 
+      inv.status === 'pending' && new Date(inv.expires_at) > new Date()
+    );
+    
+    if (pendingInvite) {
+      return { type: 'invited' as const, data: pendingInvite };
+    }
+
+    const expiredInvite = contactInvites.find(inv => 
+      inv.status === 'pending' && new Date(inv.expires_at) <= new Date()
+    );
+    
+    if (expiredInvite) {
+      return { type: 'expired' as const, data: expiredInvite };
+    }
+
+    return { type: 'contact_only' as const, data: null };
   };
 
   return (
@@ -313,26 +454,15 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Contacts & Portal Users</CardTitle>
+              <CardTitle>Contacts</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Manage client contacts and invite them to the portal
+                Manage client contacts and their portal access
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setShowAddContactDialog(true)} variant="outline">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Contact
-              </Button>
-              <InviteUserDialog 
-                preSelectedClientId={client.id}
-                trigger={
-                  <Button>
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    Invite to Portal
-                  </Button>
-                }
-              />
-            </div>
+            <Button onClick={() => setShowAddContactDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Contact
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -340,51 +470,123 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
             <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
           ) : contacts && contacts.length > 0 ? (
             <div className="space-y-4">
-              {contacts.map((contact) => (
-                <div key={contact.id} className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{contact.full_name}</p>
-                      {isPortalUser(contact.email) && (
-                        <Badge variant="default" className="gap-1">
-                          <UserCheck className="h-3 w-3" />
-                          Portal User
-                        </Badge>
-                      )}
+              {contacts.map((contact) => {
+                const status = getContactStatus(contact.email);
+                return (
+                  <div key={contact.id} className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium">{contact.full_name}</p>
+                        {status.type === 'portal_user' && (
+                          <Badge variant="default" className="gap-1">
+                            <UserCheck className="h-3 w-3" />
+                            Portal User
+                          </Badge>
+                        )}
+                        {status.type === 'invited' && (
+                          <Badge variant="secondary" className="gap-1">
+                            <Clock className="h-3 w-3" />
+                            Invite Sent
+                          </Badge>
+                        )}
+                        {status.type === 'expired' && (
+                          <Badge variant="outline" className="gap-1 border-destructive text-destructive">
+                            <AlertCircle className="h-3 w-3" />
+                            Invite Expired
+                          </Badge>
+                        )}
+                      </div>
+                      {contact.title && <p className="text-sm text-muted-foreground">{contact.title}</p>}
+                      <div className="flex flex-wrap gap-2">
+                        {contact.is_primary && <Badge variant="secondary">Primary</Badge>}
+                        {contact.is_billing && <Badge variant="outline">Billing</Badge>}
+                        {contact.is_technical && <Badge variant="outline">Technical</Badge>}
+                      </div>
+                      <div className="space-y-1">
+                        {contact.email && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                              {contact.email}
+                            </a>
+                          </div>
+                        )}
+                        {contact.phone && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{contact.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {status.type === 'contact_only' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => inviteContactMutation.mutate({ 
+                              email: contact.email, 
+                              fullName: contact.full_name 
+                            })}
+                            disabled={inviteContactMutation.isPending}
+                          >
+                            <Send className="h-3 w-3 mr-1" />
+                            Invite to Portal
+                          </Button>
+                        )}
+                        {status.type === 'invited' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => resendInviteMutation.mutate({ 
+                              email: contact.email, 
+                              fullName: contact.full_name,
+                              oldToken: status.data.token
+                            })}
+                            disabled={resendInviteMutation.isPending}
+                          >
+                            <RotateCw className="h-3 w-3 mr-1" />
+                            Resend Invite
+                          </Button>
+                        )}
+                        {status.type === 'expired' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => resendInviteMutation.mutate({ 
+                              email: contact.email, 
+                              fullName: contact.full_name,
+                              oldToken: status.data.token
+                            })}
+                            disabled={resendInviteMutation.isPending}
+                          >
+                            <RotateCw className="h-3 w-3 mr-1" />
+                            Resend Invite
+                          </Button>
+                        )}
+                        {status.type === 'portal_user' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => sendPasswordResetMutation.mutate(contact.email)}
+                            disabled={sendPasswordResetMutation.isPending}
+                          >
+                            <KeyRound className="h-3 w-3 mr-1" />
+                            Send Password Reset
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    {contact.title && <p className="text-sm text-muted-foreground">{contact.title}</p>}
-                    <div className="flex flex-wrap gap-2">
-                      {contact.is_primary && <Badge variant="secondary">Primary</Badge>}
-                      {contact.is_billing && <Badge variant="outline">Billing</Badge>}
-                      {contact.is_technical && <Badge variant="outline">Technical</Badge>}
-                    </div>
-                    <div className="space-y-1">
-                      {contact.email && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
-                            {contact.email}
-                          </a>
-                        </div>
-                      )}
-                      {contact.phone && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{contact.phone}</span>
-                        </div>
-                      )}
-                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteContactMutation.mutate(contact.id)}
+                      disabled={deleteContactMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => deleteContactMutation.mutate(contact.id)}
-                    disabled={deleteContactMutation.isPending}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
