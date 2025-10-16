@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useStripeSetting, useUpdateStripeSetting } from '@/hooks/useSystemSettings';
 import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
+import { DeletedClients } from '@/components/admin/DeletedClients';
 import { CreditCard } from 'lucide-react';
 
 const Admin = () => {
@@ -64,18 +65,7 @@ const Admin = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Users</CardTitle>
-                  <CardDescription>View and manage user roles</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>User management will be available once the database is configured.</p>
-                    <p className="text-sm mt-2">Run the provided database migrations to enable this feature.</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <DeletedClients />
             </div>
           </div>
         </main>

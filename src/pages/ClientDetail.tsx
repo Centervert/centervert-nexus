@@ -1,19 +1,24 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import Sidebar from '@/components/Sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import { ClientOverview } from '@/components/clients/ClientOverview';
 import { ClientContacts } from '@/components/clients/ClientContacts';
 import { ClientUsers } from '@/components/clients/ClientUsers';
 import { ClientTickets } from '@/components/clients/ClientTickets';
+import { DeleteClientDialog } from '@/components/clients/DeleteClientDialog';
+import { useUserRole } from '@/hooks/useUserRole';
 
 const ClientDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { data: userRole } = useUserRole();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
@@ -90,9 +95,21 @@ const ClientDetail = () => {
           </div>
 
           <div className="p-8">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold">{client.name}</h1>
-              <p className="text-muted-foreground capitalize">{client.client_type.replace('_', ' ')} Client</p>
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">{client.name}</h1>
+                <p className="text-muted-foreground capitalize">{client.client_type.replace('_', ' ')} Client</p>
+              </div>
+              {userRole?.isAdmin && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Client
+                </Button>
+              )}
             </div>
 
             <Tabs defaultValue="overview" className="space-y-6">
@@ -122,6 +139,14 @@ const ClientDetail = () => {
           </div>
         </main>
       </div>
+
+      <DeleteClientDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        clientId={client.id}
+        clientName={client.name}
+        onSuccess={() => navigate('/clients')}
+      />
     </SidebarProvider>
   );
 };

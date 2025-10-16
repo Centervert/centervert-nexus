@@ -195,6 +195,7 @@ export type Database = {
           billing_address: string | null
           client_type: Database["public"]["Enums"]["client_type"]
           created_at: string | null
+          deleted_at: string | null
           id: string
           is_active: boolean | null
           managing_agency_id: string | null
@@ -213,6 +214,7 @@ export type Database = {
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           managing_agency_id?: string | null
@@ -231,6 +233,7 @@ export type Database = {
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           managing_agency_id?: string | null
@@ -439,6 +442,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          is_active: boolean | null
           phone: string | null
           updated_at: string | null
         }
@@ -450,6 +454,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          is_active?: boolean | null
           phone?: string | null
           updated_at?: string | null
         }
@@ -461,6 +466,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          is_active?: boolean | null
           phone?: string | null
           updated_at?: string | null
         }
@@ -871,6 +877,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      restore_client: {
+        Args: { client_id_param: string }
+        Returns: undefined
+      }
+      soft_delete_client: {
+        Args: { client_id_param: string }
+        Returns: undefined
       }
     }
     Enums: {
