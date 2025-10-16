@@ -22,7 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { DollarSign, CheckCircle, XCircle, Clock, Pencil, X, Check, AlertTriangle } from 'lucide-react';
+import { DollarSign, CheckCircle, XCircle, Clock, Pencil, X, Check, AlertTriangle, CreditCard } from 'lucide-react';
+import { format } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -42,6 +43,8 @@ interface Quote {
   is_recurring: boolean;
   billing_interval: string | null;
   billing_cycles: number | null;
+  paid_at: string | null;
+  stripe_session_id: string | null;
 }
 
 interface TicketPricingProps {
@@ -412,6 +415,29 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       style: 'currency',
       currency: 'USD',
     }).format(amount);
+  };
+
+  const handlePayWithStripe = async () => {
+    if (!quote) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          quote_id: quote.id,
+          success_url: `${window.location.origin}/tickets/${ticketId}?payment=success`,
+          cancel_url: `${window.location.origin}/tickets/${ticketId}?payment=cancelled`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.checkout_url) {
+        window.open(data.checkout_url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast.error('Failed to create payment session');
+    }
   };
 
   if (isLoading) {
@@ -950,7 +976,22 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                   {quote.po_number && (
                     <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
                   )}
+                  {quote.paid_at && (
+                    <p className="text-sm text-green-700">Paid on: {format(new Date(quote.paid_at), 'MMM dd, yyyy')}</p>
+                  )}
                 </div>
+                
+                {/* Payment Button */}
+                {!quote.paid_at && !quote.is_recurring && (
+                  <Button
+                    onClick={handlePayWithStripe}
+                    className="w-full gap-2 bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Pay {formatCurrency(quote.amount)} with Stripe
+                  </Button>
+                )}
+                
                 {isWithinCancellationWindow ? (
                   <Button
                     onClick={() => setShowCancelDialog(true)}

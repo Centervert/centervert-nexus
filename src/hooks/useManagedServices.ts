@@ -19,6 +19,11 @@ export interface ManagedService {
   cancelled_at: string | null;
   cancellation_reason: string | null;
   notes: string | null;
+  stripe_subscription_id: string | null;
+  stripe_product_id: string | null;
+  stripe_price_id: string | null;
+  last_payment_date: string | null;
+  last_payment_amount: number | null;
   client?: {
     name: string;
   };

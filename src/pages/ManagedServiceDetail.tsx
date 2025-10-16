@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useManagedService } from '@/hooks/useManagedServices';
 import { useUserRole } from '@/hooks/useUserRole';
-import { ArrowLeft, Edit, Pause, Play, XCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit, Pause, Play, XCircle, ExternalLink, CreditCard } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { format, differenceInDays } from 'date-fns';
 import { EditServiceDialog } from '@/components/managedServices/EditServiceDialog';
 import { CancelServiceDialog } from '@/components/managedServices/CancelServiceDialog';
@@ -55,6 +57,28 @@ export default function ManagedServiceDetail() {
 
   const daysUntilBilling = differenceInDays(new Date(service.next_billing_date), new Date());
 
+  const handleManageBilling = async () => {
+    if (!service) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-customer-portal-session', {
+        body: {
+          client_id: service.client_id,
+          return_url: window.location.href,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating portal session:', error);
+      toast.error('Failed to open billing portal');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -94,32 +118,40 @@ export default function ManagedServiceDetail() {
                 </span>
               </div>
             </div>
-            {isAdminOrAgent && (
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
+            <div className="flex gap-2">
+              {service.stripe_subscription_id && (
+                <Button variant="outline" onClick={handleManageBilling}>
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  Manage Billing
                 </Button>
-                {service.status === 'active' && (
-                  <Button variant="outline">
-                    <Pause className="mr-2 h-4 w-4" />
-                    Pause
+              )}
+              {isAdminOrAgent && (
+                <>
+                  <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
                   </Button>
-                )}
-                {service.status === 'paused' && (
-                  <Button variant="outline">
-                    <Play className="mr-2 h-4 w-4" />
-                    Resume
-                  </Button>
-                )}
-                {service.status !== 'cancelled' && (
-                  <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                )}
-              </div>
-            )}
+                  {service.status === 'active' && (
+                    <Button variant="outline">
+                      <Pause className="mr-2 h-4 w-4" />
+                      Pause
+                    </Button>
+                  )}
+                  {service.status === 'paused' && (
+                    <Button variant="outline">
+                      <Play className="mr-2 h-4 w-4" />
+                      Resume
+                    </Button>
+                  )}
+                  {service.status !== 'cancelled' && (
+                    <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">

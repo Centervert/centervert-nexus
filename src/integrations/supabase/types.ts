@@ -204,6 +204,7 @@ export type Database = {
           payment_terms_days: number | null
           phone: string | null
           shipping_address: string | null
+          stripe_customer_id: string | null
           tax_id: string | null
           updated_at: string | null
           website: string | null
@@ -221,6 +222,7 @@ export type Database = {
           payment_terms_days?: number | null
           phone?: string | null
           shipping_address?: string | null
+          stripe_customer_id?: string | null
           tax_id?: string | null
           updated_at?: string | null
           website?: string | null
@@ -238,6 +240,7 @@ export type Database = {
           payment_terms_days?: number | null
           phone?: string | null
           shipping_address?: string | null
+          stripe_customer_id?: string | null
           tax_id?: string | null
           updated_at?: string | null
           website?: string | null
@@ -301,6 +304,8 @@ export type Database = {
           deliverables: string[] | null
           description: string | null
           id: string
+          last_payment_amount: number | null
+          last_payment_date: string | null
           monthly_amount: number
           next_billing_date: string
           notes: string | null
@@ -308,6 +313,9 @@ export type Database = {
           service_name: string
           service_type: string
           status: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          stripe_subscription_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -320,6 +328,8 @@ export type Database = {
           deliverables?: string[] | null
           description?: string | null
           id?: string
+          last_payment_amount?: number | null
+          last_payment_date?: string | null
           monthly_amount: number
           next_billing_date: string
           notes?: string | null
@@ -327,6 +337,9 @@ export type Database = {
           service_name: string
           service_type: string
           status?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -339,6 +352,8 @@ export type Database = {
           deliverables?: string[] | null
           description?: string | null
           id?: string
+          last_payment_amount?: number | null
+          last_payment_date?: string | null
           monthly_amount?: number
           next_billing_date?: string
           notes?: string | null
@@ -346,6 +361,9 @@ export type Database = {
           service_name?: string
           service_type?: string
           status?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          stripe_subscription_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -532,10 +550,14 @@ export type Database = {
           deliverables: string[] | null
           id: string
           is_recurring: boolean
+          paid_at: string | null
           po_file_url: string | null
           po_number: string | null
           preferred_amount: number | null
           status: string
+          stripe_invoice_id: string | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
           ticket_id: string
           updated_at: string
         }
@@ -550,10 +572,14 @@ export type Database = {
           deliverables?: string[] | null
           id?: string
           is_recurring?: boolean
+          paid_at?: string | null
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
           status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           ticket_id: string
           updated_at?: string
         }
@@ -568,10 +594,14 @@ export type Database = {
           deliverables?: string[] | null
           id?: string
           is_recurring?: boolean
+          paid_at?: string | null
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
           status?: string
+          stripe_invoice_id?: string | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
           ticket_id?: string
           updated_at?: string
         }

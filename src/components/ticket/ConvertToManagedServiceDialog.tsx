@@ -91,7 +91,22 @@ export const ConvertToManagedServiceDialog = ({
 
       return service;
     },
-    onSuccess: () => {
+    onSuccess: async (service) => {
+      // Create Stripe subscription for the managed service
+      try {
+        const { error: stripeError } = await supabase.functions.invoke(
+          'create-managed-service-subscription',
+          { body: { managed_service_id: service.id } }
+        );
+        
+        if (stripeError) {
+          console.error('Error creating Stripe subscription:', stripeError);
+          toast.error('Service created but Stripe subscription setup failed');
+        }
+      } catch (error) {
+        console.error('Error calling Stripe function:', error);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] });
       queryClient.invalidateQueries({ queryKey: ['managed-services'] });
       queryClient.invalidateQueries({ queryKey: ['managed-services-stats'] });
