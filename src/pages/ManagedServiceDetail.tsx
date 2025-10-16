@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useManagedService } from '@/hooks/useManagedServices';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useStripeSetting } from '@/hooks/useSystemSettings';
 import { ArrowLeft, Edit, Pause, Play, XCircle, ExternalLink, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ export default function ManagedServiceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: userRole } = useUserRole();
+  const { data: stripeEnabled } = useStripeSetting();
   const isAdminOrAgent = userRole?.isAdmin || userRole?.isAgent;
 
   const { data: service, isLoading } = useManagedService(id!);
@@ -119,7 +121,7 @@ export default function ManagedServiceDetail() {
               </div>
             </div>
             <div className="flex gap-2">
-              {service.stripe_subscription_id && (
+              {stripeEnabled && service.stripe_subscription_id && (
                 <Button variant="outline" onClick={handleManageBilling}>
                   <CreditCard className="mr-2 h-4 w-4" />
                   Manage Billing

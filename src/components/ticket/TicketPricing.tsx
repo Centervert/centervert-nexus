@@ -28,6 +28,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useStripeSetting } from '@/hooks/useSystemSettings';
 import { cn } from '@/lib/utils';
 
 interface Quote {
@@ -54,6 +55,7 @@ interface TicketPricingProps {
 export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
+  const { data: stripeEnabled } = useStripeSetting();
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editAmount, setEditAmount] = useState('');
@@ -982,7 +984,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 </div>
                 
                 {/* Payment Button */}
-                {!quote.paid_at && !quote.is_recurring && (
+                {stripeEnabled && !quote.paid_at && !quote.is_recurring && (
                   <Button
                     onClick={handlePayWithStripe}
                     className="w-full gap-2 bg-blue-600 hover:bg-blue-700"
