@@ -34,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
                              notification.milestone_status === 'pending' ? '#F59E0B' : '#6B7280';
 
     const emailResponse = await resend.emails.send({
-      from: "Centervert <onboarding@resend.dev>",
+      from: "Centervert <noreply@notifications.centervert.com>",
       to: [notification.to_email],
       subject: `Milestone Update: ${notification.milestone_title}`,
       html: `

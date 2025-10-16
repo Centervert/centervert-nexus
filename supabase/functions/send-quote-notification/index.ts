@@ -52,7 +52,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const emailResponse = await resend.emails.send({
-      from: "Centervert <onboarding@resend.dev>",
+      from: "Centervert <noreply@notifications.centervert.com>",
       to: [notification.to_email],
       subject: `${eventTitles[notification.event_type]}: ${notification.ticket_title}`,
       html: `

@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, inviter_name, role, client_name }: InviteRequest = await req.json();
 
     const emailResponse = await resend.emails.send({
-      from: "Centervert <onboarding@resend.dev>",
+      from: "Centervert <noreply@notifications.centervert.com>",
       to: [email],
       subject: "You've been invited to Centervert",
       html: `

@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
     };
 
     const emailResponse = await resend.emails.send({
-      from: "Centervert <onboarding@resend.dev>",
+      from: "Centervert <noreply@notifications.centervert.com>",
       to: [notification.to_email],
       subject: `Ticket #${notification.ticket_number}: ${notification.ticket_title}`,
       html: `
