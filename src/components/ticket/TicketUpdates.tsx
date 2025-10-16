@@ -107,14 +107,19 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
 
   const formatTime = (date: string) => {
     const messageDate = new Date(date);
+    return messageDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const formatDate = (date: string) => {
+    const messageDate = new Date(date);
     const now = new Date();
     const diffInHours = (now.getTime() - messageDate.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
-      return messageDate.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      return 'Today';
     }
     return messageDate.toLocaleDateString('en-US', {
       month: 'short',
@@ -137,17 +142,24 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
               No messages yet. Start the conversation!
             </p>
           ) : (
-            messages.map((message) => {
+            messages.map((message, index) => {
               const isCurrentUser = message.user_id === user?.id;
+              const showDate = index === 0 || 
+                new Date(message.created_at).getTime() - new Date(messages[index - 1].created_at).getTime() > 3600000;
               
               return (
                 <div key={message.id}>
-                  <div className="text-center text-xs text-muted-foreground my-2">
-                    {formatTime(message.created_at)}
-                  </div>
+                  {showDate && (
+                    <div className="text-center text-xs text-muted-foreground my-4">
+                      {formatDate(message.created_at)}
+                    </div>
+                  )}
                   <div
-                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                    className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} mb-1`}
                   >
+                    <span className="text-xs text-muted-foreground mb-1">
+                      {formatTime(message.created_at)}
+                    </span>
                     <div
                       className={`rounded-[18px] px-4 py-2 max-w-[75%] ${
                         isCurrentUser
@@ -193,7 +205,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
                 onClick={handleSendMessage}
                 disabled={!newMessage.trim() || sending}
                 size="sm"
-                className="gap-2"
+                className="gap-2 bg-[#007AFF] hover:bg-[#0051D5]"
               >
                 <Send className="h-4 w-4" />
                 Send
