@@ -28,10 +28,15 @@ const Sidebar = () => {
         .select('role')
         .eq('user_id', user.id);
       
+      // Prioritize admin role if user has multiple roles
+      const userRole = roles?.find(r => r.role === 'admin')?.role || 
+                       roles?.[0]?.role || 
+                       'user';
+      
       return {
         fullName: profile?.full_name || user.email,
         company: profile?.company || '',
-        role: roles?.[0]?.role || 'user'
+        role: userRole
       };
     },
     enabled: !!user?.id
