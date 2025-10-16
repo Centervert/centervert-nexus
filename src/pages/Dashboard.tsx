@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { useTickets, useTicketStats } from '@/hooks/useTickets';
 import { cn } from '@/lib/utils';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status'>('created_at');
@@ -160,6 +162,7 @@ const Dashboard = () => {
                     <div
                       key={ticket.id}
                       className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[auto_2fr_1.5fr_1.5fr_auto] md:gap-4 md:px-6 md:py-4"
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
                       <div className="md:hidden space-y-3">
@@ -187,7 +190,11 @@ const Dashboard = () => {
 
                       {/* Desktop Layout */}
                       <div className="hidden md:flex md:items-center md:gap-2">
-                        <input type="checkbox" className="rounded border-border w-4 h-4" />
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-border w-4 h-4" 
+                          onClick={(e) => e.stopPropagation()}
+                        />
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="hidden md:block">

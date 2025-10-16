@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +28,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tickets/:id"
+              element={
+                <ProtectedRoute>
+                  <TicketDetail />
                 </ProtectedRoute>
               }
             />
