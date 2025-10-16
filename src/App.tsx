@@ -13,6 +13,8 @@ import TicketDetail from "./pages/TicketDetail";
 import Admin from "./pages/Admin";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
+import ManagedServices from "./pages/ManagedServices";
+import ManagedServiceDetail from "./pages/ManagedServiceDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +66,22 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <ClientDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/managed-services"
+              element={
+                <ProtectedRoute>
+                  <ManagedServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/managed-services/:id"
+              element={
+                <ProtectedRoute>
+                  <ManagedServiceDetail />
                 </ProtectedRoute>
               }
             />

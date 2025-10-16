@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, Users, LogOut, Building2 } from 'lucide-react';
+import { Ticket, Users, LogOut, Building2, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -56,6 +56,7 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
+    { name: 'Managed Services', href: '/managed-services', icon: RefreshCw },
   ];
 
   const initials = userProfile?.fullName

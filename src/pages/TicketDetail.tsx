@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, ChevronDown, Pencil, X, Check } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Pencil, X, Check, RefreshCw, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TicketDetails } from '@/components/ticket/TicketDetails';
 import { TicketUpdates } from '@/components/ticket/TicketUpdates';
@@ -25,6 +25,7 @@ import { TicketPricing } from '@/components/ticket/TicketPricing';
 import { TicketLinks } from '@/components/ticket/TicketLinks';
 import { TicketFiles } from '@/components/ticket/TicketFiles';
 import { CreateQuoteDialog } from '@/components/ticket/CreateQuoteDialog';
+import { ConvertToManagedServiceDialog } from '@/components/ticket/ConvertToManagedServiceDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +44,7 @@ const TicketDetail = () => {
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
   const [isEditing, setIsEditing] = useState(false);
+  const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   
   // Edit form state
   const [editTitle, setEditTitle] = useState('');
@@ -120,6 +122,22 @@ const TicketDetail = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch ticket quotes for conversion
+  const { data: ticketQuote } = useQuery({
+    queryKey: ['ticket-quote', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ticket_quotes')
+        .select('amount, deliverables, billing_interval, is_recurring')
+        .eq('ticket_id', id)
+        .eq('status', 'approved')
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
   });
 
   const getStatusDisplay = (status: string) => {
@@ -489,7 +507,20 @@ const TicketDetail = () => {
             ) : (
               // View Mode
               <div className="flex items-start justify-between gap-4 mb-6">
-                <h1 className="text-2xl md:text-3xl font-bold flex-1">{ticket.title}</h1>
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-3xl font-bold mb-2">{ticket.title}</h1>
+                  {ticket.managed_service_id && (
+                    <Button
+                      variant="link"
+                      className="p-0 h-auto text-green-600 gap-2"
+                      onClick={() => navigate(`/managed-services/${ticket.managed_service_id}`)}
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Active Managed Service
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {userRole?.isAdmin && (
                     <>
@@ -502,6 +533,17 @@ const TicketDetail = () => {
                         <Pencil className="h-4 w-4" />
                         Edit
                       </Button>
+                      {ticket.status === 'resolved' && !ticket.managed_service_id && ticket.client_id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => setConvertDialogOpen(true)}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                          Convert to Managed Service
+                        </Button>
+                      )}
                       <CreateQuoteDialog ticketId={ticket.id} />
                     </>
                   )}
@@ -569,6 +611,23 @@ const TicketDetail = () => {
               <TicketLinks ticketId={ticket.id} />
               <TicketFiles ticketId={ticket.id} />
             </div>
+
+            {/* Convert to Managed Service Dialog */}
+            {userRole?.isAdmin && ticket.status === 'resolved' && !ticket.managed_service_id && (
+              <ConvertToManagedServiceDialog
+                open={convertDialogOpen}
+                onOpenChange={setConvertDialogOpen}
+                ticketId={ticket.id}
+                ticketTitle={ticket.title}
+                clientId={ticket.client_id}
+                resolvedAt={ticket.resolved_at}
+                quoteData={ticketQuote && ticketQuote.is_recurring ? {
+                  amount: Number(ticketQuote.amount),
+                  deliverables: ticketQuote.deliverables,
+                  billing_interval: ticketQuote.billing_interval,
+                } : undefined}
+              />
+            )}
           </div>
         </main>
       </div>
