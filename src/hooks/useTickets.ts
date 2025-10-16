@@ -19,6 +19,7 @@ export interface Ticket {
   budget: number | null;
   type: string | null;
   subtype: string | null;
+  end_client_name: string | null;
   categories: {
     name: string;
     description: string | null;

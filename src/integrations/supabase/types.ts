@@ -331,6 +331,7 @@ export type Database = {
           created_by: string
           description: string
           due_date: string | null
+          end_client_name: string | null
           id: string
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolved_at: string | null
@@ -350,6 +351,7 @@ export type Database = {
           created_by: string
           description: string
           due_date?: string | null
+          end_client_name?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
@@ -369,6 +371,7 @@ export type Database = {
           created_by?: string
           description?: string
           due_date?: string | null
+          end_client_name?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null

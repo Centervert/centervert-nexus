@@ -270,7 +270,10 @@ const Dashboard = () => {
                           </Badge>
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {ticket.creator?.full_name || ticket.creator?.email || 'Unknown'}
+                          {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
+                          {ticket.end_client_name && (
+                            <span> → {ticket.end_client_name}</span>
+                          )}
                         </div>
                         <div className="text-sm">
                           <span className="text-muted-foreground">Due: </span>
@@ -312,6 +315,9 @@ const Dashboard = () => {
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
                         {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
+                        {ticket.end_client_name && (
+                          <span className="text-muted-foreground"> → {ticket.end_client_name}</span>
+                        )}
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
                         {userRole?.isAdmin ? (
