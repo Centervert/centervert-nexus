@@ -7,12 +7,22 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown } from 'lucide-react';
 import { useTickets, useTicketStats } from '@/hooks/useTickets';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status'>('created_at');
@@ -23,6 +33,36 @@ const Dashboard = () => {
     sortBy 
   });
   const { data: stats, isLoading: statsLoading } = useTicketStats();
+
+  const statusOptions = [
+    { value: 'open' as const, label: 'New Request', className: 'bg-gray-900 text-white' },
+    { value: 'in_progress' as const, label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
+    { value: 'awaiting_response' as const, label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
+    { value: 'closed' as const, label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+    { value: 'resolved' as const, label: 'Complete', className: 'bg-green-100 text-green-800' },
+  ];
+
+  type TicketStatus = typeof statusOptions[number]['value'];
+
+  const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
+      
+      toast.success('Status updated successfully');
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    }
+  };
 
   const statsCards = [
     { icon: TicketIcon, label: 'Open Tickets', value: stats?.open || '0', color: 'text-blue-600' },
@@ -36,9 +76,8 @@ const Dashboard = () => {
       open: { label: 'New Request', className: 'bg-gray-900 text-white' },
       in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-      awaiting_finance: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+      closed: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'Cancelled', className: 'bg-slate-400 text-white' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
   };
@@ -208,10 +247,36 @@ const Dashboard = () => {
                         {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                       </div>
                       <div className="hidden md:flex md:items-center">
-                        <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center', statusDisplay.className)}>
-                          {statusDisplay.label}
-                          <ChevronDown className="h-3 w-3" />
-                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            onClick={(e) => e.stopPropagation()}
+                            asChild
+                          >
+                            <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80', statusDisplay.className)}>
+                              {statusDisplay.label}
+                              <ChevronDown className="h-3 w-3" />
+                            </Badge>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent 
+                            className="w-[200px] bg-popover z-50"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {statusOptions.map((option) => (
+                              <DropdownMenuItem
+                                key={option.value}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStatusChange(ticket.id, option.value);
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                                  {option.label}
+                                </Badge>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                       <div className="hidden md:flex md:items-center">
                         <button className="text-sm text-primary hover:underline">

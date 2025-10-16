@@ -49,9 +49,8 @@ const TicketDetail = () => {
       open: { label: 'New Request', className: 'bg-gray-900 text-white' },
       in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-      awaiting_finance: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+      closed: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'Cancelled', className: 'bg-slate-400 text-white' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
   };
