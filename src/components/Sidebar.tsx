@@ -104,17 +104,17 @@ const Sidebar = () => {
         
         {/* User Profile */}
         <div className="p-4">
-          <div className="flex items-center gap-3">
-            <Users className="h-9 w-9 text-foreground" />
-            <div className="flex-1 overflow-hidden">
-              <p className="truncate text-base font-semibold">CenterVert</p>
-              <p className="truncate text-sm text-muted-foreground">
+          <div className="flex items-center gap-2.5">
+            <Users className="h-7 w-7 text-foreground shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="truncate text-sm font-semibold">CenterVert</p>
+              <p className="truncate text-xs text-muted-foreground">
                 {userProfile?.fullName} • {displayRole}
               </p>
             </div>
             <button
               onClick={signOut}
-              className="rounded p-1 hover:bg-accent"
+              className="rounded p-1 hover:bg-accent shrink-0"
               title="Sign out"
             >
               <LogOut className="h-4 w-4 text-muted-foreground" />
