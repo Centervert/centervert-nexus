@@ -16,9 +16,9 @@ import { User, Loader2, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TEST_USERS = [
-  { email: 'test-admin@dev.local', password: 'admin123', label: 'Admin', color: 'bg-red-500' },
-  { email: 'test-agent@dev.local', password: 'agent123', label: 'Agent', color: 'bg-blue-500' },
-  { email: 'test-user@dev.local', password: 'user123', label: 'User', color: 'bg-green-500' },
+  { email: 'dev.admin@test.local', password: 'Admin123!', label: 'Admin', color: 'bg-red-500' },
+  { email: 'dev.agent@test.local', password: 'Agent123!', label: 'Agent', color: 'bg-blue-500' },
+  { email: 'dev.user@test.local', password: 'User123!', label: 'User', color: 'bg-green-500' },
 ];
 
 export const DevUserSwitcher = () => {
