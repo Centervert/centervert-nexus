@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown } from 'lucide-react';
 import { useTickets, useTicketStats } from '@/hooks/useTickets';
 import { cn } from '@/lib/utils';
 
@@ -31,11 +31,11 @@ const Dashboard = () => {
 
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, { label: string; className: string }> = {
-      open: { label: 'Open', className: 'bg-blue-500 text-white' },
-      in_progress: { label: 'In Progress', className: 'bg-purple-500 text-white' },
-      awaiting_response: { label: 'Awaiting Response', className: 'bg-yellow-500 text-black' },
-      resolved: { label: 'Resolved', className: 'bg-green-500 text-white' },
-      closed: { label: 'Closed', className: 'bg-gray-500 text-white' },
+      open: { label: 'New Request', className: 'bg-slate-900 text-white' },
+      in_progress: { label: 'In Progress', className: 'bg-blue-400 text-blue-900' },
+      awaiting_response: { label: 'Awaiting Your Respo', className: 'bg-amber-400 text-amber-900' },
+      resolved: { label: 'Complete', className: 'bg-green-400 text-green-900' },
+      closed: { label: 'Awaiting Finance Ap', className: 'bg-purple-400 text-purple-900' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
   };
@@ -130,10 +130,10 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[auto_2fr_1.5fr_1.5fr_auto] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-sm font-medium text-muted-foreground">
+            <div className="hidden md:grid md:grid-cols-[auto_2fr_1.5fr_1.5fr_auto] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="w-8"></div>
               <div>TICKET</div>
-              <div>CREATED BY</div>
+              <div>CLIENT</div>
               <div>STATUS</div>
               <div>DETAILS</div>
             </div>
@@ -186,30 +186,29 @@ const Dashboard = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:flex md:items-center">
-                        <input type="checkbox" className="rounded border-border" />
+                      <div className="hidden md:flex md:items-center md:gap-2">
+                        <input type="checkbox" className="rounded border-border w-4 h-4" />
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
                       </div>
                       <div className="hidden md:block">
                         <div className="font-medium">{ticket.title}</div>
                         <div className="text-xs text-muted-foreground">
-                          {ticket.categories?.name || 'Uncategorized'} • {' '}
-                          <span className={priorityDisplay.className}>
-                            {ticket.priority.toUpperCase()}
-                          </span>
+                          #{ticket.id.slice(0, 4)}
                         </div>
                       </div>
                       <div className="hidden md:flex md:items-center text-sm">
-                        {ticket.creator?.full_name || ticket.creator?.email || 'Unknown'}
+                        {ticket.creator?.company || ticket.creator?.full_name || 'Unknown'}
                       </div>
                       <div className="hidden md:flex md:items-center">
-                        <Badge className={cn('w-fit', statusDisplay.className)}>
+                        <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium', statusDisplay.className)}>
                           {statusDisplay.label}
+                          <ChevronDown className="h-3 w-3" />
                         </Badge>
                       </div>
                       <div className="hidden md:flex md:items-center">
-                        <Button variant="ghost" size="sm">
+                        <button className="text-sm text-primary hover:underline">
                           Details
-                        </Button>
+                        </button>
                       </div>
                     </div>
                   );

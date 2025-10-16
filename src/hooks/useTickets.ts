@@ -21,10 +21,12 @@ export interface Ticket {
   creator: {
     full_name: string | null;
     email: string;
+    company: string | null;
   } | null;
   assigned_profile: {
     full_name: string | null;
     email: string;
+    company: string | null;
   } | null;
 }
 
@@ -48,11 +50,13 @@ export const useTickets = (params?: UseTicketsParams) => {
           ),
           creator:created_by (
             full_name,
-            email
+            email,
+            company
           ),
           assigned_profile:assigned_to (
             full_name,
-            email
+            email,
+            company
           )
         `);
 
