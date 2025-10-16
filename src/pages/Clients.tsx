@@ -24,7 +24,6 @@ const Clients = () => {
         .from('clients')
         .select(`
           *,
-          managing_agency:clients!clients_managing_agency_id_fkey(name),
           client_users(count)
         `)
         .order('created_at', { ascending: false });
@@ -39,7 +38,24 @@ const Clients = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+
+      // Fetch managing agency names separately for agency_managed clients
+      const clientsWithAgencies = await Promise.all(
+        (data || []).map(async (client) => {
+          if (client.managing_agency_id) {
+            const { data: agency } = await supabase
+              .from('clients')
+              .select('name')
+              .eq('id', client.managing_agency_id)
+              .single();
+            
+            return { ...client, managing_agency: agency };
+          }
+          return client;
+        })
+      );
+
+      return clientsWithAgencies;
     },
   });
 
@@ -139,10 +155,10 @@ const Clients = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2 text-sm">
-                        {client.managing_agency && (
+                        {(client as any).managing_agency && (
                           <div>
                             <span className="text-muted-foreground">Managed by: </span>
-                            <span className="font-medium">{(client.managing_agency as any)?.name}</span>
+                            <span className="font-medium">{(client as any).managing_agency?.name}</span>
                           </div>
                         )}
                         {client.payment_terms && (
