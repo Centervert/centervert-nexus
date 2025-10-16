@@ -15,20 +15,37 @@ const ClientDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: client, isLoading } = useQuery({
+  const { data: client, isLoading, error } = useQuery({
     queryKey: ['client', id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
-        .select(`
-          *,
-          managing_agency:clients!clients_managing_agency_id_fkey(id, name)
-        `)
+        .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Error fetching client:', error);
+        throw error;
+      }
+      
+      if (!data) return null;
+      
+      // Fetch managing agency separately if needed
+      let clientWithAgency: any = { ...data };
+      if (data.managing_agency_id) {
+        const { data: agency } = await supabase
+          .from('clients')
+          .select('id, name')
+          .eq('id', data.managing_agency_id)
+          .maybeSingle();
+        
+        if (agency) {
+          clientWithAgency.managing_agency = agency;
+        }
+      }
+      
+      return clientWithAgency;
     },
   });
 
