@@ -39,7 +39,7 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
         .from('ticket_milestones')
         .select('*')
         .eq('ticket_id', ticketId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
       return (data || []) as Milestone[];
