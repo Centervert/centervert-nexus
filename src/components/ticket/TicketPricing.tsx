@@ -805,7 +805,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                     : 'bg-yellow-500'
                 }
               >
-                {quote.status.replace('_', ' ').toUpperCase()}
+                {quote.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
               </Badge>
             </div>
 
