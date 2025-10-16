@@ -27,12 +27,14 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status'>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
     search: searchQuery, 
     status: statusFilter,
-    sortBy 
+    sortBy,
+    sortDirection
   });
   const { data: stats, isLoading: statsLoading } = useTicketStats();
 
@@ -160,13 +162,47 @@ const Dashboard = () => {
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
-                <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">All Statuses</span>
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      {statusFilter === 'all' ? 'All Statuses' : getStatusDisplay(statusFilter).label}
+                    </span>
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[220px]">
+                  <DropdownMenuItem
+                    onClick={() => setStatusFilter('all')}
+                    className="cursor-pointer"
+                  >
+                    All Statuses
+                  </DropdownMenuItem>
+                  {statusOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => setStatusFilter(option.value)}
+                      className="cursor-pointer"
+                    >
+                      <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                        {option.label}
+                      </Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 flex-1 sm:flex-initial"
+                onClick={() => {
+                  setSortBy('created_at');
+                  setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                }}
+              >
                 <ArrowUpDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Date</span>
+                <span className="hidden sm:inline">Date {sortDirection === 'asc' ? '↑' : '↓'}</span>
               </Button>
             </div>
           </div>

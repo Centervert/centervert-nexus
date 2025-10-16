@@ -39,6 +39,7 @@ interface UseTicketsParams {
   search?: string;
   status?: string;
   sortBy?: 'created_at' | 'title' | 'priority' | 'status';
+  sortDirection?: 'asc' | 'desc';
 }
 
 export const useTickets = (params?: UseTicketsParams) => {
@@ -74,7 +75,8 @@ export const useTickets = (params?: UseTicketsParams) => {
       }
 
       const sortField = params?.sortBy || 'created_at';
-      query = query.order(sortField, { ascending: false });
+      const ascending = params?.sortDirection === 'asc';
+      query = query.order(sortField, { ascending });
 
       const { data, error } = await query;
 
