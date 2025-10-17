@@ -25,6 +25,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
   const [dueDate, setDueDate] = useState<Date>();
+  const [links, setLinks] = useState<Array<{ title: string; url: string; linkType: string }>>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,6 +36,44 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     categoryId: '',
     endClientName: '',
   });
+
+  const typeOptions = [
+    'Website Development',
+    'Bug Fix',
+    'Feature Request',
+    'Design Work',
+    'Consultation',
+    'Maintenance',
+    'Content Update',
+    'SEO/Marketing',
+    'Other'
+  ];
+
+  const subtypeOptions: Record<string, string[]> = {
+    'Website Development': ['Frontend', 'Backend', 'Full Stack', 'E-commerce', 'Landing Page'],
+    'Bug Fix': ['UI/UX', 'Functionality', 'Performance', 'Security', 'Mobile Responsive'],
+    'Feature Request': ['New Feature', 'Enhancement', 'Integration', 'API'],
+    'Design Work': ['Logo', 'Branding', 'UI Design', 'Graphics', 'Mockups'],
+    'Consultation': ['Strategy', 'Technical', 'Design', 'SEO', 'General'],
+    'Maintenance': ['Updates', 'Monitoring', 'Backup', 'Security Patches'],
+    'Content Update': ['Text', 'Images', 'Video', 'Blog Post'],
+    'SEO/Marketing': ['On-Page SEO', 'Off-Page SEO', 'Content Strategy', 'Analytics'],
+    'Other': ['General']
+  };
+
+  const addLink = () => {
+    setLinks([...links, { title: '', url: '', linkType: 'reference' }]);
+  };
+
+  const updateLink = (index: number, field: string, value: string) => {
+    const newLinks = [...links];
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setLinks(newLinks);
+  };
+
+  const removeLink = (index: number) => {
+    setLinks(links.filter((_, i) => i !== index));
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -96,6 +135,28 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
 
       if (error) throw error;
 
+      // Insert links if any
+      if (ticket && links.length > 0) {
+        const validLinks = links.filter(link => link.title.trim() && link.url.trim());
+        if (validLinks.length > 0) {
+          const { error: linksError } = await supabase
+            .from('ticket_links')
+            .insert(
+              validLinks.map(link => ({
+                ticket_id: ticket.id,
+                title: link.title.trim(),
+                url: link.url.trim(),
+                link_type: link.linkType,
+              }))
+            );
+          
+          if (linksError) {
+            console.error('Error creating links:', linksError);
+            toast.error('Ticket created but failed to add some links');
+          }
+        }
+      }
+
       toast.success('Ticket created successfully');
       onOpenChange(false);
       
@@ -111,6 +172,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         endClientName: '',
       });
       setDueDate(undefined);
+      setLinks([]);
 
       // Navigate to the new ticket
       if (ticket) {
@@ -165,26 +227,43 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               <Label htmlFor="type" className="text-sm font-medium">
                 Type
               </Label>
-              <Input
-                id="type"
-                placeholder="e.g., Bug Fix, Feature Request"
+              <Select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="h-11"
-              />
+                onValueChange={(value) => setFormData({ ...formData, type: value, subtype: '' })}
+              >
+                <SelectTrigger id="type" className="h-11">
+                  <SelectValue placeholder="Select request type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {typeOptions.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="subtype" className="text-sm font-medium">
                 Subtype
               </Label>
-              <Input
-                id="subtype"
-                placeholder="e.g., UI, Backend, Database"
+              <Select
                 value={formData.subtype}
-                onChange={(e) => setFormData({ ...formData, subtype: e.target.value })}
-                className="h-11"
-              />
+                onValueChange={(value) => setFormData({ ...formData, subtype: value })}
+                disabled={!formData.type}
+              >
+                <SelectTrigger id="subtype" className="h-11">
+                  <SelectValue placeholder="Select subtype" />
+                </SelectTrigger>
+                <SelectContent>
+                  {formData.type && subtypeOptions[formData.type]?.map((subtype) => (
+                    <SelectItem key={subtype} value={subtype}>
+                      {subtype}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -289,6 +368,49 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
               className="h-11"
             />
+          </div>
+
+          {/* Supporting Links Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">
+                Supporting Links (Optional)
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addLink}
+                className="h-8"
+              >
+                Add Link
+              </Button>
+            </div>
+            {links.map((link, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  placeholder="Link title (e.g., Design Doc)"
+                  value={link.title}
+                  onChange={(e) => updateLink(index, 'title', e.target.value)}
+                  className="h-10"
+                />
+                <Input
+                  placeholder="URL (e.g., https://docs.google.com/...)"
+                  value={link.url}
+                  onChange={(e) => updateLink(index, 'url', e.target.value)}
+                  className="h-10 flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeLink(index)}
+                  className="h-10 px-3"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
           </div>
 
           <div className="flex gap-3 pt-4">
