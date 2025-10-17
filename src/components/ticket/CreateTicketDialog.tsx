@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { CalendarIcon, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -373,9 +374,28 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           {/* Supporting Links Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium">
-                Supporting Links (Optional)
-              </Label>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">
+                  Supporting Links (Optional)
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p className="text-sm">Add reference materials like:</p>
+                      <ul className="text-sm mt-1 space-y-1 list-disc list-inside">
+                        <li>Google Docs with requirements</li>
+                        <li>Figma design files</li>
+                        <li>Existing websites for reference</li>
+                        <li>Competitor examples</li>
+                        <li>Project specifications</li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Button
                 type="button"
                 variant="outline"
