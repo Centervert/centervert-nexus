@@ -56,6 +56,7 @@ const TicketDetail = () => {
   const [editBudget, setEditBudget] = useState('');
   const [editType, setEditType] = useState('');
   const [editSubtype, setEditSubtype] = useState('');
+  const [editEndClientName, setEditEndClientName] = useState('');
 
   const { data: ticket, isLoading } = useQuery({
     queryKey: ['ticket', id],
@@ -94,6 +95,7 @@ const TicketDetail = () => {
         setEditBudget(data.budget?.toString() || '');
         setEditType(data.type || '');
         setEditSubtype(data.subtype || '');
+        setEditEndClientName(data.end_client_name || '');
       }
       
       return data;
@@ -243,6 +245,7 @@ const TicketDetail = () => {
         priority: editPriority,
         type: editType || null,
         subtype: editSubtype || null,
+        end_client_name: editEndClientName || null,
       };
 
       if (editCategoryId && editCategoryId !== 'none') updates.category_id = editCategoryId;
@@ -361,6 +364,7 @@ const TicketDetail = () => {
                           setEditBudget(ticket.budget?.toString() || '');
                           setEditType(ticket.type || '');
                           setEditSubtype(ticket.subtype || '');
+                          setEditEndClientName(ticket.end_client_name || '');
                         }
                       }}
                       className="gap-2"
@@ -464,6 +468,17 @@ const TicketDetail = () => {
                         className="mt-1"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-end-client">End Client</Label>
+                    <Input
+                      id="edit-end-client"
+                      value={editEndClientName}
+                      onChange={(e) => setEditEndClientName(e.target.value)}
+                      placeholder="Client or company name"
+                      className="mt-1"
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
