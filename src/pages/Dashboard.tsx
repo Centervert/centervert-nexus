@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles, Trash2 } from 'lucide-react';
 import { useTickets, useTicketStats } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
@@ -70,6 +71,77 @@ const Dashboard = () => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && tickets) {
+      setSelectedTickets(tickets.map(t => t.id));
+    } else {
+      setSelectedTickets([]);
+    }
+  };
+
+  const handleSelectTicket = (ticketId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTickets([...selectedTickets, ticketId]);
+    } else {
+      setSelectedTickets(selectedTickets.filter(id => id !== ticketId));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!userRole?.isAdmin) {
+      toast.error('Only administrators can delete tickets');
+      return;
+    }
+
+    if (selectedTickets.length === 0) return;
+
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${selectedTickets.length} ticket(s)? This action cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .delete()
+        .in('id', selectedTickets);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
+      setSelectedTickets([]);
+      
+      toast.success(`Successfully deleted ${selectedTickets.length} ticket(s)`);
+    } catch (error) {
+      console.error('Error deleting tickets:', error);
+      toast.error('Failed to delete tickets');
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: TicketStatus) => {
+    if (selectedTickets.length === 0) return;
+
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: newStatus })
+        .in('id', selectedTickets);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
+      setSelectedTickets([]);
+      
+      toast.success(`Successfully updated ${selectedTickets.length} ticket(s)`);
+    } catch (error) {
+      console.error('Error updating tickets:', error);
+      toast.error('Failed to update tickets');
     }
   };
 
@@ -163,16 +235,62 @@ const Dashboard = () => {
 
           {/* Search and Filters */}
           <div className="mb-4 md:mb-6 flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search tickets..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <div className="flex gap-2">
+            {selectedTickets.length > 0 ? (
+              <div className="flex items-center gap-3 flex-1">
+                <span className="text-sm font-medium">
+                  {selectedTickets.length} ticket(s) selected
+                </span>
+                <div className="flex gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Change Status
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {statusOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() => handleBulkStatusChange(option.value)}
+                          className="cursor-pointer"
+                        >
+                          <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                            {option.label}
+                          </Badge>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  {userRole?.isAdmin && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDelete}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedTickets([])}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search tickets..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">
@@ -262,13 +380,22 @@ const Dashboard = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+              </>
+            )}
           </div>
 
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
             <div className="hidden md:grid md:grid-cols-[56px_2fr_1.5fr_200px_1fr] gap-6 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              <div></div>
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  className="rounded border-border w-4 h-4" 
+                  checked={tickets && tickets.length > 0 && selectedTickets.length === tickets.length}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
+                />
+              </div>
               <div>TICKET</div>
               <div>CLIENT</div>
               <div>STATUS</div>
@@ -360,6 +487,11 @@ const Dashboard = () => {
                         <input 
                           type="checkbox" 
                           className="rounded border-border w-4 h-4 shrink-0" 
+                          checked={selectedTickets.includes(ticket.id)}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleSelectTicket(ticket.id, e.target.checked);
+                          }}
                           onClick={(e) => e.stopPropagation()}
                         />
                         <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
