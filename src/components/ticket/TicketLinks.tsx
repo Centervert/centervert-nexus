@@ -174,9 +174,14 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                       </Badge>
                     </div>
                     {link.url ? (
-                      <p className="text-xs text-muted-foreground truncate">
+                      <a
+                        href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline truncate block"
+                      >
                         {link.url}
-                      </p>
+                      </a>
                     ) : (
                       <p className="text-xs text-muted-foreground">Not yet available</p>
                     )}
