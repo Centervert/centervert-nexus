@@ -435,7 +435,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             {isAgency ? (
               <>
                 <Select
-                  value={showNewClientInput ? 'add-new' : formData.clientId}
+                  value={showNewClientInput ? 'add-new' : (formData.clientId || undefined)}
                   onValueChange={(value) => {
                     if (value === 'add-new') {
                       setShowNewClientInput(true);
