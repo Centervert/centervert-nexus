@@ -484,12 +484,12 @@ const TicketDetail = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-type">Type</Label>
-                      <Select value={editType} onValueChange={setEditType}>
+                      <Select value={editType || "none"} onValueChange={(val) => setEditType(val === "none" ? "" : val)}>
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="Bug">Bug</SelectItem>
                           <SelectItem value="Feature">Feature</SelectItem>
                           <SelectItem value="Enhancement">Enhancement</SelectItem>
@@ -502,12 +502,12 @@ const TicketDetail = () => {
 
                     <div>
                       <Label htmlFor="edit-subtype">Subtype</Label>
-                      <Select value={editSubtype} onValueChange={setEditSubtype}>
+                      <Select value={editSubtype || "none"} onValueChange={(val) => setEditSubtype(val === "none" ? "" : val)}>
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select subtype" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="UI">UI</SelectItem>
                           <SelectItem value="Backend">Backend</SelectItem>
                           <SelectItem value="Database">Database</SelectItem>
