@@ -484,24 +484,39 @@ const TicketDetail = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-type">Type</Label>
-                      <Input
-                        id="edit-type"
-                        value={editType}
-                        onChange={(e) => setEditType(e.target.value)}
-                        placeholder="e.g., Bug, Feature"
-                        className="mt-1"
-                      />
+                      <Select value={editType} onValueChange={setEditType}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="Bug">Bug</SelectItem>
+                          <SelectItem value="Feature">Feature</SelectItem>
+                          <SelectItem value="Enhancement">Enhancement</SelectItem>
+                          <SelectItem value="Support">Support</SelectItem>
+                          <SelectItem value="Maintenance">Maintenance</SelectItem>
+                          <SelectItem value="Documentation">Documentation</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div>
                       <Label htmlFor="edit-subtype">Subtype</Label>
-                      <Input
-                        id="edit-subtype"
-                        value={editSubtype}
-                        onChange={(e) => setEditSubtype(e.target.value)}
-                        placeholder="e.g., UI, Backend"
-                        className="mt-1"
-                      />
+                      <Select value={editSubtype} onValueChange={setEditSubtype}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select subtype" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="UI">UI</SelectItem>
+                          <SelectItem value="Backend">Backend</SelectItem>
+                          <SelectItem value="Database">Database</SelectItem>
+                          <SelectItem value="API">API</SelectItem>
+                          <SelectItem value="Performance">Performance</SelectItem>
+                          <SelectItem value="Security">Security</SelectItem>
+                          <SelectItem value="Infrastructure">Infrastructure</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
