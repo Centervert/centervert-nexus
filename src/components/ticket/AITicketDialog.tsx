@@ -347,8 +347,8 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
 
         <div className="flex-1 flex flex-col gap-4 min-h-0">
           {/* Chat Messages */}
-          <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 pr-4 h-full" ref={scrollRef}>
+            <div className="space-y-4 pb-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
