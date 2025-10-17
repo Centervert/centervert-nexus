@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { DevUserSwitcher } from '@/components/DevUserSwitcher';
 import { AITicketDialog } from '@/components/ticket/AITicketDialog';
+import { CreateTicketDialog } from '@/components/ticket/CreateTicketDialog';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
@@ -150,7 +152,10 @@ const Dashboard = () => {
           {/* Tickets Section */}
           <div className="mb-4 md:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl md:text-2xl font-bold">Your Tickets</h2>
-            <Button className="gap-2 w-full sm:w-auto">
+            <Button 
+              className="gap-2 w-full sm:w-auto"
+              onClick={() => setCreateDialogOpen(true)}
+            >
               <Plus className="h-4 w-4" />
               <span className="sm:inline">Submit New Request</span>
             </Button>
@@ -461,6 +466,8 @@ const Dashboard = () => {
           <AITicketDialog open={aiDialogOpen} onOpenChange={setAiDialogOpen} />
         </>
       )}
+      
+      <CreateTicketDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
       </div>
     </SidebarProvider>
   );
