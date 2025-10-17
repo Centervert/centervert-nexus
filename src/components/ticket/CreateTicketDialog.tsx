@@ -30,6 +30,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const [dueDate, setDueDate] = useState<Date>();
   const [links, setLinks] = useState<Array<{ title: string; url: string; linkType: string }>>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [showNewClientInput, setShowNewClientInput] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -147,8 +149,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       return;
     }
 
-    if (isAgency && !formData.clientId) {
-      toast.error('Please select a client');
+    if (isAgency && !formData.clientId && !newClientName.trim()) {
+      toast.error('Please select a client or enter a new client name');
       return;
     }
 
@@ -160,6 +162,28 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       if (!user) {
         toast.error('You must be logged in to create a ticket');
         return;
+      }
+
+      let clientId = formData.clientId;
+
+      // Create new client if needed
+      if (isAgency && showNewClientInput && newClientName.trim()) {
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            name: newClientName.trim(),
+          })
+          .select()
+          .single();
+
+        if (clientError) {
+          console.error('Error creating client:', clientError);
+          toast.error('Failed to create new client');
+          setIsSubmitting(false);
+          return;
+        }
+
+        clientId = newClient.id;
       }
 
       const insertData: any = {
@@ -174,7 +198,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       if (formData.subtype) insertData.subtype = formData.subtype.trim();
       if (formData.budget) insertData.budget = parseFloat(formData.budget);
       if (formData.categoryId) insertData.category_id = formData.categoryId;
-      if (formData.clientId) insertData.client_id = formData.clientId;
+      if (clientId) insertData.client_id = clientId;
       if (formData.endClientName) insertData.end_client_name = formData.endClientName.trim();
       if (dueDate) insertData.due_date = dueDate.toISOString();
 
@@ -263,6 +287,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       setDueDate(undefined);
       setLinks([]);
       setFiles([]);
+      setShowNewClientInput(false);
+      setNewClientName('');
 
       // Navigate to the new ticket
       if (ticket) {
@@ -384,21 +410,41 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                 Client {isAgency && <span className="text-destructive">*</span>}
               </Label>
               {isAgency ? (
-                <Select
-                  value={formData.clientId}
-                  onValueChange={(value) => setFormData({ ...formData, clientId: value })}
-                >
-                  <SelectTrigger id="client" className="h-11">
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select
+                    value={showNewClientInput ? 'add-new' : formData.clientId}
+                    onValueChange={(value) => {
+                      if (value === 'add-new') {
+                        setShowNewClientInput(true);
+                        setFormData({ ...formData, clientId: '' });
+                      } else {
+                        setShowNewClientInput(false);
+                        setNewClientName('');
+                        setFormData({ ...formData, clientId: value });
+                      }
+                    }}
+                  >
+                    <SelectTrigger id="client" className="h-11">
+                      <SelectValue placeholder="Select a client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="add-new">+ Add New Client</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {showNewClientInput && (
+                    <Input
+                      placeholder="Enter new client name"
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      className="h-11 mt-2"
+                    />
+                  )}
+                </>
               ) : (
                 <Input
                   id="client"
