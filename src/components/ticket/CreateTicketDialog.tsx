@@ -488,11 +488,15 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                 <Input
                   id="budget"
-                  type="number"
-                  step="0.01"
+                  type="text"
                   placeholder="0.00"
-                  value={formData.budget}
-                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  value={formData.budget ? parseFloat(formData.budget).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ''}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/,/g, '');
+                    if (value === '' || !isNaN(parseFloat(value))) {
+                      setFormData({ ...formData, budget: value });
+                    }
+                  }}
                   className="h-11 pl-7"
                 />
               </div>
