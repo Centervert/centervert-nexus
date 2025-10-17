@@ -16,7 +16,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, ChevronDown, Pencil, X, Check, RefreshCw, ExternalLink } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { ArrowLeft, ChevronDown, Pencil, X, Check, RefreshCw, ExternalLink, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TicketDetails } from '@/components/ticket/TicketDetails';
 import { TicketUpdates } from '@/components/ticket/TicketUpdates';
@@ -45,6 +58,7 @@ const TicketDetail = () => {
   const { data: userRole } = useUserRole();
   const [isEditing, setIsEditing] = useState(false);
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
+  const [endClientComboOpen, setEndClientComboOpen] = useState(false);
   
   // Edit form state
   const [editTitle, setEditTitle] = useState('');
@@ -121,6 +135,21 @@ const TicketDetail = () => {
     queryKey: ['available-agents'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_available_agents');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch clients for End Client combobox
+  const { data: clients } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('is_active', true)
+        .is('deleted_at', null)
+        .order('name');
       if (error) throw error;
       return data;
     },
@@ -472,13 +501,53 @@ const TicketDetail = () => {
 
                   <div>
                     <Label htmlFor="edit-end-client">End Client</Label>
-                    <Input
-                      id="edit-end-client"
-                      value={editEndClientName}
-                      onChange={(e) => setEditEndClientName(e.target.value)}
-                      placeholder="Client or company name"
-                      className="mt-1"
-                    />
+                    <Popover open={endClientComboOpen} onOpenChange={setEndClientComboOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={endClientComboOpen}
+                          className="w-full justify-between mt-1"
+                        >
+                          {editEndClientName || "Select or type client name..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search or type client name..." 
+                            value={editEndClientName}
+                            onValueChange={setEditEndClientName}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              Press Enter to use "{editEndClientName}"
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {clients?.map((client) => (
+                                <CommandItem
+                                  key={client.id}
+                                  value={client.name}
+                                  onSelect={(currentValue) => {
+                                    setEditEndClientName(currentValue);
+                                    setEndClientComboOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      editEndClientName === client.name ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {client.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
