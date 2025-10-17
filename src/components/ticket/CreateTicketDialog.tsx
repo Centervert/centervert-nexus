@@ -524,19 +524,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="endClientName" className="text-sm font-medium">
-              End Client Name (Optional)
-            </Label>
-            <Input
-              id="endClientName"
-              placeholder="For agency workflows"
-              value={formData.endClientName}
-              onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
-              className="h-11"
-            />
-          </div>
-
           {/* File Attachments Section */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
