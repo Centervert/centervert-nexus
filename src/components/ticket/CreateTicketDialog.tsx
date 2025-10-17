@@ -451,12 +451,12 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="add-new">+ Add New Client</SelectItem>
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
                       </SelectItem>
                     ))}
+                    <SelectItem value="add-new">+ Add New Client</SelectItem>
                   </SelectContent>
                 </Select>
                 {showNewClientInput && (
