@@ -25,8 +25,11 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
+  const [isAgency, setIsAgency] = useState(false);
   const [dueDate, setDueDate] = useState<Date>();
   const [links, setLinks] = useState<Array<{ title: string; url: string; linkType: string }>>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,6 +38,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     subtype: '',
     budget: '',
     categoryId: '',
+    clientId: '',
     endClientName: '',
   });
 
@@ -76,22 +80,62 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     setLinks(links.filter((_, i) => i !== index));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles([...files, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
+    const fetchData = async () => {
+      // Fetch categories
+      const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('id, name')
         .order('name');
       
-      if (error) {
-        console.error('Error fetching categories:', error);
+      if (categoriesError) {
+        console.error('Error fetching categories:', categoriesError);
       } else {
-        setCategories(data || []);
+        setCategories(categoriesData || []);
+      }
+
+      // Check user role and fetch clients
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+        
+        const roles = userRoles?.map(r => r.role) || [];
+        const isAgencyUser = roles.includes('admin') || roles.includes('agent');
+        setIsAgency(isAgencyUser);
+
+        if (isAgencyUser) {
+          // Fetch clients for agency users
+          const { data: clientsData, error: clientsError } = await supabase
+            .from('clients')
+            .select('id, name')
+            .is('deleted_at', null)
+            .order('name');
+          
+          if (clientsError) {
+            console.error('Error fetching clients:', clientsError);
+          } else {
+            setClients(clientsData || []);
+          }
+        }
       }
     };
 
     if (open) {
-      fetchCategories();
+      fetchData();
     }
   }, [open]);
 
@@ -100,6 +144,11 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     
     if (!formData.title.trim() || !formData.description.trim()) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    if (isAgency && !formData.clientId) {
+      toast.error('Please select a client');
       return;
     }
 
@@ -125,6 +174,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       if (formData.subtype) insertData.subtype = formData.subtype.trim();
       if (formData.budget) insertData.budget = parseFloat(formData.budget);
       if (formData.categoryId) insertData.category_id = formData.categoryId;
+      if (formData.clientId) insertData.client_id = formData.clientId;
       if (formData.endClientName) insertData.end_client_name = formData.endClientName.trim();
       if (dueDate) insertData.due_date = dueDate.toISOString();
 
@@ -158,6 +208,43 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         }
       }
 
+      // Upload files if any
+      if (ticket && files.length > 0) {
+        for (const file of files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${ticket.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('ticket-attachments')
+            .upload(fileName, file);
+
+          if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            toast.error(`Failed to upload ${file.name}`);
+            continue;
+          }
+
+          const { data: urlData } = supabase.storage
+            .from('ticket-attachments')
+            .getPublicUrl(fileName);
+
+          const { error: attachmentError } = await supabase
+            .from('attachments')
+            .insert({
+              ticket_id: ticket.id,
+              file_name: file.name,
+              file_url: urlData.publicUrl,
+              file_type: file.type,
+              file_size: file.size,
+              uploaded_by: user.id,
+            });
+
+          if (attachmentError) {
+            console.error('Error creating attachment record:', attachmentError);
+          }
+        }
+      }
+
       toast.success('Ticket created successfully');
       onOpenChange(false);
       
@@ -170,10 +257,12 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         subtype: '',
         budget: '',
         categoryId: '',
+        clientId: '',
         endClientName: '',
       });
       setDueDate(undefined);
       setLinks([]);
+      setFiles([]);
 
       // Navigate to the new ticket
       if (ticket) {
@@ -291,26 +380,57 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="priority" className="text-sm font-medium">
-                Priority
+              <Label htmlFor="client" className="text-sm font-medium">
+                Client {isAgency && <span className="text-destructive">*</span>}
               </Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => 
-                  setFormData({ ...formData, priority: value })
-                }
-              >
-                <SelectTrigger id="priority" className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
+              {isAgency ? (
+                <Select
+                  value={formData.clientId}
+                  onValueChange={(value) => setFormData({ ...formData, clientId: value })}
+                >
+                  <SelectTrigger id="client" className="h-11">
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="client"
+                  placeholder="Client name (optional)"
+                  value={formData.endClientName}
+                  onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
+                  className="h-11"
+                />
+              )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="priority" className="text-sm font-medium">
+              Priority
+            </Label>
+            <Select
+              value={formData.priority}
+              onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => 
+                setFormData({ ...formData, priority: value })
+              }
+            >
+              <SelectTrigger id="priority" className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -369,6 +489,49 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
               className="h-11"
             />
+          </div>
+
+          {/* File Attachments Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">
+                Attachments (Optional)
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => document.getElementById('file-upload')?.click()}
+                className="h-8"
+              >
+                Add Files
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </div>
+            {files.length > 0 && (
+              <div className="space-y-2">
+                {files.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-muted rounded">
+                    <span className="text-sm truncate flex-1">{file.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeFile(index)}
+                      className="h-7 px-2"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Supporting Links Section */}
