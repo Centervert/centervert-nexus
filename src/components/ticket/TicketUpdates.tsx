@@ -167,7 +167,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
                           : 'bg-muted'
                       }`}
                     >
-                      <p className="text-[15px] leading-[20px] whitespace-pre-wrap">{message.content}</p>
+                      <p className="text-[15px] leading-[20px] whitespace-pre-wrap break-words">{message.content}</p>
                     </div>
                   </div>
                 </div>

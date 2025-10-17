@@ -35,11 +35,26 @@ export const ManageDeliverablesDialog = ({
         url: null,
       }));
 
-      const { error } = await supabase
+      const { error: linksError } = await supabase
         .from('ticket_links')
         .insert(linksToInsert);
 
-      if (error) throw error;
+      if (linksError) throw linksError;
+
+      // Create milestone entries for each deliverable
+      const milestonesToInsert = template.links.map(link => ({
+        ticket_id: ticketId,
+        title: `${link.title} Added`,
+        description: `${link.title} deliverable has been added to the project`,
+        type: 'deliverable',
+        status: 'pending',
+      }));
+
+      const { error: milestonesError } = await supabase
+        .from('ticket_milestones')
+        .insert(milestonesToInsert);
+
+      if (milestonesError) throw milestonesError;
 
       toast({
         title: 'Deliverables Added',
