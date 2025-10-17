@@ -406,77 +406,77 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="client" className="text-sm font-medium">
-                Client {isAgency && <span className="text-destructive">*</span>}
+              <Label htmlFor="priority" className="text-sm font-medium">
+                Priority
               </Label>
-              {isAgency ? (
-                <>
-                  <Select
-                    value={showNewClientInput ? 'add-new' : formData.clientId}
-                    onValueChange={(value) => {
-                      if (value === 'add-new') {
-                        setShowNewClientInput(true);
-                        setFormData({ ...formData, clientId: '' });
-                      } else {
-                        setShowNewClientInput(false);
-                        setNewClientName('');
-                        setFormData({ ...formData, clientId: value });
-                      }
-                    }}
-                  >
-                    <SelectTrigger id="client" className="h-11">
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="add-new">+ Add New Client</SelectItem>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {showNewClientInput && (
-                    <Input
-                      placeholder="Enter new client name"
-                      value={newClientName}
-                      onChange={(e) => setNewClientName(e.target.value)}
-                      className="h-11 mt-2"
-                    />
-                  )}
-                </>
-              ) : (
-                <Input
-                  id="client"
-                  placeholder="Client name (optional)"
-                  value={formData.endClientName}
-                  onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
-                  className="h-11"
-                />
-              )}
+              <Select
+                value={formData.priority}
+                onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => 
+                  setFormData({ ...formData, priority: value })
+                }
+              >
+                <SelectTrigger id="priority" className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="priority" className="text-sm font-medium">
-              Priority
+            <Label htmlFor="client" className="text-sm font-medium">
+              Client {isAgency && <span className="text-destructive">*</span>}
             </Label>
-            <Select
-              value={formData.priority}
-              onValueChange={(value: 'low' | 'medium' | 'high' | 'urgent') => 
-                setFormData({ ...formData, priority: value })
-              }
-            >
-              <SelectTrigger id="priority" className="h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
+            {isAgency ? (
+              <>
+                <Select
+                  value={showNewClientInput ? 'add-new' : formData.clientId}
+                  onValueChange={(value) => {
+                    if (value === 'add-new') {
+                      setShowNewClientInput(true);
+                      setFormData({ ...formData, clientId: '' });
+                    } else {
+                      setShowNewClientInput(false);
+                      setNewClientName('');
+                      setFormData({ ...formData, clientId: value });
+                    }
+                  }}
+                >
+                  <SelectTrigger id="client" className="h-11">
+                    <SelectValue placeholder="Select a client" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="add-new">+ Add New Client</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {showNewClientInput && (
+                  <Input
+                    placeholder="Enter new client name"
+                    value={newClientName}
+                    onChange={(e) => setNewClientName(e.target.value)}
+                    className="h-11 mt-2"
+                  />
+                )}
+              </>
+            ) : (
+              <Input
+                id="client"
+                placeholder="Client name (optional)"
+                value={formData.endClientName}
+                onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
+                className="h-11"
+              />
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
