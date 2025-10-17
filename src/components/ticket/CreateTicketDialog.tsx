@@ -172,6 +172,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           .from('clients')
           .insert({
             name: newClientName.trim(),
+            client_type: 'direct',
+            is_active: true,
           })
           .select()
           .single();
@@ -184,6 +186,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         }
 
         clientId = newClient.id;
+        toast.success(`Client "${newClient.name}" created successfully`);
       }
 
       const insertData: any = {
