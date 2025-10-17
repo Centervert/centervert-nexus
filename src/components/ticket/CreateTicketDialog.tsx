@@ -482,6 +482,24 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             )}
           </div>
 
+          {isAgency && (
+            <div className="space-y-2">
+              <Label htmlFor="endClient" className="text-sm font-medium">
+                End Client / Project Name (Optional)
+              </Label>
+              <Input
+                id="endClient"
+                placeholder="e.g., Xulon Press, Project Name"
+                value={formData.endClientName}
+                onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
+                className="h-11"
+              />
+              <p className="text-xs text-muted-foreground">
+                Specify the final client or project this work is for
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="budget" className="text-sm font-medium">
