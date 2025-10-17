@@ -484,15 +484,18 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               <Label htmlFor="budget" className="text-sm font-medium">
                 Budget (Optional)
               </Label>
-              <Input
-                id="budget"
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={formData.budget}
-                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                className="h-11"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  id="budget"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.budget}
+                  onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                  className="h-11 pl-7"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
