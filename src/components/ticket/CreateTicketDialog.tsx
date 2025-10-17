@@ -448,7 +448,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                   }}
                 >
                   <SelectTrigger id="client" className="h-11">
-                    <SelectValue placeholder="Select a client" />
+                    <SelectValue placeholder="Please select the client" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
