@@ -601,7 +601,7 @@ const TicketDetail = () => {
 
             {/* Main Content Sections */}
             <div className="space-y-6">
-              <TicketDetails ticket={ticket} />
+              {!isEditing && <TicketDetails ticket={ticket} />}
 
               {/* Description */}
               {ticket.description && (
