@@ -3,6 +3,7 @@ import { Building2, Tag, User, DollarSign, Calendar, Clock } from 'lucide-react'
 
 interface TicketDetailsProps {
   ticket: {
+    end_client_name?: string | null;
     creator?: {
       company?: string | null;
       full_name?: string | null;
@@ -47,7 +48,7 @@ export const TicketDetails = ({ ticket }: TicketDetailsProps) => {
             <div className="flex-1">
               <p className="text-xs text-muted-foreground mb-1">End Client</p>
               <p className="text-sm font-medium">
-                {ticket.creator?.company || ticket.creator?.full_name || 'Not specified'}
+                {ticket.end_client_name || 'Not specified'}
               </p>
             </div>
           </div>
