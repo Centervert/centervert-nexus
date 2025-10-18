@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import Sidebar from '@/components/Sidebar';
+import SettingsSidebar from '@/components/SettingsSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,7 +58,7 @@ const ClientDetail = () => {
     return (
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
-          <Sidebar />
+          <SettingsSidebar />
           <main className="flex-1 overflow-y-auto">
             <div className="p-8 text-center text-muted-foreground">Loading client...</div>
           </main>
@@ -71,7 +71,7 @@ const ClientDetail = () => {
     return (
       <SidebarProvider>
         <div className="flex min-h-screen w-full bg-background">
-          <Sidebar />
+          <SettingsSidebar />
           <main className="flex-1 overflow-y-auto">
             <div className="p-8 text-center text-muted-foreground">Client not found</div>
           </main>
@@ -83,7 +83,7 @@ const ClientDetail = () => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <Sidebar />
+        <SettingsSidebar />
 
         <main className="flex-1 overflow-y-auto">
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">

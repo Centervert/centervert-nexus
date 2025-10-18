@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import Sidebar from '@/components/Sidebar';
+import SettingsSidebar from '@/components/SettingsSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Save, User } from 'lucide-react';
+import { Save, User } from 'lucide-react';
 
 const Profile = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
@@ -95,27 +93,22 @@ const Profile = () => {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <Sidebar />
+        <SettingsSidebar />
 
         <main className="flex-1 overflow-y-auto">
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
             <SidebarTrigger className="md:hidden" />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              <h1 className="text-lg font-semibold">Profile</h1>
+            </div>
           </div>
 
           <div className="p-4 md:p-8 max-w-4xl">
             <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
-              <p className="text-muted-foreground">
-                Manage your personal information and account settings
+              <h2 className="text-2xl font-bold">Personal Information</h2>
+              <p className="text-muted-foreground mt-1">
+                Manage your account details and preferences
               </p>
             </div>
 

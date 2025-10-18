@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, Users, LogOut, Building2, RefreshCw, Settings } from 'lucide-react';
+import { Ticket, LogOut, RefreshCw, Settings, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -104,35 +104,24 @@ const Sidebar = () => {
       <SidebarFooter>
         <Separator />
         
-        {/* Admin User Management */}
-        {userRole?.isAdmin && (
-          <>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname === '/admin'}>
-                  <Link to="/admin" className="py-3">
-                    <Users className="h-5 w-5" />
-                    <span>User Management</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.startsWith('/clients')}>
-                  <Link to="/clients" className="py-3">
-                    <Building2 className="h-5 w-5" />
-                    <span>Client Management</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-            <Separator />
-          </>
-        )}
+        {/* Settings Link */}
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={location.pathname.startsWith('/settings') || location.pathname === '/profile' || location.pathname.startsWith('/clients')}>
+              <Link to="/settings" className="py-3">
+                <Settings className="h-5 w-5" />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        
+        <Separator />
         
         {/* User Profile */}
         <div className="p-4">
           <div className="flex items-center gap-2.5">
-            <Users className="h-7 w-7 text-foreground shrink-0" />
+            <User className="h-7 w-7 text-foreground shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-semibold">
                 {userProfile?.company || 'Your Company'}
@@ -141,13 +130,6 @@ const Sidebar = () => {
                 {userProfile?.fullName} • {displayRole}
               </p>
             </div>
-            <Link
-              to="/profile"
-              className="rounded p-1 hover:bg-accent shrink-0"
-              title="Profile settings"
-            >
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </Link>
             <button
               onClick={signOut}
               className="rounded p-1 hover:bg-accent shrink-0"

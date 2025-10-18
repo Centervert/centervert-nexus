@@ -9,7 +9,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TicketDetail from "./pages/TicketDetail";
-import Admin from "./pages/Admin";
+import Settings from "./pages/Settings";
+import UserManagement from "./pages/settings/UserManagement";
+import PaymentSettings from "./pages/settings/PaymentSettings";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import ManagedServices from "./pages/ManagedServices";
@@ -47,10 +49,26 @@ const App = () => {
                 }
               />
               <Route
-                path="/admin"
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/users"
                 element={
                   <ProtectedRoute adminOnly>
-                    <Admin />
+                    <UserManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/payments"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <PaymentSettings />
                   </ProtectedRoute>
                 }
               />
