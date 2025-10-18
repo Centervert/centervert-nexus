@@ -74,10 +74,20 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
   useEffect(() => {
     if (open) {
       fetchContextData();
-      // Add welcome message
+      // Add welcome message with structured questions
       setMessages([{
         role: 'assistant',
-        content: "Hi! I'm your AI ticket assistant. Tell me what you need help with, and I'll create a ticket for you. Just describe the issue or request in your own words."
+        content: `Hi! I'm your AI ticket assistant, ready to help you create a ticket. 
+
+To get started quickly, please tell me:
+• **Which client** is this for?
+• **What needs to be done?** (I can generate a title from this, or you can provide both a title and description)
+• **Any deadline or due date?**
+• **Budget or cost estimate?**
+• **Priority level?** (urgent, high, medium, low)
+• **Any other details?**
+
+Feel free to provide as much or as little as you'd like in one message - I'll ask follow-up questions only if needed!`
       }]);
     }
   }, [open]);
@@ -322,7 +332,17 @@ export const AITicketDialog = ({ open, onOpenChange }: AITicketDialogProps) => {
   const clearConversation = () => {
     setMessages([{
       role: 'assistant',
-      content: "Hi! I'm your AI ticket assistant. Tell me what you need help with, and I'll create a ticket for you."
+      content: `Hi! I'm your AI ticket assistant, ready to help you create a ticket. 
+
+To get started quickly, please tell me:
+• **Which client** is this for?
+• **What needs to be done?** (I can generate a title from this, or you can provide both a title and description)
+• **Any deadline or due date?**
+• **Budget or cost estimate?**
+• **Priority level?** (urgent, high, medium, low)
+• **Any other details?**
+
+Feel free to provide as much or as little as you'd like in one message - I'll ask follow-up questions only if needed!`
     }]);
     setTicketData(null);
     setNewClientId(null);
