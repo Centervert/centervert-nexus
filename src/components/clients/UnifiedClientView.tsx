@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, Save, X, Plus, Mail, Phone, Trash2, UserCheck, Send, Clock, AlertCircle, RotateCw, KeyRound } from 'lucide-react';
@@ -34,6 +35,7 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
     phone: client.phone || '',
     notes: client.notes || '',
     is_active: client.is_active,
+    managing_agency_id: client.managing_agency_id || '',
   });
 
   const [contactFormData, setContactFormData] = useState({
@@ -55,6 +57,20 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
         .select('*')
         .eq('client_id', client.id)
         .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch agencies for dropdown
+  const { data: agencies } = useQuery({
+    queryKey: ['agencies'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, name')
+        .eq('client_type', 'agency')
+        .order('name');
       if (error) throw error;
       return data;
     },
@@ -119,6 +135,7 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
           phone: data.phone || null,
           notes: data.notes || null,
           is_active: data.is_active,
+          managing_agency_id: data.managing_agency_id || null,
         })
         .eq('id', client.id);
       if (error) throw error;
@@ -345,6 +362,34 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
               </div>
             </div>
           </div>
+
+          {(client.client_type === 'agency_managed' || isEditingClient) && (
+            <div className="space-y-2">
+              <Label>Managing Agency</Label>
+              {isEditingClient ? (
+                <Select
+                  value={clientFormData.managing_agency_id}
+                  onValueChange={(value) => setClientFormData({ ...clientFormData, managing_agency_id: value })}
+                >
+                  <SelectTrigger className="bg-background">
+                    <SelectValue placeholder="Select agency (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background z-50">
+                    <SelectItem value="">None</SelectItem>
+                    {agencies?.map((agency) => (
+                      <SelectItem key={agency.id} value={agency.id}>
+                        {agency.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <p className="text-sm">
+                  {client.managing_agency?.name || '-'}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
