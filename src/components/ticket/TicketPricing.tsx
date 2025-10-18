@@ -134,6 +134,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       
       return data as Quote | null;
     },
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
   // Update countdown timer
