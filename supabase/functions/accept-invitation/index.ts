@@ -67,7 +67,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (authError || !authData.user) {
       console.error("Auth error:", authError);
       return new Response(
-        JSON.stringify({ error: authError?.message || "Failed to create user" }),
+        JSON.stringify({ error: "Unable to create account. Please try again or contact support." }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error accepting invitation:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Service temporarily unavailable. Please try again later." }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

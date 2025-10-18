@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
   } catch (error: any) {
     console.error("Error sending quote notification:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "Failed to send notification. Please try again." }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
