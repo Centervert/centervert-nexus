@@ -48,6 +48,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/admin" element={<Navigate to="/settings" replace />} />
               <Route
                 path="/settings"
                 element={
