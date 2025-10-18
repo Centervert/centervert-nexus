@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Send, Star } from 'lucide-react';
+import { Send, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -118,6 +118,24 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
     },
     onError: () => {
       toast.error('Failed to update message');
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      const { error } = await supabase
+        .from('ticket_messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-messages', ticketId] });
+      toast.success('Message deleted');
+    },
+    onError: () => {
+      toast.error('Failed to delete message');
     },
   });
 
@@ -273,37 +291,43 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
                       <div className="text-[15px] leading-[20px]">{renderMessageContent(message)}</div>
                     </div>
                     
-                    {/* Star button on hover (for admins/agents) */}
-                    {canToggleImportant(message) && !message.is_important && (
-                      <button
-                        onClick={() =>
-                          toggleImportantMutation.mutate({
-                            messageId: message.id,
-                            isImportant: message.is_important || false,
-                          })
-                        }
-                        className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 p-1 hover:bg-muted rounded"
-                        title="Mark as important"
-                      >
-                        <Star className="h-3.5 w-3.5 text-muted-foreground" />
-                      </button>
-                    )}
-                    
-                    {/* Unstar button (only when starred) */}
-                    {canToggleImportant(message) && message.is_important && (
-                      <button
-                        onClick={() =>
-                          toggleImportantMutation.mutate({
-                            messageId: message.id,
-                            isImportant: message.is_important || false,
-                          })
-                        }
-                        className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 p-1 hover:bg-muted rounded"
-                        title="Unmark as important"
-                      >
-                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                      </button>
-                    )}
+                    {/* Action buttons on hover */}
+                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-2">
+                      {/* Star button (for admins/agents) */}
+                      {canToggleImportant(message) && (
+                        <button
+                          onClick={() =>
+                            toggleImportantMutation.mutate({
+                              messageId: message.id,
+                              isImportant: message.is_important || false,
+                            })
+                          }
+                          className="p-1 hover:bg-muted rounded"
+                          title={message.is_important ? 'Unmark as important' : 'Mark as important'}
+                        >
+                          <Star
+                            className={`h-3.5 w-3.5 ${
+                              message.is_important ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
+                            }`}
+                          />
+                        </button>
+                      )}
+                      
+                      {/* Delete button (for admins only) */}
+                      {userRole?.isAdmin && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this message?')) {
+                              deleteMessageMutation.mutate(message.id);
+                            }
+                          }}
+                          className="p-1 hover:bg-destructive/10 rounded"
+                          title="Delete message"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Time below bubble */}
