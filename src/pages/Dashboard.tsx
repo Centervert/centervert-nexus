@@ -455,21 +455,28 @@ const Dashboard = () => {
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                            <div className="space-y-0.5">
-                              <div>{ticket.client.managing_agency.name} →</div>
-                              <div>{ticket.client.name}</div>
+                            <div className="flex flex-wrap items-center gap-x-1">
+                              <span>{ticket.client.managing_agency.name}</span>
+                              <span>→</span>
+                              <span>{ticket.client.name}</span>
                               {ticket.end_client_name && 
                                ticket.end_client_name !== ticket.client.name && 
                                ticket.end_client_name !== ticket.client.managing_agency.name && (
-                                <div>{ticket.end_client_name}</div>
+                                <>
+                                  <span>→</span>
+                                  <span>{ticket.end_client_name}</span>
+                                </>
                               )}
                             </div>
                           ) : (
-                            <div className="space-y-0.5">
-                              <div>{ticket.client?.name || 'No Client'}</div>
+                            <div className="flex flex-wrap items-center gap-x-1">
+                              <span>{ticket.client?.name || 'No Client'}</span>
                               {ticket.end_client_name && 
                                ticket.end_client_name !== ticket.client?.name && (
-                                <div>{ticket.end_client_name}</div>
+                                <>
+                                  <span>→</span>
+                                  <span>{ticket.end_client_name}</span>
+                                </>
                               )}
                             </div>
                           )}
@@ -519,21 +526,28 @@ const Dashboard = () => {
                       </div>
                       <div className="hidden md:flex md:flex-col md:justify-center text-sm min-w-0">
                         {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                          <div className="space-y-0.5">
-                            <div className="truncate">{ticket.client.managing_agency.name} →</div>
-                            <div className="truncate">{ticket.client.name}</div>
+                          <div className="flex flex-wrap items-center gap-x-1">
+                            <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
+                            <span className="shrink-0">→</span>
+                            <span className="truncate max-w-[120px]">{ticket.client.name}</span>
                             {ticket.end_client_name && 
                              ticket.end_client_name !== ticket.client.name && 
                              ticket.end_client_name !== ticket.client.managing_agency.name && (
-                              <div className="truncate">{ticket.end_client_name}</div>
+                              <>
+                                <span className="shrink-0">→</span>
+                                <span className="truncate max-w-[120px]">{ticket.end_client_name}</span>
+                              </>
                             )}
                           </div>
                         ) : (
-                          <div className="space-y-0.5">
-                            <div className="truncate">{ticket.client?.name || 'No Client'}</div>
+                          <div className="flex flex-wrap items-center gap-x-1">
+                            <span className="truncate max-w-[180px]">{ticket.client?.name || 'No Client'}</span>
                             {ticket.end_client_name && 
                              ticket.end_client_name !== ticket.client?.name && (
-                              <div className="truncate">{ticket.end_client_name}</div>
+                              <>
+                                <span className="shrink-0">→</span>
+                                <span className="truncate max-w-[120px]">{ticket.end_client_name}</span>
+                              </>
                             )}
                           </div>
                         )}
