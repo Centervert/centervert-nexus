@@ -697,11 +697,8 @@ const TicketDetail = () => {
                 </div>
               )}
 
-              {/* Two-column layout for chat and milestones */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <TicketUpdates ticketId={ticket.id} />
-                <TicketMilestones ticketId={ticket.id} />
-              </div>
+              {/* Full-width chat/updates section */}
+              <TicketUpdates ticketId={ticket.id} />
 
               {/* Pricing section */}
               <TicketPricing ticketId={ticket.id} />
@@ -709,6 +706,9 @@ const TicketDetail = () => {
               {/* Links and Files */}
               <TicketLinks ticketId={ticket.id} />
               <TicketFiles ticketId={ticket.id} />
+              
+              {/* Milestones moved to bottom */}
+              <TicketMilestones ticketId={ticket.id} />
             </div>
 
             {/* Convert to Managed Service Dialog */}

@@ -554,7 +554,11 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          format: string | null
           id: string
+          is_important: boolean | null
+          marked_important_at: string | null
+          marked_important_by: string | null
           ticket_id: string
           updated_at: string
           user_id: string
@@ -563,7 +567,11 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          format?: string | null
           id?: string
+          is_important?: boolean | null
+          marked_important_at?: string | null
+          marked_important_by?: string | null
           ticket_id: string
           updated_at?: string
           user_id: string
@@ -572,7 +580,11 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          format?: string | null
           id?: string
+          is_important?: boolean | null
+          marked_important_at?: string | null
+          marked_important_by?: string | null
           ticket_id?: string
           updated_at?: string
           user_id?: string
