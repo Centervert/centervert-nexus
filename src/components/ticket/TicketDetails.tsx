@@ -42,7 +42,7 @@ export const TicketDetails = ({ ticket }: TicketDetailsProps) => {
         <CardTitle>Ticket Details</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
           <div className="flex items-start gap-3">
             <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div className="flex-1">

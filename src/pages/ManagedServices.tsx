@@ -110,7 +110,7 @@ export default function ManagedServices() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -121,7 +121,7 @@ export default function ManagedServices() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
@@ -148,19 +148,19 @@ export default function ManagedServices() {
                       onClick={() => navigate(`/managed-services/${service.id}`)}
                       className="p-6 hover:bg-muted/50 cursor-pointer transition-colors"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold">{service.service_name}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <h3 className="text-base sm:text-lg font-semibold truncate">{service.service_name}</h3>
                             <Badge variant="outline" className={getStatusColor(service.status)}>
                               {service.status}
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground space-y-1">
-                            <p>Client: {service.client?.name || 'Unknown'}</p>
+                            <p className="truncate">Client: {service.client?.name || 'Unknown'}</p>
                             <p>Type: {service.service_type.replace('_', ' ')}</p>
                             {service.original_ticket && (
-                              <p>
+                              <p className="truncate">
                                 From Ticket #{service.original_ticket.ticket_number}:{' '}
                                 {service.original_ticket.title}
                               </p>
@@ -168,8 +168,8 @@ export default function ManagedServices() {
                             <p>Next billing: {format(new Date(service.next_billing_date), 'MMM dd, yyyy')}</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold">
+                        <div className="text-left sm:text-right shrink-0">
+                          <div className="text-xl sm:text-2xl font-bold">
                             ${Number(service.monthly_amount).toFixed(2)}
                           </div>
                           <div className="text-sm text-muted-foreground">

@@ -435,7 +435,7 @@ const TicketDetail = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-priority">Priority</Label>
                       <Select value={editPriority} onValueChange={setEditPriority}>
@@ -469,7 +469,7 @@ const TicketDetail = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-assigned">Assigned To</Label>
                       <Select value={editAssignedTo} onValueChange={setEditAssignedTo}>
@@ -550,7 +550,7 @@ const TicketDetail = () => {
                     </Popover>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-type">Type</Label>
                       <Select value={editType || "none"} onValueChange={(val) => setEditType(val === "none" ? "" : val)}>

@@ -135,8 +135,8 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <CardTitle className="flex items-center gap-2 flex-1">
               <LinkIcon className="h-5 w-5" />
               Project Links
             </CardTitle>
@@ -145,9 +145,11 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                 variant="outline"
                 size="sm"
                 onClick={() => setManageDialogOpen(true)}
+                className="self-start sm:self-center"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                Manage Deliverables
+                <span className="hidden sm:inline">Manage Deliverables</span>
+                <span className="sm:hidden">Manage</span>
               </Button>
             )}
           </div>
@@ -162,12 +164,12 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
               {links.map((link) => (
               <div
                 key={link.id}
-                className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <ExternalLink className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
                       <p className="font-medium">{link.title}</p>
                       <Badge variant={getLinkTypeBadgeVariant(link.link_type)}>
                         {link.link_type}
@@ -187,7 +189,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0 self-start">
                   {link.url ? (
                     <Button
                       onClick={() => handleVisitLink(link.url!)}
@@ -207,6 +209,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                         onClick={() => handleEditLink(link)}
                         size="sm"
                         variant="ghost"
+                        title="Edit"
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -214,6 +217,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                         onClick={() => handleDeleteLink(link)}
                         size="sm"
                         variant="ghost"
+                        title="Delete"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

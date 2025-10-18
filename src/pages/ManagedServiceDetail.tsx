@@ -108,45 +108,46 @@ export default function ManagedServiceDetail() {
             Back to Services
           </Button>
 
-          <div className="flex items-start justify-between mb-8">
+          <div className="flex flex-col gap-4 mb-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{service.service_name}</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2">{service.service_name}</h1>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className={getStatusColor(service.status)}>
                   {service.status}
                 </Badge>
-                <span className="text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                   {service.service_type.replace('_', ' ')}
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {stripeEnabled && service.stripe_subscription_id && (
-                <Button variant="outline" onClick={handleManageBilling}>
+                <Button variant="outline" size="sm" onClick={handleManageBilling}>
                   <CreditCard className="mr-2 h-4 w-4" />
-                  Manage Billing
+                  <span className="hidden sm:inline">Manage Billing</span>
+                  <span className="sm:hidden">Billing</span>
                 </Button>
               )}
               {isAdminOrAgent && (
                 <>
-                  <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                  <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </Button>
                   {service.status === 'active' && (
-                    <Button variant="outline">
+                    <Button variant="outline" size="sm">
                       <Pause className="mr-2 h-4 w-4" />
                       Pause
                     </Button>
                   )}
                   {service.status === 'paused' && (
-                    <Button variant="outline">
+                    <Button variant="outline" size="sm">
                       <Play className="mr-2 h-4 w-4" />
                       Resume
                     </Button>
                   )}
                   {service.status !== 'cancelled' && (
-                    <Button variant="outline" onClick={() => setCancelDialogOpen(true)}>
+                    <Button variant="outline" size="sm" onClick={() => setCancelDialogOpen(true)}>
                       <XCircle className="mr-2 h-4 w-4" />
                       Cancel
                     </Button>
@@ -156,7 +157,7 @@ export default function ManagedServiceDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm font-medium">Monthly Amount</CardTitle>

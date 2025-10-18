@@ -98,56 +98,63 @@ const Clients = () => {
               </Button>
             </div>
 
-            <div className="mb-6 flex gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search clients..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="mb-6 flex flex-col gap-3 md:gap-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search clients..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    variant={viewMode === 'card' ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setViewMode('card')}
+                    title="Card view"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'default' : 'outline'}
+                    size="icon"
+                    onClick={() => setViewMode('list')}
+                    title="List view"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'card' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewMode('card')}
-                  title="Card view"
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="icon"
-                  onClick={() => setViewMode('list')}
-                  title="List view"
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant={clientTypeFilter === null ? 'default' : 'outline'}
                   onClick={() => setClientTypeFilter(null)}
+                  size="sm"
                 >
                   All
                 </Button>
                 <Button
                   variant={clientTypeFilter === 'direct' ? 'default' : 'outline'}
                   onClick={() => setClientTypeFilter('direct')}
+                  size="sm"
                 >
                   Direct
                 </Button>
                 <Button
                   variant={clientTypeFilter === 'agency' ? 'default' : 'outline'}
                   onClick={() => setClientTypeFilter('agency')}
+                  size="sm"
                 >
                   Agency
                 </Button>
                 <Button
                   variant={clientTypeFilter === 'agency_managed' ? 'default' : 'outline'}
                   onClick={() => setClientTypeFilter('agency_managed')}
+                  size="sm"
+                  className="whitespace-nowrap"
                 >
                   Agency Managed
                 </Button>

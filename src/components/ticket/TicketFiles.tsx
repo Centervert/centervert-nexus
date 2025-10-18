@@ -55,14 +55,15 @@ export const TicketFiles = ({ ticketId }: TicketFilesProps) => {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <CardTitle className="flex items-center gap-2 flex-1">
           <FileText className="h-5 w-5" />
           Attached Files
         </CardTitle>
-        <Button size="sm" variant="outline" className="gap-2">
+        <Button size="sm" variant="outline" className="gap-2 self-start sm:self-center">
           <Upload className="h-4 w-4" />
-          Upload File
+          <span className="hidden sm:inline">Upload File</span>
+          <span className="sm:hidden">Upload</span>
         </Button>
       </CardHeader>
       <CardContent>
@@ -78,7 +79,7 @@ export const TicketFiles = ({ ticketId }: TicketFilesProps) => {
             {attachments.map((file) => (
               <div
                 key={file.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <FileText className="h-8 w-8 text-muted-foreground shrink-0" />
@@ -93,10 +94,10 @@ export const TicketFiles = ({ ticketId }: TicketFilesProps) => {
                   onClick={() => handleDownload(file.file_url, file.file_name)}
                   size="sm"
                   variant="ghost"
-                  className="gap-2 shrink-0"
+                  className="gap-2 shrink-0 self-start sm:self-center"
                 >
                   <Download className="h-4 w-4" />
-                  Download
+                  <span className="hidden sm:inline">Download</span>
                 </Button>
               </div>
             ))}

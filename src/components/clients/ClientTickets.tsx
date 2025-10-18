@@ -38,14 +38,14 @@ export const ClientTickets = ({ clientId }: ClientTicketsProps) => {
             {tickets.map((ticket) => (
               <div
                 key={ticket.id}
-                className="flex items-center justify-between border-b pb-3 last:border-0 cursor-pointer hover:bg-muted/50 p-2 rounded"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 border-b pb-3 last:border-0 cursor-pointer hover:bg-muted/50 p-2 rounded"
                 onClick={() => navigate(`/tickets/${ticket.id}`)}
               >
-                <div>
-                  <p className="font-medium">#{ticket.ticket_number} - {ticket.title}</p>
-                  <p className="text-sm text-muted-foreground">{ticket.description}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">#{ticket.ticket_number} - {ticket.title}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description}</p>
                 </div>
-                <Badge>{ticket.status}</Badge>
+                <Badge className="self-start sm:self-center shrink-0">{ticket.status}</Badge>
               </div>
             ))}
           </div>

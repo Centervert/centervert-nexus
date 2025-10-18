@@ -199,14 +199,14 @@ const Auth = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500">
-      <div className="relative z-10 w-full max-w-md p-8">
-        <div className="rounded-2xl bg-black/40 p-8 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
-          <div className="mb-8 flex justify-center animate-fade-in">
-            <img src={centervertLogo} alt="Centervert" className="h-12" />
+    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 p-4">
+      <div className="relative z-10 w-full max-w-md">
+        <div className="rounded-2xl bg-black/40 p-6 sm:p-8 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
+          <div className="mb-6 sm:mb-8 flex justify-center animate-fade-in">
+            <img src={centervertLogo} alt="Centervert" className="h-10 sm:h-12" />
           </div>
 
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             {inviteToken && invitationData ? (
               <>
                 <h1 className="text-3xl font-bold text-white mb-2">Welcome!</h1>
@@ -231,7 +231,7 @@ const Auth = () => {
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {(!isLogin || inviteToken) && (
               <>
                 <div className="space-y-2">
