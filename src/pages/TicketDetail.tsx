@@ -72,6 +72,31 @@ const TicketDetail = () => {
   const [editSubtype, setEditSubtype] = useState('');
   const [editEndClientName, setEditEndClientName] = useState('');
 
+  // Type/Subtype options matching CreateTicketDialog
+  const typeOptions = [
+    'Website Development',
+    'Bug Fix',
+    'Feature Request',
+    'Design Work',
+    'Consultation',
+    'Maintenance',
+    'Content Update',
+    'SEO/Marketing',
+    'Other'
+  ];
+
+  const subtypeOptions: Record<string, string[]> = {
+    'Website Development': ['Frontend', 'Backend', 'Full Stack', 'E-commerce', 'Landing Page'],
+    'Bug Fix': ['UI/UX', 'Functionality', 'Performance', 'Security', 'Mobile Responsive'],
+    'Feature Request': ['New Feature', 'Enhancement', 'Integration', 'API'],
+    'Design Work': ['Logo', 'Branding', 'UI Design', 'Graphics', 'Mockups'],
+    'Consultation': ['Strategy', 'Technical', 'Design', 'SEO', 'General'],
+    'Maintenance': ['Updates', 'Monitoring', 'Backup', 'Security Patches'],
+    'Content Update': ['Text', 'Images', 'Video', 'Blog Post'],
+    'SEO/Marketing': ['On-Page SEO', 'Off-Page SEO', 'Content Strategy', 'Analytics'],
+    'Other': ['General']
+  };
+
   const { data: ticket, isLoading } = useQuery({
     queryKey: ['ticket', id],
     queryFn: async () => {
@@ -553,37 +578,48 @@ const TicketDetail = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="edit-type">Type</Label>
-                      <Select value={editType || "none"} onValueChange={(val) => setEditType(val === "none" ? "" : val)}>
+                      <Select 
+                        value={editType || "none"} 
+                        onValueChange={(val) => {
+                          const newType = val === "none" ? "" : val;
+                          setEditType(newType);
+                          // Reset subtype when type changes
+                          if (newType !== editType) {
+                            setEditSubtype('');
+                          }
+                        }}
+                      >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="Bug">Bug</SelectItem>
-                          <SelectItem value="Feature">Feature</SelectItem>
-                          <SelectItem value="Enhancement">Enhancement</SelectItem>
-                          <SelectItem value="Support">Support</SelectItem>
-                          <SelectItem value="Maintenance">Maintenance</SelectItem>
-                          <SelectItem value="Documentation">Documentation</SelectItem>
+                          {typeOptions.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div>
                       <Label htmlFor="edit-subtype">Subtype</Label>
-                      <Select value={editSubtype || "none"} onValueChange={(val) => setEditSubtype(val === "none" ? "" : val)}>
+                      <Select 
+                        value={editSubtype || "none"} 
+                        onValueChange={(val) => setEditSubtype(val === "none" ? "" : val)}
+                        disabled={!editType}
+                      >
                         <SelectTrigger className="mt-1">
                           <SelectValue placeholder="Select subtype" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="UI">UI</SelectItem>
-                          <SelectItem value="Backend">Backend</SelectItem>
-                          <SelectItem value="Database">Database</SelectItem>
-                          <SelectItem value="API">API</SelectItem>
-                          <SelectItem value="Performance">Performance</SelectItem>
-                          <SelectItem value="Security">Security</SelectItem>
-                          <SelectItem value="Infrastructure">Infrastructure</SelectItem>
+                          {editType && subtypeOptions[editType]?.map((subtype) => (
+                            <SelectItem key={subtype} value={subtype}>
+                              {subtype}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

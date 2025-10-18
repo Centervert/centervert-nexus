@@ -32,6 +32,12 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const [files, setFiles] = useState<File[]>([]);
   const [showNewClientInput, setShowNewClientInput] = useState(false);
   const [newClientName, setNewClientName] = useState('');
+  const [newClientType, setNewClientType] = useState<'direct' | 'agency_managed'>('direct');
+  const [newClientAgencyId, setNewClientAgencyId] = useState('');
+  const [agencies, setAgencies] = useState<Array<{ id: string; name: string }>>([]);
+  const [showQuoteSection, setShowQuoteSection] = useState(false);
+  const [quoteAmount, setQuoteAmount] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -117,7 +123,9 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         
         const roles = userRoles?.map(r => r.role) || [];
         const isAgencyUser = roles.includes('admin') || roles.includes('agent');
+        const adminUser = roles.includes('admin');
         setIsAgency(isAgencyUser);
+        setIsAdmin(adminUser);
 
         if (isAgencyUser) {
           // Fetch clients for agency users
@@ -131,6 +139,19 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             console.error('Error fetching clients:', clientsError);
           } else {
             setClients(clientsData || []);
+          }
+
+          // Fetch agencies for agency-managed client selection
+          const { data: agenciesData, error: agenciesError } = await supabase
+            .from('clients')
+            .select('id, name')
+            .eq('client_type', 'agency')
+            .order('name');
+          
+          if (agenciesError) {
+            console.error('Error fetching agencies:', agenciesError);
+          } else {
+            setAgencies(agenciesData || []);
           }
         }
       }
@@ -172,7 +193,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           .from('clients')
           .insert({
             name: newClientName.trim(),
-            client_type: 'direct',
+            client_type: newClientType,
+            managing_agency_id: newClientType === 'agency_managed' ? newClientAgencyId : null,
             is_active: true,
           })
           .select()
@@ -272,7 +294,28 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         }
       }
 
-      toast.success('Ticket created successfully');
+      // Create quote if admin and quote amount is provided
+      if (ticket && isAdmin && showQuoteSection && quoteAmount) {
+        const { error: quoteError } = await supabase
+          .from('ticket_quotes')
+          .insert({
+            ticket_id: ticket.id,
+            client_id: clientId,
+            amount: parseFloat(quoteAmount),
+            is_recurring: false,
+            status: 'awaiting_approval',
+          });
+
+        if (quoteError) {
+          console.error('Error creating quote:', quoteError);
+          toast.error('Ticket created but failed to create quote');
+        } else {
+          toast.success('Ticket and quote created successfully');
+        }
+      } else {
+        toast.success('Ticket created successfully');
+      }
+      
       onOpenChange(false);
       
       // Reset form
@@ -292,6 +335,10 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       setFiles([]);
       setShowNewClientInput(false);
       setNewClientName('');
+      setNewClientType('direct');
+      setNewClientAgencyId('');
+      setShowQuoteSection(false);
+      setQuoteAmount('');
 
       // Navigate to the new ticket
       if (ticket) {
@@ -463,12 +510,46 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                   </SelectContent>
                 </Select>
                 {showNewClientInput && (
-                  <Input
-                    placeholder="Enter new client name"
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                    className="h-11 mt-2"
-                  />
+                  <div className="space-y-3 mt-3 p-3 border rounded-md">
+                    <Input
+                      placeholder="Enter new client name"
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      className="h-11"
+                    />
+                    <Select
+                      value={newClientType}
+                      onValueChange={(value: 'direct' | 'agency_managed') => {
+                        setNewClientType(value);
+                        if (value === 'direct') setNewClientAgencyId('');
+                      }}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="direct">Direct Client</SelectItem>
+                        <SelectItem value="agency_managed">Agency Managed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {newClientType === 'agency_managed' && agencies.length > 0 && (
+                      <Select
+                        value={newClientAgencyId}
+                        onValueChange={setNewClientAgencyId}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select managing agency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agencies.map((agency) => (
+                            <SelectItem key={agency.id} value={agency.id}>
+                              {agency.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 )}
               </>
             ) : (
@@ -482,7 +563,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             )}
           </div>
 
-          {isAgency && (
+          {isAgency && !showNewClientInput && (
             <div className="space-y-2">
               <Label htmlFor="endClient" className="text-sm font-medium">
                 End Client / Project Name (Optional)
@@ -656,6 +737,52 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
               </div>
             ))}
           </div>
+
+          {/* Admin Quote Section */}
+          {isAdmin && (
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">
+                  Create Quote (Admin Only)
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowQuoteSection(!showQuoteSection)}
+                  className="h-8"
+                >
+                  {showQuoteSection ? 'Remove Quote' : 'Add Quote'}
+                </Button>
+              </div>
+              {showQuoteSection && (
+                <div className="space-y-2">
+                  <Label htmlFor="quoteAmount" className="text-sm font-medium">
+                    Quote Amount
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <Input
+                      id="quoteAmount"
+                      type="text"
+                      placeholder="0.00"
+                      value={quoteAmount ? parseFloat(quoteAmount).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (value === '' || !isNaN(parseFloat(value))) {
+                          setQuoteAmount(value);
+                        }
+                      }}
+                      className="h-11 pl-7"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    A quote will be created immediately after ticket creation
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex gap-3 pt-4">
             <Button
