@@ -428,12 +428,6 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
             className="min-h-[60px] resize-none rounded-[20px] border-2 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary pr-12"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
             maxLength={1000}
           />
           <Button
