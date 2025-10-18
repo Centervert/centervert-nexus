@@ -27,6 +27,7 @@ interface TicketUpdatesProps {
 export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [markAsImportant, setMarkAsImportant] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -142,14 +143,15 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         user_name: userName,
         content: newMessage,
         format: 'markdown',
-        is_important: false,
-        marked_important_at: null,
-        marked_important_by: null,
+        is_important: markAsImportant,
+        marked_important_at: markAsImportant ? new Date().toISOString() : null,
+        marked_important_by: markAsImportant ? user.id : null,
       });
 
       if (error) throw error;
 
       setNewMessage('');
+      setMarkAsImportant(false);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -398,6 +400,24 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
           >
             <LinkIcon className="h-4 w-4" />
           </Button>
+          
+          {/* Important toggle for admins/agents */}
+          {(userRole?.isAdmin || userRole?.isAgent) && (
+            <>
+              <div className="flex-1" />
+              <Button
+                type="button"
+                variant={markAsImportant ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setMarkAsImportant(!markAsImportant)}
+                title="Mark as important update"
+                className={`gap-1.5 h-8 ${markAsImportant ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+              >
+                <Star className={`h-3.5 w-3.5 ${markAsImportant ? 'fill-current' : ''}`} />
+                <span className="text-xs">Important</span>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* Input area with border like iMessage */}
