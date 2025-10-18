@@ -98,16 +98,18 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
   };
 
   const getLinkTypeBadgeVariant = (linkType: string) => {
-    switch (linkType.toLowerCase()) {
-      case 'demo':
-        return 'default';
-      case 'production':
-        return 'secondary';
-      case 'staging':
-        return 'outline';
-      default:
-        return 'outline';
-    }
+    const type = linkType.toLowerCase();
+    if (type === 'production') return 'default';
+    if (type === 'demo' || type === 'staging') return 'secondary';
+    if (type === 'branding_guide' || type === 'figma') return 'default';
+    if (type === 'google_drive' || type === 'dropbox' || type === 'asset_library') return 'secondary';
+    return 'outline';
+  };
+
+  const formatLinkType = (linkType: string) => {
+    return linkType.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
   };
 
   if (isLoading) {
@@ -148,7 +150,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                 className="self-start sm:self-center"
               >
                 <Settings className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Manage Deliverables</span>
+                <span className="hidden sm:inline">Manage Links</span>
                 <span className="sm:hidden">Manage</span>
               </Button>
             )}
@@ -157,7 +159,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
         <CardContent>
           {links.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No deliverables added yet. Click "Manage Deliverables" to add them.
+              No links added yet. Click "Manage Links" to add supporting materials, deliverables, or reference links.
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -172,7 +174,7 @@ export const TicketLinks = ({ ticketId }: TicketLinksProps) => {
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <p className="font-medium">{link.title}</p>
                       <Badge variant={getLinkTypeBadgeVariant(link.link_type)}>
-                        {link.link_type}
+                        {formatLinkType(link.link_type)}
                       </Badge>
                     </div>
                     {link.url ? (
