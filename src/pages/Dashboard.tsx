@@ -455,24 +455,23 @@ const Dashboard = () => {
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                            <>
-                              {ticket.client.managing_agency.name}
-                              <span className="mx-1">→</span>
-                              {ticket.client.name}
+                            <div className="space-y-0.5">
+                              <div>{ticket.client.managing_agency.name} →</div>
+                              <div>{ticket.client.name}</div>
                               {ticket.end_client_name && 
                                ticket.end_client_name !== ticket.client.name && 
                                ticket.end_client_name !== ticket.client.managing_agency.name && (
-                                <><span className="mx-1">→</span> {ticket.end_client_name}</>
+                                <div>{ticket.end_client_name}</div>
                               )}
-                            </>
+                            </div>
                           ) : (
-                            <>
-                              {ticket.client?.name || 'No Client'}
+                            <div className="space-y-0.5">
+                              <div>{ticket.client?.name || 'No Client'}</div>
                               {ticket.end_client_name && 
                                ticket.end_client_name !== ticket.client?.name && (
-                                <><span className="mx-1">→</span> {ticket.end_client_name}</>
+                                <div>{ticket.end_client_name}</div>
                               )}
-                            </>
+                            </div>
                           )}
                         </div>
                         <div className="text-sm">
@@ -518,29 +517,26 @@ const Dashboard = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="hidden md:flex md:items-center text-sm min-w-0">
-                        <div className="truncate">
-                          {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                            <>
-                              {ticket.client.managing_agency.name}
-                              <span className="mx-1 text-muted-foreground">→</span>
-                              {ticket.client.name}
-                              {ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client.name && 
-                               ticket.end_client_name !== ticket.client.managing_agency.name && (
-                                <><span className="mx-1 text-muted-foreground">→</span> {ticket.end_client_name}</>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              {ticket.client?.name || 'No Client'}
-                              {ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client?.name && (
-                                <><span className="mx-1 text-muted-foreground">→</span> {ticket.end_client_name}</>
-                              )}
-                            </>
-                          )}
-                        </div>
+                      <div className="hidden md:flex md:flex-col md:justify-center text-sm min-w-0">
+                        {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+                          <div className="space-y-0.5">
+                            <div className="truncate">{ticket.client.managing_agency.name} →</div>
+                            <div className="truncate">{ticket.client.name}</div>
+                            {ticket.end_client_name && 
+                             ticket.end_client_name !== ticket.client.name && 
+                             ticket.end_client_name !== ticket.client.managing_agency.name && (
+                              <div className="truncate">{ticket.end_client_name}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-0.5">
+                            <div className="truncate">{ticket.client?.name || 'No Client'}</div>
+                            {ticket.end_client_name && 
+                             ticket.end_client_name !== ticket.client?.name && (
+                              <div className="truncate">{ticket.end_client_name}</div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
                         {userRole?.isAdmin ? (
