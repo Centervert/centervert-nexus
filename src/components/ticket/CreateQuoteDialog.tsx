@@ -59,7 +59,11 @@ export const CreateQuoteDialog = ({ ticketId }: CreateQuoteDialogProps) => {
       if (error) throw error;
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      await queryClient.invalidateQueries({ 
+        queryKey: ['ticket-quote', ticketId],
+        refetchType: 'active'
+      });
+      await queryClient.refetchQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote created successfully');
       
       // Send email notification to ticket creator
