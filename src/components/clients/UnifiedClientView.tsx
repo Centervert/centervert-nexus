@@ -368,14 +368,13 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
               <Label>Managing Agency</Label>
               {isEditingClient ? (
                 <Select
-                  value={clientFormData.managing_agency_id}
+                  value={clientFormData.managing_agency_id || undefined}
                   onValueChange={(value) => setClientFormData({ ...clientFormData, managing_agency_id: value })}
                 >
                   <SelectTrigger className="bg-background">
-                    <SelectValue placeholder="Select agency (optional)" />
+                    <SelectValue placeholder="None (optional)" />
                   </SelectTrigger>
                   <SelectContent className="bg-background z-50">
-                    <SelectItem value="">None</SelectItem>
                     {agencies?.map((agency) => (
                       <SelectItem key={agency.id} value={agency.id}>
                         {agency.name}
