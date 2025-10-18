@@ -387,7 +387,7 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[56px_2fr_1.5fr_200px_1fr] gap-6 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
@@ -404,7 +404,7 @@ const Dashboard = () => {
             <div className="divide-y divide-border">
               {ticketsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="p-4 md:grid md:grid-cols-[auto_2fr_1.5fr_1.5fr_auto] md:gap-4 md:px-6">
+                  <div key={i} className="p-4 md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] md:gap-4 md:px-6 md:py-4">
                     <Skeleton className="h-4 w-4 mb-3 md:mb-0" />
                     <div className="space-y-2 mb-3 md:mb-0">
                       <Skeleton className="h-4 w-3/4" />
@@ -423,15 +423,15 @@ const Dashboard = () => {
                   return (
                     <div
                       key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_2fr_1.5fr_200px_1fr] md:gap-6 md:px-6 md:py-4"
+                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] md:gap-4 md:px-6 md:py-4"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
                       <div className="md:hidden space-y-3">
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <div className="font-medium mb-1">{ticket.title}</div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
+                            <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                               <span>#{ticket.id.slice(0, 4)}</span>
                               <span>→</span>
                               <span>
@@ -457,14 +457,22 @@ const Dashboard = () => {
                           {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
                             <>
                               {ticket.client.managing_agency.name}
-                              <span className="mx-2">→</span>
+                              <span className="mx-1">→</span>
                               {ticket.client.name}
+                              {ticket.end_client_name && 
+                               ticket.end_client_name !== ticket.client.name && 
+                               ticket.end_client_name !== ticket.client.managing_agency.name && (
+                                <><span className="mx-1">→</span> {ticket.end_client_name}</>
+                              )}
                             </>
                           ) : (
-                            ticket.client?.name || 'No Client'
-                          )}
-                          {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
-                            <span> <span className="mx-2">→</span> {ticket.end_client_name}</span>
+                            <>
+                              {ticket.client?.name || 'No Client'}
+                              {ticket.end_client_name && 
+                               ticket.end_client_name !== ticket.client?.name && (
+                                <><span className="mx-1">→</span> {ticket.end_client_name}</>
+                              )}
+                            </>
                           )}
                         </div>
                         <div className="text-sm">
@@ -510,19 +518,29 @@ const Dashboard = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="hidden md:flex md:items-center text-sm">
-                        {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                          <>
-                            {ticket.client.managing_agency.name}
-                            <span className="mx-2 text-muted-foreground">→</span>
-                            {ticket.client.name}
-                          </>
-                        ) : (
-                          ticket.client?.name || 'No Client'
-                        )}
-                        {ticket.client?.client_type !== 'direct' && ticket.end_client_name && (
-                          <span className="text-muted-foreground"> <span className="mx-2">→</span> {ticket.end_client_name}</span>
-                        )}
+                      <div className="hidden md:flex md:items-center text-sm min-w-0">
+                        <div className="truncate">
+                          {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+                            <>
+                              {ticket.client.managing_agency.name}
+                              <span className="mx-1 text-muted-foreground">→</span>
+                              {ticket.client.name}
+                              {ticket.end_client_name && 
+                               ticket.end_client_name !== ticket.client.name && 
+                               ticket.end_client_name !== ticket.client.managing_agency.name && (
+                                <><span className="mx-1 text-muted-foreground">→</span> {ticket.end_client_name}</>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              {ticket.client?.name || 'No Client'}
+                              {ticket.end_client_name && 
+                               ticket.end_client_name !== ticket.client?.name && (
+                                <><span className="mx-1 text-muted-foreground">→</span> {ticket.end_client_name}</>
+                              )}
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
                         {userRole?.isAdmin ? (
