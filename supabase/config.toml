@@ -2,3 +2,12 @@ project_id = "tcuxcnszolrkozktpilz"
 
 [functions.ai-ticket-assistant]
 verify_jwt = true
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.create-customer-portal-session]
+verify_jwt = true
+
+[functions.create-managed-service-subscription]
+verify_jwt = true

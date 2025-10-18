@@ -7,20 +7,65 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Input validation
+const validateInput = (data: any) => {
+  if (!data.managed_service_id || typeof data.managed_service_id !== 'string') {
+    throw new Error('Invalid managed_service_id');
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { managed_service_id } = await req.json();
+    // Get authenticated user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
+
+    const rawInput = await req.json();
+    validateInput(rawInput);
+    
+    const { managed_service_id } = rawInput;
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
     );
 
-    // Get managed service and client data
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      });
+    }
+
+    // Check user has admin or agent role
+    const { data: userRoles } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const isAdmin = userRoles?.some(r => r.role === 'admin');
+    const isAgent = userRoles?.some(r => r.role === 'agent');
+
+    if (!isAdmin && !isAgent) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 403,
+      });
+    }
+
+    // Get managed service data
     const { data: service, error: serviceError } = await supabaseClient
       .from('managed_services')
       .select(`
@@ -35,7 +80,10 @@ serve(async (req) => {
       .single();
 
     if (serviceError || !service) {
-      throw new Error('Managed service not found');
+      return new Response(JSON.stringify({ error: 'Service not found' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 404,
+      });
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -126,13 +174,27 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error('Error creating subscription:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('Error creating managed service subscription:', error);
+    
+    // Return generic error message to user, log details server-side
+    let userMessage = 'Unable to create subscription';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid')) {
+        userMessage = 'Invalid request data';
+        statusCode = 400;
+      } else if (error.message.includes('not found')) {
+        userMessage = 'Resource not found';
+        statusCode = 404;
+      }
+    }
+    
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: userMessage }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: statusCode,
       }
     );
   }
