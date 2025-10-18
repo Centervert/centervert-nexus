@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AITicketDialog } from '@/components/ticket/AITicketDialog';
 import { CreateTicketDialog } from '@/components/ticket/CreateTicketDialog';
+import { FinancialStats } from '@/components/FinancialStats';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -188,6 +189,9 @@ const Dashboard = () => {
           </div>
 
           <div className="p-4 md:p-8">
+          {/* Financial Stats - Admin Only */}
+          {userRole?.isAdmin && <FinancialStats />}
+
           {/* Stats Cards */}
           <div className="mb-6 md:mb-8 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
             {statsLoading ? (
