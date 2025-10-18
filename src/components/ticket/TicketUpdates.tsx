@@ -27,7 +27,6 @@ interface TicketUpdatesProps {
 export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [markAsImportant, setMarkAsImportant] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -143,15 +142,14 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         user_name: userName,
         content: newMessage,
         format: 'markdown',
-        is_important: markAsImportant,
-        marked_important_at: markAsImportant ? new Date().toISOString() : null,
-        marked_important_by: markAsImportant ? user.id : null,
+        is_important: false,
+        marked_important_at: null,
+        marked_important_by: null,
       });
 
       if (error) throw error;
 
       setNewMessage('');
-      setMarkAsImportant(false);
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message');
@@ -267,65 +265,88 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         <h3 className="font-semibold">Updates & Communication</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-1">
         {isLoading ? (
-          <div className="text-center text-muted-foreground">Loading messages...</div>
+          <div className="text-center text-muted-foreground py-8">Loading messages...</div>
         ) : messages.length === 0 ? (
-          <div className="text-center text-muted-foreground">No messages yet. Start the conversation!</div>
+          <div className="text-center text-muted-foreground py-8">No messages yet. Start the conversation!</div>
         ) : (
           messages.map((message, index) => {
             const showDate = index === 0 || formatDate(messages[index - 1].created_at) !== formatDate(message.created_at);
+            const isCurrentUser = message.user_id === currentUserId;
 
             return (
               <div key={message.id}>
                 {showDate && (
                   <div className="flex items-center justify-center my-4">
-                    <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground">
+                    <div className="bg-muted px-3 py-1 rounded-full text-xs text-muted-foreground font-medium">
                       {formatDate(message.created_at)}
                     </div>
                   </div>
                 )}
                 <div
-                  className={`flex flex-col ${
-                    message.user_id === currentUserId ? 'items-end' : 'items-start'
-                  } group`}
+                  className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} mb-1 group`}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 relative ${
-                      message.user_id === currentUserId
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    } ${message.is_important ? 'ring-2 ring-yellow-500 ring-offset-2' : ''}`}
-                  >
-                    {message.is_important && (
-                      <div className="absolute -top-2 -right-2 bg-yellow-500 text-white rounded-full p-1">
-                        <Star className="h-3 w-3 fill-current" />
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-semibold">{message.user_name}</span>
-                      {canToggleImportant(message) && (
-                        <button
-                          onClick={() =>
-                            toggleImportantMutation.mutate({
-                              messageId: message.id,
-                              isImportant: message.is_important || false,
-                            })
-                          }
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          title={message.is_important ? 'Unmark as important' : 'Mark as important'}
-                        >
-                          <Star
-                            className={`h-3 w-3 ${
-                              message.is_important ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'
-                            }`}
-                          />
-                        </button>
+                  {/* Name above bubble (only for others' messages) */}
+                  {!isCurrentUser && (
+                    <span className="text-xs text-muted-foreground mb-1 px-3 font-medium">
+                      {message.user_name}
+                    </span>
+                  )}
+                  
+                  <div className="flex items-start gap-2 max-w-[80%]">
+                    <div
+                      className={`rounded-[18px] px-4 py-2 relative ${
+                        isCurrentUser
+                          ? 'bg-[#007AFF] text-white rounded-br-md'
+                          : 'bg-muted rounded-bl-md'
+                      } ${message.is_important ? 'ring-2 ring-yellow-400 ring-offset-2' : ''}`}
+                    >
+                      {message.is_important && (
+                        <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1 shadow-sm">
+                          <Star className="h-2.5 w-2.5 fill-white text-white" />
+                        </div>
                       )}
+                      <div className="text-[15px] leading-[20px]">{renderMessageContent(message)}</div>
                     </div>
-                    <div className="text-sm">{renderMessageContent(message)}</div>
-                    <div className="text-xs opacity-70 mt-1">{formatTime(message.created_at)}</div>
+                    
+                    {/* Star button on hover (for admins/agents) */}
+                    {canToggleImportant(message) && !message.is_important && (
+                      <button
+                        onClick={() =>
+                          toggleImportantMutation.mutate({
+                            messageId: message.id,
+                            isImportant: message.is_important || false,
+                          })
+                        }
+                        className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 p-1 hover:bg-muted rounded"
+                        title="Mark as important"
+                      >
+                        <Star className="h-3.5 w-3.5 text-muted-foreground" />
+                      </button>
+                    )}
+                    
+                    {/* Unstar button (only when starred) */}
+                    {canToggleImportant(message) && message.is_important && (
+                      <button
+                        onClick={() =>
+                          toggleImportantMutation.mutate({
+                            messageId: message.id,
+                            isImportant: message.is_important || false,
+                          })
+                        }
+                        className="opacity-0 group-hover:opacity-100 transition-opacity mt-2 p-1 hover:bg-muted rounded"
+                        title="Unmark as important"
+                      >
+                        <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                      </button>
+                    )}
                   </div>
+                  
+                  {/* Time below bubble */}
+                  <span className="text-[11px] text-muted-foreground mt-0.5 px-3">
+                    {formatTime(message.created_at)}
+                  </span>
                 </div>
               </div>
             );
@@ -334,15 +355,16 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t space-y-2">
-        {/* Formatting toolbar */}
-        <div className="flex items-center gap-1 mb-2">
+      <div className="p-4 border-t space-y-3">
+        {/* Formatting toolbar above input */}
+        <div className="flex items-center gap-0.5 justify-center">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => insertFormatting('**')}
             title="Bold"
+            className="h-8 w-8 p-0"
           >
             <Bold className="h-4 w-4" />
           </Button>
@@ -352,6 +374,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
             size="sm"
             onClick={() => insertFormatting('*')}
             title="Italic"
+            className="h-8 w-8 p-0"
           >
             <Italic className="h-4 w-4" />
           </Button>
@@ -361,6 +384,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
             size="sm"
             onClick={() => insertFormatting('`')}
             title="Code"
+            className="h-8 w-8 p-0"
           >
             <Code className="h-4 w-4" />
           </Button>
@@ -370,50 +394,40 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
             size="sm"
             onClick={insertLink}
             title="Insert Link"
+            className="h-8 w-8 p-0"
           >
             <LinkIcon className="h-4 w-4" />
           </Button>
-          <div className="flex-1" />
-          {(userRole?.isAdmin || userRole?.isAgent) && (
-            <Button
-              type="button"
-              variant={markAsImportant ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setMarkAsImportant(!markAsImportant)}
-              title="Mark as important"
-              className="gap-2"
-            >
-              <Star className={`h-4 w-4 ${markAsImportant ? 'fill-current' : ''}`} />
-              {markAsImportant && 'Important'}
-            </Button>
-          )}
         </div>
 
-        <div className="flex gap-2">
+        {/* Input area with border like iMessage */}
+        <div className="relative">
           <Textarea
             ref={textareaRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type your message..."
-            className="min-h-[80px] resize-none"
+            className="min-h-[60px] resize-none rounded-[20px] border-2 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary pr-12"
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 handleSendMessage();
               }
             }}
+            maxLength={1000}
           />
           <Button
             onClick={handleSendMessage}
             disabled={isSending || !newMessage.trim()}
             size="icon"
-            className="shrink-0"
+            className="absolute right-2 bottom-2 h-8 w-8 rounded-full bg-[#007AFF] hover:bg-[#0051D5]"
           >
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{newMessage.length} / 1000 characters</span>
-          <span>Ctrl+Enter to send</span>
+        
+        <div className="text-center text-xs text-muted-foreground">
+          {newMessage.length} / 1000 characters
         </div>
       </div>
     </Card>
