@@ -23,11 +23,22 @@ interface ClientPaymentSettingsProps {
 export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) => {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+  
+  // Check if client is managed by an agency
+  const isManagedByAgency = !!client.managing_agency_id && !!client.managing_agency;
+  
+  // Use agency settings if managed, otherwise use client's own settings
+  const effectiveSettings = isManagedByAgency ? {
+    po_system_enabled: client.managing_agency.po_system_enabled || false,
+    default_payment_method: client.managing_agency.default_payment_method || 'offline_check',
+    offline_payment_instructions: client.managing_agency.offline_payment_instructions || '',
+  } : {
     po_system_enabled: client.po_system_enabled || false,
     default_payment_method: client.default_payment_method || 'offline_check',
     offline_payment_instructions: client.offline_payment_instructions || '',
-  });
+  };
+  
+  const [formData, setFormData] = useState(effectiveSettings);
 
   const updatePaymentSettings = useMutation({
     mutationFn: async () => {
@@ -59,7 +70,7 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
             <CreditCard className="h-5 w-5" />
             <CardTitle>Payment Settings</CardTitle>
           </div>
-          {!isEditing ? (
+          {!isManagedByAgency && !isEditing ? (
             <Button
               variant="outline"
               size="sm"
@@ -67,18 +78,14 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
             >
               Edit
             </Button>
-          ) : (
+          ) : !isManagedByAgency ? (
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setIsEditing(false);
-                  setFormData({
-                    po_system_enabled: client.po_system_enabled || false,
-                    default_payment_method: client.default_payment_method || 'offline_check',
-                    offline_payment_instructions: client.offline_payment_instructions || '',
-                  });
+                  setFormData(effectiveSettings);
                 }}
               >
                 <X className="h-4 w-4 mr-2" />
@@ -93,10 +100,19 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
                 Save
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Agency Notice */}
+        {isManagedByAgency && (
+          <div className="bg-muted p-4 rounded-lg border border-border">
+            <p className="text-sm font-medium mb-1">Inherited from Agency</p>
+            <p className="text-xs text-muted-foreground">
+              Payment settings are managed by {client.managing_agency.name}. Contact your agency to update these settings.
+            </p>
+          </div>
+        )}
         {/* PO System Toggle */}
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
@@ -105,7 +121,7 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
               Enable purchase order requirement for this client
             </p>
           </div>
-          {isEditing ? (
+          {!isManagedByAgency && isEditing ? (
             <Switch
               id="po-system"
               checked={formData.po_system_enabled}
@@ -123,7 +139,7 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
         {/* Default Payment Method */}
         <div className="space-y-2">
           <Label htmlFor="payment-method">Default Payment Method</Label>
-          {isEditing ? (
+          {!isManagedByAgency && isEditing ? (
             <Select
               value={formData.default_payment_method}
               onValueChange={(value) =>
@@ -153,13 +169,13 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
         </div>
 
         {/* Offline Payment Instructions */}
-        {(formData.default_payment_method.startsWith('offline_') || !isEditing && client.offline_payment_instructions) && (
+        {(formData.default_payment_method.startsWith('offline_') || (!isEditing && effectiveSettings.offline_payment_instructions)) && (
           <div className="space-y-2">
             <Label htmlFor="payment-instructions">Payment Instructions</Label>
             <p className="text-xs text-muted-foreground">
               Provide bank details, mailing address, or other payment information
             </p>
-            {isEditing ? (
+            {!isManagedByAgency && isEditing ? (
               <Textarea
                 id="payment-instructions"
                 value={formData.offline_payment_instructions}
@@ -171,7 +187,7 @@ export const ClientPaymentSettings = ({ client }: ClientPaymentSettingsProps) =>
               />
             ) : (
               <p className="text-sm whitespace-pre-wrap bg-muted p-3 rounded-md">
-                {client.offline_payment_instructions || 'No instructions provided'}
+                {effectiveSettings.offline_payment_instructions || 'No instructions provided'}
               </p>
             )}
           </div>

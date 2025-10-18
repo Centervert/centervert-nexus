@@ -41,7 +41,7 @@ const ClientDetail = () => {
       if (data.managing_agency_id) {
         const { data: agency } = await supabase
           .from('clients')
-          .select('id, name')
+          .select('id, name, po_system_enabled, default_payment_method, offline_payment_instructions')
           .eq('id', data.managing_agency_id)
           .maybeSingle();
         
