@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useStripeSetting } from '@/hooks/useSystemSettings';
+import { useQuotePayment } from '@/hooks/useQuotePayment';
 import { sendQuoteNotification, getTicketDetails, getUserDetails } from '@/lib/emailNotifications';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,9 @@ interface Quote {
   billing_cycles: number | null;
   paid_at: string | null;
   stripe_session_id: string | null;
+  payment_status: string | null;
+  marked_paid_by: string | null;
+  marked_paid_at: string | null;
 }
 
 interface TicketPricingProps {
@@ -57,6 +61,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
   const { data: stripeEnabled } = useStripeSetting();
+  const { markAsPaid } = useQuotePayment(ticketId);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
   const [isEditingQuote, setIsEditingQuote] = useState(false);
   const [editAmount, setEditAmount] = useState('');
@@ -943,17 +948,44 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                   </p>
                 )}
               </div>
-              <Badge
-                className={
-                  quote.status === 'approved'
-                    ? 'bg-green-500'
-                    : quote.status === 'declined'
-                    ? 'bg-red-500'
-                    : 'bg-yellow-500'
-                }
-              >
-                {quote.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
-              </Badge>
+              <div className="flex flex-col items-end gap-2">
+                <Badge
+                  className={
+                    quote.status === 'approved'
+                      ? 'bg-blue-500'
+                      : quote.status === 'declined'
+                      ? 'bg-red-500'
+                      : 'bg-yellow-500'
+                  }
+                >
+                  {quote.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
+                </Badge>
+                {quote.status === 'approved' && quote.payment_status === 'paid' && (
+                  <div className="relative">
+                    <Badge className="bg-green-600 text-white font-bold px-4 py-2 text-sm shadow-lg">
+                      ✓ PAID
+                    </Badge>
+                  </div>
+                )}
+                {quote.status === 'approved' && userRole?.isAdmin && quote.payment_status !== 'paid' && (
+                  <Select
+                    value={quote.payment_status || 'unpaid'}
+                    onValueChange={(value) => {
+                      if (value === 'paid') {
+                        markAsPaid.mutate(quote.id);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="unpaid">Unpaid</SelectItem>
+                      <SelectItem value="paid">Mark as Paid</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
 
             {/* Timer */}

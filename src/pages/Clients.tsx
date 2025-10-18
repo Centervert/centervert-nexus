@@ -167,24 +167,28 @@ const Clients = () => {
               viewMode === 'card' ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {clients.map((client) => (
-                    <Card
+                  <Card
                       key={client.id}
                       className="cursor-pointer transition-shadow hover:shadow-md"
                       onClick={() => navigate(`/clients/${client.id}`)}
                     >
                       <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5 text-primary" />
-                            <CardTitle className="text-lg">
-                              {(client as any).managing_agency?.name && (
-                                <span className="text-muted-foreground font-normal">
-                                  {(client as any).managing_agency?.name}
-                                  <span className="mx-2">→</span>
-                                </span>
-                              )}
-                              {client.name}
-                            </CardTitle>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex flex-col gap-2 flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Building2 className="h-5 w-5 text-primary shrink-0" />
+                              <CardTitle className="text-lg truncate">
+                                {client.name}
+                              </CardTitle>
+                              <Badge variant="outline" className="text-xs font-mono shrink-0">
+                                {client.id.slice(0, 6).toUpperCase()}
+                              </Badge>
+                            </div>
+                            {(client as any).managing_agency?.name && (
+                              <Badge variant="secondary" className="gap-1 self-start">
+                                🏢 Managed by {(client as any).managing_agency?.name}
+                              </Badge>
+                            )}
                           </div>
                           {getClientTypeBadge(client.client_type)}
                         </div>
@@ -221,21 +225,21 @@ const Clients = () => {
                           className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
                           onClick={() => navigate(`/clients/${client.id}`)}
                         >
-                          <div className="flex items-center gap-4 flex-1">
+                          <div className="flex items-center gap-4 flex-1 min-w-0">
                             <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold truncate">
-                                  {(client as any).managing_agency?.name && (
-                                    <span className="text-muted-foreground font-normal">
-                                      {(client as any).managing_agency?.name}
-                                      <span className="mx-2">→</span>
-                                    </span>
-                                  )}
-                                  {client.name}
-                                </h3>
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <h3 className="font-semibold truncate">{client.name}</h3>
+                                <Badge variant="outline" className="text-xs font-mono">
+                                  {client.id.slice(0, 6).toUpperCase()}
+                                </Badge>
                                 {getClientTypeBadge(client.client_type)}
                               </div>
+                              {(client as any).managing_agency?.name && (
+                                <Badge variant="secondary" className="gap-1 mb-1">
+                                  🏢 Managed by {(client as any).managing_agency?.name}
+                                </Badge>
+                              )}
                               <div className="flex gap-4 text-sm text-muted-foreground">
                                 {client.payment_terms && (
                                   <span>Payment: {client.payment_terms}</span>

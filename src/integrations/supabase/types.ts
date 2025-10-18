@@ -195,15 +195,18 @@ export type Database = {
           billing_address: string | null
           client_type: Database["public"]["Enums"]["client_type"]
           created_at: string | null
+          default_payment_method: string | null
           deleted_at: string | null
           id: string
           is_active: boolean | null
           managing_agency_id: string | null
           name: string
           notes: string | null
+          offline_payment_instructions: string | null
           payment_terms: string | null
           payment_terms_days: number | null
           phone: string | null
+          po_system_enabled: boolean | null
           shipping_address: string | null
           stripe_customer_id: string | null
           tax_id: string | null
@@ -214,15 +217,18 @@ export type Database = {
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
+          default_payment_method?: string | null
           deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           managing_agency_id?: string | null
           name: string
           notes?: string | null
+          offline_payment_instructions?: string | null
           payment_terms?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          po_system_enabled?: boolean | null
           shipping_address?: string | null
           stripe_customer_id?: string | null
           tax_id?: string | null
@@ -233,15 +239,18 @@ export type Database = {
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
+          default_payment_method?: string | null
           deleted_at?: string | null
           id?: string
           is_active?: boolean | null
           managing_agency_id?: string | null
           name?: string
           notes?: string | null
+          offline_payment_instructions?: string | null
           payment_terms?: string | null
           payment_terms_days?: number | null
           phone?: string | null
+          po_system_enabled?: boolean | null
           shipping_address?: string | null
           stripe_customer_id?: string | null
           tax_id?: string | null
@@ -653,7 +662,10 @@ export type Database = {
           deliverables: string[] | null
           id: string
           is_recurring: boolean
+          marked_paid_at: string | null
+          marked_paid_by: string | null
           paid_at: string | null
+          payment_status: string | null
           po_file_url: string | null
           po_number: string | null
           preferred_amount: number | null
@@ -675,7 +687,10 @@ export type Database = {
           deliverables?: string[] | null
           id?: string
           is_recurring?: boolean
+          marked_paid_at?: string | null
+          marked_paid_by?: string | null
           paid_at?: string | null
+          payment_status?: string | null
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
@@ -697,7 +712,10 @@ export type Database = {
           deliverables?: string[] | null
           id?: string
           is_recurring?: boolean
+          marked_paid_at?: string | null
+          marked_paid_by?: string | null
           paid_at?: string | null
+          payment_status?: string | null
           po_file_url?: string | null
           po_number?: string | null
           preferred_amount?: number | null
@@ -714,6 +732,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_quotes_marked_paid_by_fkey"
+            columns: ["marked_paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

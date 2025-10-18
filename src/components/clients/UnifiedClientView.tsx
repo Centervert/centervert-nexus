@@ -312,7 +312,12 @@ export const UnifiedClientView = ({ client }: UnifiedClientViewProps) => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Client Information</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle>Client Information</CardTitle>
+              <Badge variant="outline" className="text-xs font-mono">
+                ID: {client.id.slice(0, 6).toUpperCase()}
+              </Badge>
+            </div>
             {!isEditingClient ? (
               <Button variant="outline" size="sm" onClick={() => setIsEditingClient(true)}>
                 <Edit className="mr-2 h-4 w-4" />

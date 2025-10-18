@@ -10,7 +10,9 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { UnifiedClientView } from '@/components/clients/UnifiedClientView';
 import { ClientTickets } from '@/components/clients/ClientTickets';
 import { DeleteClientDialog } from '@/components/clients/DeleteClientDialog';
+import { ClientPaymentSettings } from '@/components/clients/ClientPaymentSettings';
 import { useUserRole } from '@/hooks/useUserRole';
+import { Badge } from '@/components/ui/badge';
 
 const ClientDetail = () => {
   const { id } = useParams();
@@ -95,8 +97,20 @@ const ClientDetail = () => {
           <div className="p-8">
             <div className="mb-6 flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold">{client.name}</h1>
-                <p className="text-muted-foreground capitalize">{client.client_type.replace('_', ' ')} Client</p>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold">{client.name}</h1>
+                  <Badge variant="outline" className="text-xs font-mono">
+                    ID: {client.id.slice(0, 6).toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-muted-foreground capitalize">{client.client_type.replace('_', ' ')} Client</p>
+                  {client.managing_agency && (
+                    <Badge variant="secondary" className="gap-1">
+                      🏢 Managed by {client.managing_agency.name}
+                    </Badge>
+                  )}
+                </div>
               </div>
               {userRole?.isAdmin && (
                 <Button
@@ -116,8 +130,9 @@ const ClientDetail = () => {
                 <TabsTrigger value="tickets">Tickets</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="overview">
+              <TabsContent value="overview" className="space-y-6">
                 <UnifiedClientView client={client} />
+                {userRole?.isAdmin && <ClientPaymentSettings client={client} />}
               </TabsContent>
 
               <TabsContent value="tickets">
