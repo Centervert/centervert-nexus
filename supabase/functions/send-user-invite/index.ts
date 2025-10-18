@@ -24,8 +24,8 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { email, inviter_name, role, client_name, token }: InviteRequest = await req.json();
 
-    const origin = req.headers.get("origin") || req.headers.get("referer")?.split('/').slice(0, 3).join('/');
-    const inviteUrl = `${origin}/auth?invite=${token}`;
+    // Use custom domain for invitation links
+    const inviteUrl = `https://portal.centervert.com/auth?invite=${token}`;
 
     const emailResponse = await resend.emails.send({
       from: "Centervert <noreply@notifications.centervert.com>",
