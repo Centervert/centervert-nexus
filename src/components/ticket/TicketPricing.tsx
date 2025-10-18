@@ -138,6 +138,29 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     staleTime: 0,
   });
 
+  // Real-time subscription for quote updates
+  useEffect(() => {
+    const channel = supabase
+      .channel(`ticket-quote-${ticketId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ticket_quotes',
+          filter: `ticket_id=eq.${ticketId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ticketId, queryClient]);
+
   // Update countdown timer
   useEffect(() => {
     if (!quote?.approval_window_expires_at || quote.status === 'cancelled') return;
