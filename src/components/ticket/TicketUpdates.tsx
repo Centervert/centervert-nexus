@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Send, Bold, Italic, Code, Link as LinkIcon, Star } from 'lucide-react';
+import { Send, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -142,7 +142,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         user_id: user.id,
         user_name: userName,
         content: newMessage,
-        format: 'markdown',
+        format: 'plain',
         is_important: markAsImportant,
         marked_important_at: markAsImportant ? new Date().toISOString() : null,
         marked_important_by: markAsImportant ? user.id : null,
@@ -158,45 +158,6 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
     } finally {
       setIsSending(false);
     }
-  };
-
-  const insertFormatting = (prefix: string, suffix: string = prefix) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = newMessage.substring(start, end);
-    const beforeText = newMessage.substring(0, start);
-    const afterText = newMessage.substring(end);
-
-    const newText = beforeText + prefix + selectedText + suffix + afterText;
-    setNewMessage(newText);
-
-    // Set cursor position after formatting
-    setTimeout(() => {
-      textarea.focus();
-      const newCursorPos = start + prefix.length + selectedText.length + suffix.length;
-      textarea.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
-  };
-
-  const insertLink = () => {
-    const url = prompt('Enter URL:');
-    if (!url) return;
-    
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = newMessage.substring(start, end) || 'link text';
-    const beforeText = newMessage.substring(0, start);
-    const afterText = newMessage.substring(end);
-
-    const newText = beforeText + `[${selectedText}](${url})` + afterText;
-    setNewMessage(newText);
-    textarea.focus();
   };
 
   const formatTime = (dateString: string) => {
@@ -358,67 +319,22 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
       </div>
 
       <div className="p-4 border-t space-y-3">
-        {/* Formatting toolbar above input */}
-        <div className="flex items-center gap-0.5 justify-center">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => insertFormatting('**')}
-            title="Bold"
-            className="h-8 w-8 p-0"
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => insertFormatting('*')}
-            title="Italic"
-            className="h-8 w-8 p-0"
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => insertFormatting('`')}
-            title="Code"
-            className="h-8 w-8 p-0"
-          >
-            <Code className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={insertLink}
-            title="Insert Link"
-            className="h-8 w-8 p-0"
-          >
-            <LinkIcon className="h-4 w-4" />
-          </Button>
-          
-          {/* Important toggle for admins/agents */}
-          {(userRole?.isAdmin || userRole?.isAgent) && (
-            <>
-              <div className="flex-1" />
-              <Button
-                type="button"
-                variant={markAsImportant ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setMarkAsImportant(!markAsImportant)}
-                title="Mark as important update"
-                className={`gap-1.5 h-8 ${markAsImportant ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
-              >
-                <Star className={`h-3.5 w-3.5 ${markAsImportant ? 'fill-current' : ''}`} />
-                <span className="text-xs">Important</span>
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Important toggle for admins/agents */}
+        {(userRole?.isAdmin || userRole?.isAgent) && (
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant={markAsImportant ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setMarkAsImportant(!markAsImportant)}
+              title="Mark as important update"
+              className={`gap-1.5 h-8 ${markAsImportant ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+            >
+              <Star className={`h-3.5 w-3.5 ${markAsImportant ? 'fill-current' : ''}`} />
+              <span className="text-xs">Mark as Important</span>
+            </Button>
+          </div>
+        )}
 
         {/* Input area with border like iMessage */}
         <div className="relative">
