@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { DollarSign, CheckCircle, XCircle, Clock, Pencil, X, Check, AlertTriangle, CreditCard } from 'lucide-react';
+import { DollarSign, CheckCircle, XCircle, Clock, Pencil, X, Check, AlertTriangle, CreditCard, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -84,6 +84,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
   
   // Cancel dialog (within cancellation window)
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  
+  // Delete quote dialog
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Fetch current user profile for auto-fill
   const { data: currentUser } = useQuery({
@@ -445,6 +448,40 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     },
   });
 
+  const deleteQuoteMutation = useMutation({
+    mutationFn: async () => {
+      if (!quote) return;
+
+      // First, delete all quote-related milestones
+      const { error: milestonesError } = await supabase
+        .from('ticket_milestones')
+        .delete()
+        .eq('ticket_id', ticketId)
+        .in('type', ['approval_requested', 'approval_approved', 'approval_declined', 'approval_cancelled', 'cancellation_requested']);
+
+      if (milestonesError) throw milestonesError;
+
+      // Then delete the quote
+      const { error: quoteError } = await supabase
+        .from('ticket_quotes')
+        .delete()
+        .eq('id', quote.id);
+
+      if (quoteError) throw quoteError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-milestones', ticketId] });
+      toast.success('Quote and related milestones deleted successfully');
+      setShowDeleteDialog(false);
+      setIsEditingQuote(false);
+    },
+    onError: (error) => {
+      console.error('Error deleting quote:', error);
+      toast.error('Failed to delete quote');
+    },
+  });
+
   const handleEditClick = () => {
     if (quote?.status === 'approved') {
       setShowApprovedWarning(true);
@@ -694,6 +731,31 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Delete Quote Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Quote Permanently?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the quote and all related milestones. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteQuoteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteQuoteMutation.mutate()}
+              disabled={deleteQuoteMutation.isPending}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {deleteQuoteMutation.isPending ? 'Deleting...' : 'Delete Quote'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Card className={cn(needsPO && 'relative')}>
         {needsPO && (
           <div className="absolute inset-0 bg-red-50/80 border-2 border-red-200 rounded-lg flex items-center justify-center z-10">
@@ -775,6 +837,15 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
               )}
               {isEditingQuote && (
                 <>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
