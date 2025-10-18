@@ -14,6 +14,7 @@ import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import ManagedServices from "./pages/ManagedServices";
 import ManagedServiceDetail from "./pages/ManagedServiceDetail";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ManagedServiceDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
                   </ProtectedRoute>
                 }
               />

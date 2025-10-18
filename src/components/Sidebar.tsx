@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, Users, LogOut, Building2, RefreshCw } from 'lucide-react';
+import { Ticket, Users, LogOut, Building2, RefreshCw, Settings } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -141,6 +141,13 @@ const Sidebar = () => {
                 {userProfile?.fullName} • {displayRole}
               </p>
             </div>
+            <Link
+              to="/profile"
+              className="rounded p-1 hover:bg-accent shrink-0"
+              title="Profile settings"
+            >
+              <Settings className="h-4 w-4 text-muted-foreground" />
+            </Link>
             <button
               onClick={signOut}
               className="rounded p-1 hover:bg-accent shrink-0"
