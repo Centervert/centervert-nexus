@@ -77,7 +77,7 @@ export const InviteUserDialog = ({ preSelectedClientId, trigger }: InviteUserDia
         .from('invitations')
         .insert([{
           email,
-          client_id: role === 'user' && clientId ? clientId : null,
+          client_id: clientId || null,
           role: role as 'user' | 'agent' | 'admin',
           token,
           invited_by: user?.id,

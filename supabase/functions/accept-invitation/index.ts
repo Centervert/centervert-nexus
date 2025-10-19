@@ -97,10 +97,13 @@ const handler = async (req: Request): Promise<Response> => {
           client_id: invitation.client_id,
         });
 
-      // Update profile with client_id
+      // Update profile with client_id and company name
       await supabaseClient
         .from("profiles")
-        .update({ client_id: invitation.client_id })
+        .update({ 
+          client_id: invitation.client_id,
+          company: invitation.clients?.name || null
+        })
         .eq("id", authData.user.id);
     }
 
