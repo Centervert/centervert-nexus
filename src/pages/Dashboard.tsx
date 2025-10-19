@@ -193,8 +193,8 @@ const Dashboard = () => {
           {/* Financial Stats - Admin Only */}
           {userRole?.isAdmin && <FinancialStats />}
 
-          {/* Awaiting Quotes - Agency Users */}
-          {userRole?.isAgent && <AwaitingQuotes />}
+          {/* Awaiting Quotes - All Users */}
+          <AwaitingQuotes />
 
           {/* Stats Cards */}
           <div className="mb-6 md:mb-8 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
