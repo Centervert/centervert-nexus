@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Search, Mail, Shield } from 'lucide-react';
+import { Plus, Search, Mail, Shield, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
 import { format } from 'date-fns';
 
@@ -19,6 +19,18 @@ const UserManagement = () => {
     queryKey: ['users-with-roles'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_users_with_roles');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: invitations, isLoading: invitationsLoading } = useQuery({
+    queryKey: ['pending-invitations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('invitations')
+        .select('*')
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -144,6 +156,86 @@ const UserManagement = () => {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     {searchQuery ? 'No users found matching your search' : 'No users yet'}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Pending Invitations */}
+            <Card className="mt-6">
+              <CardHeader>
+                <CardTitle>Pending Invitations</CardTitle>
+                <CardDescription>
+                  {invitations?.length || 0} pending invitation(s)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {invitationsLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading invitations...
+                  </div>
+                ) : invitations && invitations.length > 0 ? (
+                  <div className="space-y-4">
+                    {invitations.map((invitation) => {
+                      const isExpired = new Date(invitation.expires_at) < new Date();
+                      const statusIcon = invitation.status === 'accepted' ? (
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      ) : isExpired ? (
+                        <XCircle className="h-4 w-4 text-destructive" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-yellow-500" />
+                      );
+
+                      const statusText = invitation.status === 'accepted' 
+                        ? 'Accepted' 
+                        : isExpired 
+                        ? 'Expired' 
+                        : 'Pending';
+
+                      return (
+                        <div
+                          key={invitation.id}
+                          className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>
+                                {invitation.email.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-3 w-3" />
+                                <p className="font-medium">{invitation.email}</p>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Sent {format(new Date(invitation.created_at), 'MMM d, yyyy')}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right hidden sm:block">
+                              <p className="text-xs text-muted-foreground">
+                                Expires {format(new Date(invitation.expires_at), 'MMM d, yyyy')}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={getRoleBadgeVariant(invitation.role)}>
+                                {invitation.role}
+                              </Badge>
+                              <div className="flex items-center gap-1">
+                                {statusIcon}
+                                <span className="text-xs">{statusText}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No pending invitations
                   </div>
                 )}
               </CardContent>
