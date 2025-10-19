@@ -25,8 +25,9 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
-  const [clients, setClients] = useState<Array<{ id: string; name: string }>>([]);
+  const [clients, setClients] = useState<Array<{ id: string; name: string; client_type: string }>>([]);
   const [isAgency, setIsAgency] = useState(false);
+  const [userClientId, setUserClientId] = useState<string | null>(null);
   const [dueDate, setDueDate] = useState<Date>();
   const [links, setLinks] = useState<Array<{ title: string; url: string; linkType: string }>>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -47,7 +48,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     budget: '',
     categoryId: '',
     clientId: '',
-    endClientName: '',
   });
 
   const typeOptions = [
@@ -116,6 +116,17 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       // Check user role and fetch clients
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Get user's profile to check their client_id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('client_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.client_id) {
+          setUserClientId(profile.client_id);
+        }
+
         const { data: userRoles } = await supabase
           .from('user_roles')
           .select('role')
@@ -131,7 +142,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           // Fetch clients for agency users
           const { data: clientsData, error: clientsError } = await supabase
             .from('clients')
-            .select('id, name')
+            .select('id, name, client_type')
             .is('deleted_at', null)
             .order('name');
           
@@ -224,7 +235,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       if (formData.budget) insertData.budget = parseFloat(formData.budget);
       if (formData.categoryId) insertData.category_id = formData.categoryId;
       if (clientId) insertData.client_id = clientId;
-      if (formData.endClientName) insertData.end_client_name = formData.endClientName.trim();
       if (dueDate) insertData.due_date = dueDate.toISOString();
 
       const { data: ticket, error } = await supabase
@@ -328,7 +338,6 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         budget: '',
         categoryId: '',
         clientId: '',
-        endClientName: '',
       });
       setDueDate(undefined);
       setLinks([]);
@@ -503,7 +512,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                   <SelectContent>
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
-                        {client.name}
+                        {client.name}{client.id === userClientId ? ' (Internal)' : ''}
                       </SelectItem>
                     ))}
                     <SelectItem value="add-new">+ Add New Client</SelectItem>
@@ -552,34 +561,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                   </div>
                 )}
               </>
-            ) : (
-              <Input
-                id="client"
-                placeholder="Client name (optional)"
-                value={formData.endClientName}
-                onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
-                className="h-11"
-              />
-            )}
+            ) : null}
           </div>
-
-          {isAgency && !showNewClientInput && (
-            <div className="space-y-2">
-              <Label htmlFor="endClient" className="text-sm font-medium">
-                End Client / Project Name (Optional)
-              </Label>
-              <Input
-                id="endClient"
-                placeholder="e.g., Xulon Press, Project Name"
-                value={formData.endClientName}
-                onChange={(e) => setFormData({ ...formData, endClientName: e.target.value })}
-                className="h-11"
-              />
-              <p className="text-xs text-muted-foreground">
-                Specify the final client or project this work is for
-              </p>
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
