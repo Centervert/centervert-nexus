@@ -175,7 +175,7 @@ const Dashboard = () => {
 
   const getQuoteStatus = (ticket: Ticket) => {
     if (!ticket.ticket_quotes || ticket.ticket_quotes.length === 0) {
-      return { label: 'N/A', className: 'bg-gray-100 text-gray-600' };
+      return { label: 'No Quote', className: 'bg-gray-100 text-gray-600' };
     }
 
     const latestQuote = ticket.ticket_quotes[0];
@@ -200,7 +200,7 @@ const Dashboard = () => {
       return { label: 'Declined', className: 'bg-red-100 text-red-800' };
     }
 
-    return { label: 'N/A', className: 'bg-gray-100 text-gray-600' };
+    return { label: 'No Quote', className: 'bg-gray-100 text-gray-600' };
   };
 
   return (
