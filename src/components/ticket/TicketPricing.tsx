@@ -127,9 +127,10 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         .from('ticket_quotes')
         .select('*')
         .eq('ticket_id', ticketId)
-        .single();
+        .order('created_at', { ascending: false })
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error) throw error;
       
       // Initialize edit form when quote loads
       if (data) {
