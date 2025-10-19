@@ -417,7 +417,7 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
@@ -435,16 +435,16 @@ const Dashboard = () => {
             <div className="divide-y divide-border">
               {ticketsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="p-4 md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] md:gap-4 md:px-6 md:py-4">
-                    <Skeleton className="h-4 w-4 mb-3 md:mb-0" />
-                    <div className="space-y-2 mb-3 md:mb-0">
+                  <div key={i} className="p-4 lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4">
+                    <Skeleton className="h-4 w-4 mb-3 lg:mb-0" />
+                    <div className="space-y-2 mb-3 lg:mb-0">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-3 w-1/2" />
                     </div>
-                    <Skeleton className="h-4 w-1/2 mb-3 md:mb-0" />
-                    <Skeleton className="h-6 w-24 mb-3 md:mb-0" />
-                    <Skeleton className="h-6 w-24 mb-3 md:mb-0" />
-                    <Skeleton className="h-8 w-full md:w-16" />
+                    <Skeleton className="h-4 w-1/2 mb-3 lg:mb-0" />
+                    <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
+                    <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
+                    <Skeleton className="h-8 w-full lg:w-16" />
                   </div>
                 ))
               ) : tickets && tickets.length > 0 ? (
@@ -456,11 +456,11 @@ const Dashboard = () => {
                   return (
                     <div
                       key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] md:gap-4 md:px-6 md:py-4"
+                      className="p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
-                      <div className="md:hidden space-y-3">
+                      <div className="lg:hidden space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
@@ -533,7 +533,7 @@ const Dashboard = () => {
                       </div>
 
                       {/* Desktop Layout */}
-                      <div className="hidden md:flex md:items-center md:gap-3">
+                      <div className="hidden lg:flex lg:items-center lg:gap-3">
                         <input 
                           type="checkbox" 
                           className="rounded border-border w-4 h-4 shrink-0" 
@@ -546,7 +546,7 @@ const Dashboard = () => {
                         />
                         <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                       </div>
-                      <div className="hidden md:flex md:flex-col md:justify-center md:min-w-0">
+                      <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0">
                         <div className="font-medium leading-tight truncate">{ticket.title}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
                           <span>#{ticket.id.slice(0, 4)}</span>
@@ -560,7 +560,7 @@ const Dashboard = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="hidden md:flex md:flex-col md:justify-center text-sm min-w-0">
+                      <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0">
                         {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
                           <div className="flex flex-wrap items-center gap-x-1">
                             <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
@@ -591,19 +591,19 @@ const Dashboard = () => {
                           </div>
                         )}
                       </div>
-                      <div className="hidden md:flex md:items-center md:justify-center">
-                        <Badge className={cn('rounded-md px-3 py-1.5 font-medium min-w-[140px] justify-center text-xs', quoteStatus.className)}>
+                      <div className="hidden lg:flex lg:items-center lg:justify-center">
+                        <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
                           {quoteStatus.label}
                         </Badge>
                       </div>
-                      <div className="hidden md:flex md:items-center md:justify-center">
+                      <div className="hidden lg:flex lg:items-center lg:justify-center">
                         {userRole?.isAdmin ? (
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               onClick={(e) => e.stopPropagation()}
                               className="border-0 bg-transparent p-0 focus:outline-none focus:ring-0"
                             >
-                              <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium min-w-[200px] justify-center cursor-pointer hover:opacity-80 transition-opacity', statusDisplay.className)}>
+                              <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium w-full justify-center cursor-pointer hover:opacity-80 transition-opacity text-xs whitespace-nowrap', statusDisplay.className)}>
                                 {statusDisplay.label}
                                 <ChevronDown className="h-3 w-3" />
                               </Badge>
@@ -629,12 +629,12 @@ const Dashboard = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (
-                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium min-w-[200px] justify-center', statusDisplay.className)}>
+                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', statusDisplay.className)}>
                             {statusDisplay.label}
                           </Badge>
                         )}
                       </div>
-                      <div className="hidden md:flex md:items-center md:justify-end text-sm">
+                      <div className="hidden lg:flex lg:items-center lg:justify-end text-sm">
                         {ticket.due_date 
                           ? new Date(ticket.due_date).toLocaleDateString('en-US', {
                               month: 'short',
