@@ -132,17 +132,19 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
       
-      // Initialize edit form when quote loads
-      if (data) {
-        setEditAmount(data.amount.toString());
-        setEditDeliverables(data.deliverables?.join('\n') || '');
-      }
-      
       return data as Quote | null;
     },
     refetchOnMount: true,
-    staleTime: 0,
+    refetchOnWindowFocus: false,
   });
+
+  // Initialize edit form when quote loads
+  useEffect(() => {
+    if (quote) {
+      setEditAmount(quote.amount.toString());
+      setEditDeliverables(quote.deliverables?.join('\n') || '');
+    }
+  }, [quote]);
 
   // Real-time subscription for quote updates
   useEffect(() => {
