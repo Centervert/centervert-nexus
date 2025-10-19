@@ -47,7 +47,9 @@ export interface Ticket {
     id: string;
     status: string;
     po_number: string | null;
+    amount: number;
   }>;
+  managed_service_id: string | null;
 }
 
 interface UseTicketsParams {
@@ -90,7 +92,8 @@ export const useTickets = (params?: UseTicketsParams) => {
           ticket_quotes (
             id,
             status,
-            po_number
+            po_number,
+            amount
           )
         `);
 

@@ -186,7 +186,16 @@ const Dashboard = () => {
     } else if (latestQuote.status === 'approved' && needsPO) {
       return { label: 'Needs PO', className: 'bg-orange-100 text-orange-800' };
     } else if (latestQuote.status === 'approved') {
-      return { label: 'Approved', className: 'bg-green-100 text-green-800' };
+      const amount = (latestQuote as any).amount || 0;
+      const formattedAmount = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+      const hasManagedService = !!ticket.managed_service_id;
+      const label = `Approved - ${formattedAmount}${hasManagedService ? ' +' : ''}`;
+      return { label, className: 'bg-green-100 text-green-800' };
     } else if (latestQuote.status === 'declined') {
       return { label: 'Declined', className: 'bg-red-100 text-red-800' };
     }
