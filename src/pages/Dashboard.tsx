@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles, Trash2 } from 'lucide-react';
-import { useTickets, useTicketStats } from '@/hooks/useTickets';
+import { useTickets, useTicketStats, Ticket } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +23,6 @@ import { toast } from 'sonner';
 import { AITicketDialog } from '@/components/ticket/AITicketDialog';
 import { CreateTicketDialog } from '@/components/ticket/CreateTicketDialog';
 import { FinancialStats } from '@/components/FinancialStats';
-import { AwaitingQuotes } from '@/components/AwaitingQuotes';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -174,6 +173,27 @@ const Dashboard = () => {
     return priorityMap[priority] || { className: 'text-gray-600' };
   };
 
+  const getQuoteStatus = (ticket: Ticket) => {
+    if (!ticket.ticket_quotes || ticket.ticket_quotes.length === 0) {
+      return { label: 'N/A', className: 'bg-gray-100 text-gray-600' };
+    }
+
+    const latestQuote = ticket.ticket_quotes[0];
+    const needsPO = ticket.client?.po_system_enabled && !latestQuote.po_number;
+
+    if (latestQuote.status === 'awaiting_approval') {
+      return { label: 'Waiting Approval', className: 'bg-yellow-100 text-yellow-800' };
+    } else if (latestQuote.status === 'approved' && needsPO) {
+      return { label: 'Needs PO', className: 'bg-orange-100 text-orange-800' };
+    } else if (latestQuote.status === 'approved') {
+      return { label: 'Approved', className: 'bg-green-100 text-green-800' };
+    } else if (latestQuote.status === 'declined') {
+      return { label: 'Declined', className: 'bg-red-100 text-red-800' };
+    }
+
+    return { label: 'N/A', className: 'bg-gray-100 text-gray-600' };
+  };
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -192,9 +212,6 @@ const Dashboard = () => {
           <div className="p-4 md:p-8">
           {/* Financial Stats - Admin Only */}
           {userRole?.isAdmin && <FinancialStats />}
-
-          {/* Awaiting Quotes - All Users */}
-          <AwaitingQuotes />
 
           {/* Stats Cards */}
           <div className="mb-6 md:mb-8 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
@@ -391,7 +408,7 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
@@ -402,19 +419,21 @@ const Dashboard = () => {
               </div>
               <div>TICKET</div>
               <div>CLIENT</div>
+              <div>QUOTE</div>
               <div>STATUS</div>
               <div className="text-right">DUE DATE</div>
             </div>
             <div className="divide-y divide-border">
               {ticketsLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="p-4 md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] md:gap-4 md:px-6 md:py-4">
+                  <div key={i} className="p-4 md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] md:gap-4 md:px-6 md:py-4">
                     <Skeleton className="h-4 w-4 mb-3 md:mb-0" />
                     <div className="space-y-2 mb-3 md:mb-0">
                       <Skeleton className="h-4 w-3/4" />
                       <Skeleton className="h-3 w-1/2" />
                     </div>
                     <Skeleton className="h-4 w-1/2 mb-3 md:mb-0" />
+                    <Skeleton className="h-6 w-24 mb-3 md:mb-0" />
                     <Skeleton className="h-6 w-24 mb-3 md:mb-0" />
                     <Skeleton className="h-8 w-full md:w-16" />
                   </div>
@@ -423,11 +442,12 @@ const Dashboard = () => {
                 tickets.map((ticket) => {
                   const statusDisplay = getStatusDisplay(ticket.status);
                   const priorityDisplay = getPriorityDisplay(ticket.priority);
+                  const quoteStatus = getQuoteStatus(ticket);
 
                   return (
                     <div
                       key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_200px_120px] md:gap-4 md:px-6 md:py-4"
+                      className="p-4 hover:bg-muted/50 cursor-pointer md:grid md:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_150px_150px_120px] md:gap-4 md:px-6 md:py-4"
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
                     >
                       {/* Mobile Layout */}
@@ -561,6 +581,11 @@ const Dashboard = () => {
                             )}
                           </div>
                         )}
+                      </div>
+                      <div className="hidden md:flex md:items-center md:justify-center">
+                        <Badge className={cn('rounded-md px-3 py-1.5 font-medium min-w-[140px] justify-center text-xs', quoteStatus.className)}>
+                          {quoteStatus.label}
+                        </Badge>
                       </div>
                       <div className="hidden md:flex md:items-center md:justify-center">
                         {userRole?.isAdmin ? (

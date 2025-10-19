@@ -31,6 +31,7 @@ export interface Ticket {
     managing_agency: {
       name: string;
     } | null;
+    po_system_enabled: boolean | null;
   } | null;
   creator: {
     full_name: string | null;
@@ -42,6 +43,11 @@ export interface Ticket {
     email: string;
     company: string | null;
   } | null;
+  ticket_quotes: Array<{
+    id: string;
+    status: string;
+    po_number: string | null;
+  }>;
 }
 
 interface UseTicketsParams {
@@ -66,6 +72,7 @@ export const useTickets = (params?: UseTicketsParams) => {
           client:client_id (
             name,
             client_type,
+            po_system_enabled,
             managing_agency:managing_agency_id (
               name
             )
@@ -79,6 +86,11 @@ export const useTickets = (params?: UseTicketsParams) => {
             full_name,
             email,
             company
+          ),
+          ticket_quotes (
+            id,
+            status,
+            po_number
           )
         `);
 
