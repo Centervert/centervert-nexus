@@ -116,6 +116,9 @@ const TicketDetail = () => {
             full_name,
             email,
             company
+          ),
+          client:clients (
+            name
           )
         `)
         .eq('id', id)
