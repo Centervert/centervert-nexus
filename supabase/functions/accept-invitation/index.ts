@@ -51,8 +51,17 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Allow email to be updated from the invitation
-    // The user can change their email during signup if needed
+    // Check if user already exists and delete if necessary
+    const { data: existingUsers } = await supabaseClient.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(u => u.email === email);
+    
+    if (existingUser) {
+      console.log("Existing user found, deleting:", existingUser.id);
+      const { error: deleteError } = await supabaseClient.auth.admin.deleteUser(existingUser.id);
+      if (deleteError) {
+        console.error("Error deleting existing user:", deleteError);
+      }
+    }
 
     // Create user account
     const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
