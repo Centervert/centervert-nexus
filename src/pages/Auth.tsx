@@ -47,11 +47,22 @@ const Auth = () => {
     enabled: !!inviteToken,
   });
 
+  // Clear any existing session when visiting with an invite token
   useEffect(() => {
-    if (user) {
+    const clearSessionForInvite = async () => {
+      if (inviteToken) {
+        await supabase.auth.signOut();
+      }
+    };
+    clearSessionForInvite();
+  }, [inviteToken]);
+
+  useEffect(() => {
+    // Only redirect if user is logged in AND no invite token
+    if (user && !inviteToken) {
       navigate('/dashboard');
     }
-  }, [user, navigate]);
+  }, [user, navigate, inviteToken]);
 
   useEffect(() => {
     if (invitationData?.email) {
