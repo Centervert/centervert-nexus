@@ -150,10 +150,26 @@ const TicketDetail = () => {
     enabled: !!id,
   });
 
-  // Force scroll to top when ticket loads
+  // Force scroll to top when ticket loads - multiple attempts to override any focus behavior
   useEffect(() => {
     if (ticket && !isLoading) {
+      // Immediate scroll
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      
+      // Backup scroll after a tick
+      const timer1 = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }, 0);
+      
+      // Final scroll after render
+      const timer2 = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }, 100);
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [ticket, isLoading]);
 

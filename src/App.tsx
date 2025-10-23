@@ -23,6 +23,13 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Disable automatic scroll restoration
+  React.useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={0}>
