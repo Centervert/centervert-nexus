@@ -137,7 +137,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         // Get user's profile to check their client_id
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('client_id')
+          .select('client_id, client:clients(client_type)')
           .eq('id', user.id)
           .single();
         
@@ -164,21 +164,33 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
         }
 
         const roles = userRoles?.map(r => r.role) || [];
-        const isAgencyUser = roles.includes('admin') || roles.includes('agent');
+        const hasAdminOrAgentRole = roles.includes('admin') || roles.includes('agent');
         const adminUser = roles.includes('admin');
         
-        console.log('User roles loaded:', roles, 'isAgency:', isAgencyUser, 'isAdmin:', adminUser);
+        // Check if user belongs to an agency client
+        const belongsToAgency = profile?.client?.client_type === 'agency';
+        const isAgencyUser = hasAdminOrAgentRole || belongsToAgency;
+        
+        console.log('User roles loaded:', roles, 'belongsToAgency:', belongsToAgency, 'isAgency:', isAgencyUser, 'isAdmin:', adminUser);
         
         setIsAgency(isAgencyUser);
         setIsAdmin(adminUser);
 
         if (isAgencyUser) {
           // Fetch clients for agency users
-          const { data: clientsData, error: clientsError } = await supabase
+          let clientsQuery = supabase
             .from('clients')
             .select('id, name, client_type')
             .is('deleted_at', null)
             .order('name');
+          
+          // If user belongs to an agency (not admin/agent), only show their agency's managed clients
+          if (belongsToAgency && !hasAdminOrAgentRole && profile?.client_id) {
+            clientsQuery = clientsQuery.eq('managing_agency_id', profile.client_id);
+            console.log('Filtering clients for agency:', profile.client_id);
+          }
+          
+          const { data: clientsData, error: clientsError } = await clientsQuery;
           
           if (clientsError) {
             console.error('Error fetching clients:', clientsError);
@@ -188,17 +200,19 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             setClients(clientsData || []);
           }
 
-          // Fetch agencies for agency-managed client selection
-          const { data: agenciesData, error: agenciesError } = await supabase
-            .from('clients')
-            .select('id, name')
-            .eq('client_type', 'agency')
-            .order('name');
-          
-          if (agenciesError) {
-            console.error('Error fetching agencies:', agenciesError);
-          } else {
-            setAgencies(agenciesData || []);
+          // Fetch agencies for agency-managed client selection (only for admins)
+          if (hasAdminOrAgentRole) {
+            const { data: agenciesData, error: agenciesError } = await supabase
+              .from('clients')
+              .select('id, name')
+              .eq('client_type', 'agency')
+              .order('name');
+            
+            if (agenciesError) {
+              console.error('Error fetching agencies:', agenciesError);
+            } else {
+              setAgencies(agenciesData || []);
+            }
           }
         }
         
@@ -229,7 +243,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
     }
 
     if (isAgency && !formData.clientId && !newClientName.trim()) {
-      toast.error('Please select a client or enter a new client name');
+      toast.error('Please select a client' + (isAdmin ? ' or enter a new client name' : ''));
       return;
     }
 
@@ -245,8 +259,8 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
 
       let clientId = formData.clientId;
 
-      // Create new client if needed
-      if (isAgency && showNewClientInput && newClientName.trim()) {
+      // Create new client if needed (admins only)
+      if (isAgency && isAdmin && showNewClientInput && newClientName.trim()) {
         const { data: newClient, error: clientError } = await supabase
           .from('clients')
           .insert({
@@ -568,7 +582,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
                         {client.name}{client.id === userClientId ? ' (Internal)' : ''}
                       </SelectItem>
                     ))}
-                    <SelectItem value="add-new">+ Add New Client</SelectItem>
+                    {isAdmin && <SelectItem value="add-new">+ Add New Client</SelectItem>}
                   </SelectContent>
                 </Select>
                 {showNewClientInput && (
