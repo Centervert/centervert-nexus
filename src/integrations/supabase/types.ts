@@ -752,6 +752,8 @@ export type Database = {
       }
       tickets: {
         Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
           assigned_to: string | null
           budget: number | null
           category_id: string | null
@@ -766,6 +768,7 @@ export type Database = {
           managed_service_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolved_at: string | null
+          revision_notes: string | null
           status: Database["public"]["Enums"]["ticket_status"]
           subtype: string | null
           ticket_number: number
@@ -774,6 +777,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
@@ -788,6 +793,7 @@ export type Database = {
           managed_service_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
+          revision_notes?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subtype?: string | null
           ticket_number?: number
@@ -796,6 +802,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
@@ -810,6 +818,7 @@ export type Database = {
           managed_service_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
+          revision_notes?: string | null
           status?: Database["public"]["Enums"]["ticket_status"]
           subtype?: string | null
           ticket_number?: number
@@ -818,6 +827,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "tickets_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tickets_assigned_to_fkey"
             columns: ["assigned_to"]
@@ -929,6 +945,8 @@ export type Database = {
         | "awaiting_response"
         | "resolved"
         | "closed"
+        | "pending_acknowledgment"
+        | "awaiting_payment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1066,6 +1084,8 @@ export const Constants = {
         "awaiting_response",
         "resolved",
         "closed",
+        "pending_acknowledgment",
+        "awaiting_payment",
       ],
     },
   },

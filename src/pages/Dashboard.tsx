@@ -48,8 +48,10 @@ const Dashboard = () => {
     { value: 'open' as const, label: 'New Request', className: 'bg-gray-900 text-white' },
     { value: 'in_progress' as const, label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
     { value: 'awaiting_response' as const, label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-    { value: 'closed' as const, label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+    { value: 'pending_acknowledgment' as const, label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
+    { value: 'awaiting_payment' as const, label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
     { value: 'resolved' as const, label: 'Complete', className: 'bg-green-100 text-green-800' },
+    { value: 'closed' as const, label: 'Completed', className: 'bg-green-600 text-white' },
   ];
 
   type TicketStatus = typeof statusOptions[number]['value'];
@@ -157,8 +159,10 @@ const Dashboard = () => {
       open: { label: 'New Request', className: 'bg-gray-900 text-white' },
       in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-      closed: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+      pending_acknowledgment: { label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
+      awaiting_payment: { label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
+      closed: { label: 'Completed', className: 'bg-green-600 text-white' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
   };
@@ -248,11 +252,91 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               ))
-            )}
-          </div>
+          )}
+        </div>
 
-          {/* Tickets Section */}
-          <div className="mb-4 md:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Pending Review Section */}
+        {!ticketsLoading && tickets && tickets.filter(t => t.status === 'pending_acknowledgment').length > 0 && (
+          <Card className="mb-6 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">Pending Your Review</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {tickets.filter(t => t.status === 'pending_acknowledgment').length} ticket(s) completed and awaiting your acknowledgment
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {tickets.filter(t => t.status === 'pending_acknowledgment').map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{ticket.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className="ml-3">
+                      Review
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Awaiting Payment Section */}
+        {!ticketsLoading && tickets && tickets.filter(t => t.status === 'awaiting_payment').length > 0 && (
+          <Card className="mb-6 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                  <FileText className="h-5 w-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold">Awaiting Payment</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {tickets.filter(t => t.status === 'awaiting_payment').length} ticket(s) completed and awaiting payment
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {tickets.filter(t => t.status === 'awaiting_payment').map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                    onClick={() => navigate(`/tickets/${ticket.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{ticket.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm" className="ml-3">
+                      View Details
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tickets Section */}
+        <div className="mb-4 md:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl md:text-2xl font-bold">Your Tickets</h2>
             <Button 
               className="gap-2 w-full sm:w-auto"

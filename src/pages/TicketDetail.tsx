@@ -119,6 +119,11 @@ const TicketDetail = () => {
           ),
           client:clients (
             name
+          ),
+          ticket_quotes (
+            id,
+            payment_status,
+            status
           )
         `)
         .eq('id', id)
@@ -204,7 +209,9 @@ const TicketDetail = () => {
       open: { label: 'New Request', className: 'bg-gray-900 text-white' },
       in_progress: { label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-      closed: { label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
+      pending_acknowledgment: { label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
+      awaiting_payment: { label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+      closed: { label: 'Completed', className: 'bg-green-600 text-white' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
     };
     return statusMap[status] || { label: status, className: 'bg-gray-500 text-white' };
@@ -221,19 +228,21 @@ const TicketDetail = () => {
   };
 
   const statusOptions: Array<{
-    value: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed';
+    value: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'closed';
     label: string;
     className: string;
   }> = [
     { value: 'open', label: 'New Request', className: 'bg-gray-900 text-white' },
     { value: 'in_progress', label: 'In Progress', className: 'bg-blue-100 text-blue-800' },
     { value: 'awaiting_response', label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
-    { value: 'closed', label: 'Awaiting Finance Approval', className: 'bg-purple-100 text-purple-800' },
     { value: 'resolved', label: 'Complete', className: 'bg-green-100 text-green-800' },
+    { value: 'pending_acknowledgment', label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
+    { value: 'awaiting_payment', label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+    { value: 'closed', label: 'Completed', className: 'bg-green-600 text-white' },
   ];
 
   const updateStatusMutation = useMutation({
-    mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'closed') => {
+    mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'closed') => {
       // Get current user profile
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -724,6 +733,60 @@ const TicketDetail = () => {
                       {statusDisplay.label}
                     </Badge>
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Client Acknowledgment Section */}
+            {ticket.status === 'pending_acknowledgment' && !userRole?.isAdmin && (
+              <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-500 rounded-lg p-6 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
+                    <Check className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">Work Completed - Your Review Required</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Our team has completed the work on this ticket. Please review and let us know if everything meets your expectations.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => {
+                          // Check if there's an unpaid quote
+                          const hasUnpaidQuote = ticket.ticket_quotes?.some(q => q.payment_status === 'unpaid');
+                          const targetStatus = hasUnpaidQuote ? 'awaiting_payment' : 'closed';
+                          updateStatusMutation.mutate(targetStatus);
+                        }}
+                        className="gap-2"
+                      >
+                        <Check className="h-4 w-4" />
+                        Acknowledge Completion
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const notes = prompt('Please describe what needs to be revised:');
+                          if (notes) {
+                            supabase
+                              .from('tickets')
+                              .update({ 
+                                status: 'in_progress',
+                                revision_notes: notes 
+                              })
+                              .eq('id', id)
+                              .then(() => {
+                                queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+                                toast.success('Revision request submitted');
+                              });
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Request Revisions
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
