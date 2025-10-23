@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 const TicketDetail = () => {
@@ -59,6 +59,7 @@ const TicketDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [endClientComboOpen, setEndClientComboOpen] = useState(false);
+  const topRef = useRef<HTMLDivElement>(null);
   
   // Edit form state
   const [editTitle, setEditTitle] = useState('');
@@ -150,25 +151,29 @@ const TicketDetail = () => {
     enabled: !!id,
   });
 
-  // Force scroll to top when ticket loads - multiple attempts to override any focus behavior
+  // Force scroll to top when ticket loads - scroll to anchor element
   useEffect(() => {
-    if (ticket && !isLoading) {
-      // Immediate scroll
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    if (ticket && !isLoading && topRef.current) {
+      // Use scrollIntoView on the anchor element
+      topRef.current.scrollIntoView({ behavior: 'instant', block: 'start' });
       
-      // Backup scroll after a tick
+      // Backup scrolls
       const timer1 = setTimeout(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        topRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
       }, 0);
       
-      // Final scroll after render
       const timer2 = setTimeout(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      }, 100);
+        topRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }, 50);
+      
+      const timer3 = setTimeout(() => {
+        topRef.current?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }, 150);
       
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
+        clearTimeout(timer3);
       };
     }
   }, [ticket, isLoading]);
@@ -417,6 +422,9 @@ const TicketDetail = () => {
         <Sidebar />
 
         <main className="flex-1 overflow-y-auto">
+          {/* Scroll anchor - invisible element at the top */}
+          <div ref={topRef} className="h-0" />
+          
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
             <SidebarTrigger className="md:hidden" />
             <Button
