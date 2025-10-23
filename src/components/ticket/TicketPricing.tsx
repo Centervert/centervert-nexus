@@ -814,6 +814,13 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                   placeholder="Enter PO number"
                   value={poNumber}
                   onChange={(e) => setPoNumber(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && poNumber.trim()) {
+                      addPOMutation.mutate(poNumber.trim());
+                      setPoNumber('');
+                      setDismissedPOWarning(true);
+                    }
+                  }}
                 />
                 <Button
                   className="w-full"

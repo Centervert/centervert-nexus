@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 const TicketDetail = () => {
@@ -149,6 +149,13 @@ const TicketDetail = () => {
     },
     enabled: !!id,
   });
+
+  // Force scroll to top when ticket loads
+  useEffect(() => {
+    if (ticket && !isLoading) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [ticket, isLoading]);
 
   // Fetch categories
   const { data: categories } = useQuery({
