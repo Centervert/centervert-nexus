@@ -132,8 +132,6 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
       
-      console.log('Quote data fetched:', data); // Debug log
-      
       return data as Quote | null;
     },
     refetchOnMount: true,
@@ -586,8 +584,6 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
   const needsPO = quote?.status === 'approved' && !quote?.po_number && !dismissedPOWarning;
 
-  console.log('PO Check:', { status: quote?.status, po_number: quote?.po_number, dismissedPOWarning, needsPO }); // Debug log
-
   // Check if there was a previous cancellation
   const hasPreviousCancellation = quote?.decline_reason?.includes('cancelled') || quote?.decline_reason?.includes('Cancellation');
 
@@ -974,13 +970,6 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 >
                   {quote.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
                 </Badge>
-                
-                {/* PO NEEDED Badge */}
-                {quote.status === 'approved' && !quote.po_number && (
-                  <Badge className="bg-red-600 text-white font-bold px-4 py-2 text-sm shadow-lg animate-pulse">
-                    ⚠️ PO NEEDED
-                  </Badge>
-                )}
                 
                 {quote.status === 'approved' && quote.payment_status === 'paid' && (
                   <div className="relative">

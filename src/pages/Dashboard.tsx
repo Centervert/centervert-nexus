@@ -179,16 +179,16 @@ const Dashboard = () => {
 
   const getQuoteStatus = (ticket: Ticket) => {
     if (!ticket.ticket_quotes || ticket.ticket_quotes.length === 0) {
-      return { label: 'No Quote', className: 'bg-gray-100 text-gray-600' };
+      return { label: 'No Quote', className: 'bg-gray-100 text-gray-600', needsPO: false };
     }
 
     const latestQuote = ticket.ticket_quotes[0];
-    const needsPO = ticket.client?.po_system_enabled && !latestQuote.po_number;
+    const needsPO = latestQuote.status === 'approved' && !latestQuote.po_number;
 
     if (latestQuote.status === 'awaiting_approval') {
-      return { label: 'Waiting Approval', className: 'bg-yellow-100 text-yellow-800' };
-    } else if (latestQuote.status === 'approved' && needsPO) {
-      return { label: 'Needs PO', className: 'bg-orange-100 text-orange-800' };
+      return { label: 'Waiting Approval', className: 'bg-yellow-100 text-yellow-800', needsPO: false };
+    } else if (needsPO) {
+      return { label: '⚠️ PO NEEDED', className: 'bg-red-600 text-white font-bold animate-pulse', needsPO: true };
     } else if (latestQuote.status === 'approved') {
       const amount = (latestQuote as any).amount || 0;
       const formattedAmount = new Intl.NumberFormat('en-US', {
@@ -199,12 +199,12 @@ const Dashboard = () => {
       }).format(amount);
       const hasManagedService = !!ticket.managed_service_id;
       const label = `Approved - ${formattedAmount}${hasManagedService ? ' +' : ''}`;
-      return { label, className: 'bg-green-100 text-green-800' };
+      return { label, className: 'bg-green-100 text-green-800', needsPO: false };
     } else if (latestQuote.status === 'declined') {
-      return { label: 'Declined', className: 'bg-red-100 text-red-800' };
+      return { label: 'Declined', className: 'bg-red-100 text-red-800', needsPO: false };
     }
 
-    return { label: 'No Quote', className: 'bg-gray-100 text-gray-600' };
+    return { label: 'No Quote', className: 'bg-gray-100 text-gray-600', needsPO: false };
   };
 
   return (
