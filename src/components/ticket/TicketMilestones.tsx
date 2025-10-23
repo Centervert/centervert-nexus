@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -32,6 +32,7 @@ interface TicketMilestonesProps {
 export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
   const queryClient = useQueryClient();
   const milestonesEndRef = useRef<HTMLDivElement>(null);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   const { data: milestones = [], isLoading } = useQuery({
     queryKey: ['ticket-milestones', ticketId],
@@ -70,12 +71,18 @@ export const TicketMilestones = ({ ticketId }: TicketMilestonesProps) => {
     };
   }, [ticketId, queryClient]);
 
-  // Auto-scroll to bottom when milestones load or update
+  // Auto-scroll to bottom only for new milestones, not on initial load
   useEffect(() => {
-    if (milestones.length > 0) {
+    if (!hasInitiallyLoaded && milestones.length > 0) {
+      setHasInitiallyLoaded(true);
+      return;
+    }
+    
+    // Only scroll for new milestones after initial load
+    if (hasInitiallyLoaded && milestones.length > 0) {
       milestonesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [milestones]);
+  }, [milestones, hasInitiallyLoaded]);
 
   const getMilestoneIcon = (type: string) => {
     const icons: Record<string, typeof Ticket> = {

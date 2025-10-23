@@ -29,6 +29,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   const [isSending, setIsSending] = useState(false);
   const [markAsImportant, setMarkAsImportant] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -92,10 +93,18 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
     };
   }, [ticketId, queryClient]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom only after initial load (for new messages)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!hasInitiallyLoaded && messages.length > 0) {
+      setHasInitiallyLoaded(true);
+      return;
+    }
+    
+    // Only scroll for new messages after initial load
+    if (hasInitiallyLoaded && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, hasInitiallyLoaded]);
 
   const toggleImportantMutation = useMutation({
     mutationFn: async ({ messageId, isImportant }: { messageId: string; isImportant: boolean }) => {
