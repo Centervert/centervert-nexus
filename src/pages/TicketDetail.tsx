@@ -398,7 +398,7 @@ const TicketDetail = () => {
             </Button>
             {!isLoading && ticket && (
               <span className="text-sm text-muted-foreground">
-                Ticket #{ticket.ticket_number || '00000000'}
+                Ticket {ticket.ticket_number || '00000000'}
               </span>
             )}
           </div>
