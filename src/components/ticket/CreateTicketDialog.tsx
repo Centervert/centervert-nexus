@@ -39,6 +39,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
   const [showQuoteSection, setShowQuoteSection] = useState(false);
   const [quoteAmount, setQuoteAmount] = useState('');
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -101,40 +102,73 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('categories')
-        .select('id, name')
-        .order('name');
-      
-      if (categoriesError) {
-        console.error('Error fetching categories:', categoriesError);
-      } else {
-        setCategories(categoriesData || []);
-      }
+      try {
+        setIsLoadingUserData(true);
+        
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name');
+        
+        if (categoriesError) {
+          console.error('Error fetching categories:', categoriesError);
+          toast.error('Failed to load categories');
+        } else {
+          setCategories(categoriesData || []);
+        }
 
-      // Check user role and fetch clients
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+        // Check user role and fetch clients
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error('Error fetching user:', userError);
+          toast.error('Failed to verify user authentication');
+          setIsLoadingUserData(false);
+          return;
+        }
+
+        if (!user) {
+          toast.error('You must be logged in to create a ticket');
+          setIsLoadingUserData(false);
+          return;
+        }
+
         // Get user's profile to check their client_id
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('client_id')
           .eq('id', user.id)
           .single();
         
-        if (profile?.client_id) {
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else if (profile?.client_id) {
           setUserClientId(profile.client_id);
         }
 
-        const { data: userRoles } = await supabase
+        // Fetch user roles with error handling
+        const { data: userRoles, error: rolesError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id);
         
+        if (rolesError) {
+          console.error('Error fetching user roles:', rolesError);
+          toast.error('Failed to load user permissions');
+          // Default to non-agency user if role fetch fails
+          setIsAgency(false);
+          setIsAdmin(false);
+          setIsLoadingUserData(false);
+          return;
+        }
+
         const roles = userRoles?.map(r => r.role) || [];
         const isAgencyUser = roles.includes('admin') || roles.includes('agent');
         const adminUser = roles.includes('admin');
+        
+        console.log('User roles loaded:', roles, 'isAgency:', isAgencyUser, 'isAdmin:', adminUser);
+        
         setIsAgency(isAgencyUser);
         setIsAdmin(adminUser);
 
@@ -148,7 +182,9 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
           
           if (clientsError) {
             console.error('Error fetching clients:', clientsError);
+            toast.error('Failed to load clients list');
           } else {
+            console.log('Clients loaded:', clientsData?.length || 0);
             setClients(clientsData || []);
           }
 
@@ -165,10 +201,21 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             setAgencies(agenciesData || []);
           }
         }
+        
+        setIsLoadingUserData(false);
+      } catch (error) {
+        console.error('Unexpected error in fetchData:', error);
+        toast.error('An unexpected error occurred while loading form data');
+        setIsLoadingUserData(false);
       }
     };
 
     if (open) {
+      // Reset states when dialog opens
+      setIsAgency(false);
+      setIsAdmin(false);
+      setClients([]);
+      setIsLoadingUserData(true);
       fetchData();
     }
   }, [open]);
@@ -492,7 +539,12 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
             <Label htmlFor="client" className="text-sm font-medium">
               Client {isAgency && <span className="text-destructive">*</span>}
             </Label>
-            {isAgency ? (
+            {isLoadingUserData ? (
+              <div className="h-11 flex items-center justify-center bg-muted rounded-md">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">Loading...</span>
+              </div>
+            ) : isAgency ? (
               <>
                 <Select
                   value={showNewClientInput ? 'add-new' : (formData.clientId || undefined)}
