@@ -296,6 +296,12 @@ const TicketDetail = () => {
 
   const updateTicketMutation = useMutation({
     mutationFn: async () => {
+      // Validate that end_client_name is only set when client_id exists
+      if (editEndClientName && !ticket?.client_id) {
+        toast.error('Cannot set end client name without selecting a client first');
+        throw new Error('Client must be selected before setting end client name');
+      }
+
       const updates: any = {
         title: editTitle,
         description: editDescription,

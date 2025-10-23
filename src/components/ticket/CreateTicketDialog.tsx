@@ -234,6 +234,7 @@ export function CreateTicketDialog({ open, onOpenChange }: CreateTicketDialogPro
       if (formData.subtype) insertData.subtype = formData.subtype.trim();
       if (formData.budget) insertData.budget = parseFloat(formData.budget);
       if (formData.categoryId) insertData.category_id = formData.categoryId;
+      // Always set client_id for agency users to ensure proper relationships
       if (clientId) insertData.client_id = clientId;
       if (dueDate) insertData.due_date = dueDate.toISOString();
 
