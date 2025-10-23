@@ -51,6 +51,12 @@ interface Quote {
   payment_status: string | null;
   marked_paid_by: string | null;
   marked_paid_at: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  approver?: {
+    full_name: string;
+    email: string;
+  };
 }
 
 interface TicketPricingProps {
@@ -125,7 +131,10 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ticket_quotes')
-        .select('*')
+        .select(`
+          *,
+          approver:profiles!approved_by(full_name, email)
+        `)
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: false })
         .maybeSingle();
@@ -209,6 +218,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
     try {
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      const { data: { user } } = await supabase.auth.getUser();
 
       const { error } = await supabase
         .from('ticket_quotes')
@@ -216,6 +226,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
           status: 'approved',
           po_number: poNumber.trim() || null,
           approval_window_expires_at: expiresAt,
+          approved_by: user?.id,
+          approved_at: new Date().toISOString(),
         })
         .eq('id', quote.id);
 
@@ -1171,7 +1183,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
             {quote.status === 'approved' && (
               <div className="space-y-4">
                 <div className="p-4 bg-green-50 border border-green-200 rounded-md space-y-2">
-                  <p className="text-sm font-medium text-green-900">Quote Approved</p>
+                  <p className="text-sm font-medium text-green-900">
+                    Quote Approved{quote.approver?.full_name && ` by ${quote.approver.full_name}`}
+                  </p>
                   {quote.po_number && (
                     <p className="text-sm text-green-700">PO Number: {quote.po_number}</p>
                   )}

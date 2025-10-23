@@ -654,6 +654,8 @@ export type Database = {
         Row: {
           amount: number
           approval_window_expires_at: string | null
+          approved_at: string | null
+          approved_by: string | null
           billing_cycles: number | null
           billing_interval: string | null
           client_id: string | null
@@ -679,6 +681,8 @@ export type Database = {
         Insert: {
           amount: number
           approval_window_expires_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
           client_id?: string | null
@@ -704,6 +708,8 @@ export type Database = {
         Update: {
           amount?: number
           approval_window_expires_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
           client_id?: string | null
@@ -727,6 +733,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ticket_quotes_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ticket_quotes_client_id_fkey"
             columns: ["client_id"]
