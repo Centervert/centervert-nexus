@@ -970,6 +970,14 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                 >
                   {quote.status?.replace('_', ' ').toUpperCase() || 'PENDING'}
                 </Badge>
+                
+                {/* PO NEEDED Badge */}
+                {quote.status === 'approved' && !quote.po_number && (
+                  <Badge className="bg-red-600 text-white font-bold px-4 py-2 text-sm shadow-lg animate-pulse">
+                    ⚠️ PO NEEDED
+                  </Badge>
+                )}
+                
                 {quote.status === 'approved' && quote.payment_status === 'paid' && (
                   <div className="relative">
                     <Badge className="bg-green-600 text-white font-bold px-4 py-2 text-sm shadow-lg">
@@ -1018,6 +1026,15 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+            
+            {/* PO Number Display */}
+            {quote.po_number && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-2 border-blue-500 rounded-lg">
+                <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">
+                  PO Number: <span className="font-mono">{quote.po_number}</span>
+                </p>
               </div>
             )}
 
