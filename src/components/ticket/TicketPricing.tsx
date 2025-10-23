@@ -132,6 +132,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
       
+      console.log('Quote data fetched:', data); // Debug log
+      
       return data as Quote | null;
     },
     refetchOnMount: true,
@@ -583,6 +585,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
     new Date(quote.approval_window_expires_at) > new Date();
 
   const needsPO = quote?.status === 'approved' && !quote?.po_number && !dismissedPOWarning;
+
+  console.log('PO Check:', { status: quote?.status, po_number: quote?.po_number, dismissedPOWarning, needsPO }); // Debug log
 
   // Check if there was a previous cancellation
   const hasPreviousCancellation = quote?.decline_reason?.includes('cancelled') || quote?.decline_reason?.includes('Cancellation');
