@@ -886,19 +886,16 @@ export type Database = {
         Returns: string
       }
       get_available_agents: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           email: string
           full_name: string
           id: string
         }[]
       }
-      get_total_mrr: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      get_total_mrr: { Args: never; Returns: number }
       get_users_with_roles: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string
           created_at: string
@@ -915,10 +912,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      restore_client: {
-        Args: { client_id_param: string }
-        Returns: undefined
-      }
+      restore_client: { Args: { client_id_param: string }; Returns: undefined }
       soft_delete_client: {
         Args: { client_id_param: string }
         Returns: undefined
