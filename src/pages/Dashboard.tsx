@@ -572,7 +572,9 @@ const Dashboard = () => {
                   </div>
                 ))
               ) : tickets && tickets.length > 0 ? (
-                tickets.map((ticket) => {
+                tickets
+                  .filter(ticket => !['pending_acknowledgment', 'awaiting_payment', 'closed'].includes(ticket.status))
+                  .map((ticket) => {
                   const statusDisplay = getStatusDisplay(ticket.status);
                   const priorityDisplay = getPriorityDisplay(ticket.priority);
                   const quoteStatus = getQuoteStatus(ticket);
@@ -771,6 +773,10 @@ const Dashboard = () => {
                     </div>
                   );
                 })
+              ) : (tickets && tickets.filter(t => !['pending_acknowledgment', 'awaiting_payment', 'closed'].includes(t.status)).length === 0) ? (
+                <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
+                  <p>No active tickets found</p>
+                </div>
               ) : (
                 <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
                   <p>No tickets found</p>
