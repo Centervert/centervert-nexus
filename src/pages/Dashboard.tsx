@@ -465,7 +465,7 @@ const Dashboard = () => {
                           <div className="flex-1 min-w-0">
                             <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
                             <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                              <span>{ticket.ticket_number}</span>
+                              <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
                               <span>→</span>
                               <span>
                                 {new Date(ticket.created_at).toLocaleDateString('en-US', {
@@ -549,7 +549,7 @@ const Dashboard = () => {
                       <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0">
                         <div className="font-medium leading-tight truncate">{ticket.title}</div>
                         <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                          <span>{ticket.ticket_number}</span>
+                          <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
                           <span>→</span>
                           <span>
                             {new Date(ticket.created_at).toLocaleDateString('en-US', {

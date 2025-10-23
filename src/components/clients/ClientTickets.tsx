@@ -42,7 +42,7 @@ export const ClientTickets = ({ clientId }: ClientTicketsProps) => {
                 onClick={() => navigate(`/tickets/${ticket.id}`)}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{ticket.ticket_number} - {ticket.title}</p>
+                  <p className="font-medium truncate">{parseInt(ticket.ticket_number?.toString() || '0')} - {ticket.title}</p>
                   <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description}</p>
                 </div>
                 <Badge className="self-start sm:self-center shrink-0">{ticket.status}</Badge>

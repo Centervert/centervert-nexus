@@ -161,7 +161,7 @@ export default function ManagedServices() {
                             <p>Type: {service.service_type.replace('_', ' ')}</p>
                             {service.original_ticket && (
                               <p className="truncate">
-                                From Ticket {service.original_ticket.ticket_number}:{' '}
+                                From Ticket {parseInt(service.original_ticket.ticket_number?.toString() || '0')}:{' '}
                                 {service.original_ticket.title}
                               </p>
                             )}

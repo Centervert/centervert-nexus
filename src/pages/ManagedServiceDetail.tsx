@@ -226,7 +226,7 @@ export default function ManagedServiceDetail() {
                       onClick={() => navigate(`/tickets/${service.original_ticket_id}`)}
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Ticket {service.original_ticket.ticket_number}:{' '}
+                      Ticket {parseInt(service.original_ticket.ticket_number?.toString() || '0')}:{' '}
                       {service.original_ticket.title}
                     </Button>
                   </div>
