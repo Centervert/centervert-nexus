@@ -273,7 +273,13 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {tickets.filter(t => t.status === 'pending_acknowledgment').map((ticket) => (
+                {tickets.filter(t => t.status === 'pending_acknowledgment').map((ticket) => {
+                  console.log('Pending ticket data:', ticket);
+                  console.log('Ticket quotes:', ticket.ticket_quotes);
+                  const latestQuote = ticket.ticket_quotes?.[0];
+                  console.log('Latest quote:', latestQuote);
+                  
+                  return (
                   <div
                     key={ticket.id}
                     className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
@@ -284,11 +290,9 @@ const Dashboard = () => {
                       <div className="text-sm text-muted-foreground">
                         Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
                       </div>
-                      {ticket.ticket_quotes && ticket.ticket_quotes.length > 0 && 
-                       ticket.ticket_quotes[0].status === 'approved' && 
-                       ticket.ticket_quotes[0].approver?.full_name && (
+                      {latestQuote && latestQuote.status === 'approved' && latestQuote.approver?.full_name && (
                         <div className="text-sm text-green-700 font-medium mt-1">
-                          Quote Approved by {ticket.ticket_quotes[0].approver.full_name}
+                          Quote Approved by {latestQuote.approver.full_name}
                         </div>
                       )}
                     </div>
@@ -296,7 +300,8 @@ const Dashboard = () => {
                       Review
                     </Button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
