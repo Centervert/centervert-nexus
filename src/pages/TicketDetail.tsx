@@ -438,7 +438,7 @@ const TicketDetail = () => {
             </Button>
             {!isLoading && ticket && (
               <span className="text-sm text-muted-foreground">
-                Ticket {parseInt(ticket.ticket_number?.toString() || '0')}
+                Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
               </span>
             )}
           </div>
