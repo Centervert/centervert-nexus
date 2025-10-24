@@ -48,6 +48,12 @@ export interface Ticket {
     status: string;
     po_number: string | null;
     amount: number;
+    approved_by: string | null;
+    approved_at: string | null;
+    approver?: {
+      full_name: string | null;
+      email: string;
+    } | null;
   }>;
   managed_service_id: string | null;
 }
@@ -93,7 +99,10 @@ export const useTickets = (params?: UseTicketsParams) => {
             id,
             status,
             po_number,
-            amount
+            amount,
+            approved_by,
+            approved_at,
+            approver:profiles!approved_by(full_name, email)
           )
         `);
 

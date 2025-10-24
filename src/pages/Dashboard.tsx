@@ -283,6 +283,11 @@ const Dashboard = () => {
                       <div className="font-medium truncate">{ticket.title}</div>
                       <div className="text-sm text-muted-foreground">
                         Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
+                        {ticket.ticket_quotes && ticket.ticket_quotes.length > 0 && 
+                         ticket.ticket_quotes[0].status === 'approved' && 
+                         ticket.ticket_quotes[0].approver?.full_name && (
+                          <span className="ml-2">• Quote Approved by {ticket.ticket_quotes[0].approver.full_name}</span>
+                        )}
                       </div>
                     </div>
                     <Button variant="outline" size="sm" className="ml-3">
