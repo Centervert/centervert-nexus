@@ -274,10 +274,7 @@ const Dashboard = () => {
             <CardContent>
               <div className="space-y-2">
                 {tickets.filter(t => t.status === 'pending_acknowledgment').map((ticket) => {
-                  console.log('Pending ticket data:', ticket);
-                  console.log('Ticket quotes:', ticket.ticket_quotes);
-                  const latestQuote = ticket.ticket_quotes?.[0];
-                  console.log('Latest quote:', latestQuote);
+                  const quoteStatus = getQuoteStatus(ticket);
                   
                   return (
                   <div
@@ -290,11 +287,11 @@ const Dashboard = () => {
                       <div className="text-sm text-muted-foreground">
                         Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
                       </div>
-                      {latestQuote && latestQuote.status === 'approved' && latestQuote.approver?.full_name && (
-                        <div className="text-sm text-green-700 font-medium mt-1">
-                          Quote Approved by {latestQuote.approver.full_name}
-                        </div>
-                      )}
+                      <div className="mt-2">
+                        <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium', quoteStatus.className)}>
+                          {quoteStatus.label}
+                        </Badge>
+                      </div>
                     </div>
                     <Button variant="outline" size="sm" className="ml-3">
                       Review
