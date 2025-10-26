@@ -137,6 +137,7 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
         `)
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) throw error;
