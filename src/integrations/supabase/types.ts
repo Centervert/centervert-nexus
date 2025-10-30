@@ -914,6 +914,13 @@ export type Database = {
         Args: { ticket_resolved_at: string }
         Returns: string
       }
+      cleanup_orphaned_profiles: {
+        Args: never
+        Returns: {
+          deleted_email: string
+          deleted_profile_id: string
+        }[]
+      }
       get_available_agents: {
         Args: never
         Returns: {
