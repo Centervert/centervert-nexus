@@ -118,7 +118,10 @@ export const useTickets = (params?: UseTicketsParams) => {
       }
 
       if (params?.clientId && params.clientId !== 'all') {
-        query = query.eq('client_id', params.clientId);
+        // Filter to show tickets where:
+        // 1. client_id matches the selected client (direct client tickets)
+        // 2. OR the ticket's client has managing_agency_id matching selected client (agency-managed tickets)
+        query = query.or(`client_id.eq.${params.clientId},client.managing_agency_id.eq.${params.clientId}`);
       }
 
       const sortField = params?.sortBy || 'created_at';
