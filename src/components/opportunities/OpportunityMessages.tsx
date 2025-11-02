@@ -117,6 +117,15 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
     createMessage.mutate(newMessage);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (newMessage.trim()) {
+        createMessage.mutate(newMessage);
+      }
+    }
+  };
+
   return (
     <Card className="p-6 space-y-4">
       <h3 className="font-semibold text-lg">Team Communication</h3>
@@ -172,7 +181,8 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
         <Textarea
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type your message..."
+          onKeyDown={handleKeyDown}
+          placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
           className="flex-1"
           rows={2}
         />
