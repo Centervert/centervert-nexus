@@ -13,8 +13,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, ChevronRight, Sparkles, Trash2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useTickets, useTicketStats, Ticket } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ const Dashboard = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('open');
+  const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
@@ -207,6 +209,247 @@ const Dashboard = () => {
     }
 
     return { label: 'No Quote', className: 'bg-gray-100 text-gray-600', needsPO: false };
+  };
+
+  const toggleTicketExpansion = (ticketId: string) => {
+    setExpandedTickets(prev => 
+      prev.includes(ticketId) 
+        ? prev.filter(id => id !== ticketId)
+        : [...prev, ticketId]
+    );
+  };
+
+  // Filter tickets to get parent tickets (no parent_ticket_id) and child tickets
+  const parentTickets = tickets?.filter(t => !(t as any).parent_ticket_id) || [];
+  const getChildTickets = (parentId: string) => 
+    tickets?.filter(t => (t as any).parent_ticket_id === parentId) || [];
+
+  const renderTicketRow = (ticket: Ticket, isChild: boolean = false) => {
+    const statusDisplay = getStatusDisplay(ticket.status);
+    const priorityDisplay = getPriorityDisplay(ticket.priority);
+    const quoteStatus = getQuoteStatus(ticket);
+    const childTickets = getChildTickets(ticket.id);
+    const hasChildren = childTickets.length > 0;
+    const isExpanded = expandedTickets.includes(ticket.id);
+
+    return (
+      <Collapsible key={ticket.id} open={isExpanded} onOpenChange={() => hasChildren && toggleTicketExpansion(ticket.id)}>
+        <div
+          className={cn(
+            "p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4",
+            isChild && "bg-muted/30 ml-8 border-l-2 border-primary/30"
+          )}
+        >
+          {/* Mobile Layout */}
+          <div className="lg:hidden space-y-3" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                {hasChildren && (
+                  <CollapsibleTrigger className="mr-2 inline-flex" onClick={(e) => e.stopPropagation()}>
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </CollapsibleTrigger>
+                )}
+                <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                  <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
+                  <span>→</span>
+                  <span>
+                    {new Date(ticket.created_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {ticket.categories?.name || 'Uncategorized'} • {' '}
+                  <span className={priorityDisplay.className}>
+                    {ticket.priority.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              <Badge className={cn('w-fit shrink-0', statusDisplay.className)}>
+                {statusDisplay.label}
+              </Badge>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+                <div className="flex flex-wrap items-center gap-x-1">
+                  <span>{ticket.client.managing_agency.name}</span>
+                  <span>→</span>
+                  <span className={ticket.end_client_name && 
+                   ticket.end_client_name !== ticket.client.name && 
+                   ticket.end_client_name !== ticket.client.managing_agency.name ? '' : 'font-semibold'}>{ticket.client.name}</span>
+                  {ticket.end_client_name && 
+                   ticket.end_client_name !== ticket.client.name && 
+                   ticket.end_client_name !== ticket.client.managing_agency.name && (
+                    <>
+                      <span>→</span>
+                      <span className="font-semibold">{ticket.end_client_name}</span>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-1">
+                  <span className={ticket.end_client_name && 
+                   ticket.end_client_name !== ticket.client?.name ? '' : 'font-semibold'}>{ticket.client?.name || 'No Client'}</span>
+                  {ticket.end_client_name && 
+                   ticket.end_client_name !== ticket.client?.name && (
+                    <>
+                      <span>→</span>
+                      <span className="font-semibold">{ticket.end_client_name}</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="text-sm">
+              <span className="text-muted-foreground">Due: </span>
+              <span className="font-medium">
+                {ticket.due_date 
+                  ? new Date(ticket.due_date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })
+                  : 'N/A'
+                }
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex lg:items-center lg:gap-3" onClick={(e) => {
+            if (!hasChildren) navigate(`/tickets/${ticket.id}`);
+          }}>
+            <input 
+              type="checkbox" 
+              className="rounded border-border w-4 h-4 shrink-0" 
+              checked={selectedTickets.includes(ticket.id)}
+              onChange={(e) => {
+                e.stopPropagation();
+                handleSelectTicket(ticket.id, e.target.checked);
+              }}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {hasChildren ? (
+              <CollapsibleTrigger onClick={(e) => e.stopPropagation()}>
+                {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
+              </CollapsibleTrigger>
+            ) : (
+              <div className="w-4" />
+            )}
+          </div>
+          <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            <div className="font-medium leading-tight truncate">{ticket.title}</div>
+            <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+              <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
+              <span>→</span>
+              <span>
+                {new Date(ticket.created_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </span>
+            </div>
+          </div>
+          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
+              <div className="flex flex-wrap items-center gap-x-1">
+                <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
+                <span className="shrink-0">→</span>
+                <span className={`truncate max-w-[120px] ${ticket.end_client_name && 
+                 ticket.end_client_name !== ticket.client.name && 
+                 ticket.end_client_name !== ticket.client.managing_agency.name ? '' : 'font-semibold'}`}>{ticket.client.name}</span>
+                {ticket.end_client_name && 
+                 ticket.end_client_name !== ticket.client.name && 
+                 ticket.end_client_name !== ticket.client.managing_agency.name && (
+                  <>
+                    <span className="shrink-0">→</span>
+                    <span className="truncate max-w-[120px] font-semibold">{ticket.end_client_name}</span>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-x-1">
+                <span className={`truncate max-w-[180px] ${ticket.end_client_name && 
+                 ticket.end_client_name !== ticket.client?.name ? '' : 'font-semibold'}`}>{ticket.client?.name || 'No Client'}</span>
+                {ticket.end_client_name && 
+                 ticket.end_client_name !== ticket.client?.name && (
+                  <>
+                    <span className="shrink-0">→</span>
+                    <span className="truncate max-w-[120px] font-semibold">{ticket.end_client_name}</span>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
+              <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
+                {quoteStatus.label}
+              </Badge>
+            ) : (
+              <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', 
+                quoteStatus.className.includes('red-600') ? 'bg-gray-100 text-gray-600' : quoteStatus.className)}>
+                {quoteStatus.label.replace('⚠️ PO NEEDED', 'Approved')}
+              </Badge>
+            )}
+          </div>
+          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            {userRole?.isAdmin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  onClick={(e) => e.stopPropagation()}
+                  asChild
+                >
+                  <Button variant="ghost" size="sm" className="h-8 px-2">
+                    <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium', statusDisplay.className)}>
+                      {statusDisplay.label}
+                    </Badge>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[220px]">
+                  {statusOptions.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(ticket.id, option.value);
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
+                        {option.label}
+                      </Badge>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium', statusDisplay.className)}>
+                {statusDisplay.label}
+              </Badge>
+            )}
+          </div>
+          <div className="hidden lg:flex lg:items-center lg:justify-end text-sm" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+            {ticket.due_date 
+              ? new Date(ticket.due_date).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : 'N/A'
+            }
+          </div>
+        </div>
+        {hasChildren && (
+          <CollapsibleContent>
+            {childTickets.map(childTicket => renderTicketRow(childTicket, true))}
+          </CollapsibleContent>
+        )}
+      </Collapsible>
+    );
   };
 
   return (
@@ -562,7 +805,7 @@ const Dashboard = () => {
                   </div>
                 ))
               ) : tickets && tickets.length > 0 ? (
-                tickets
+                parentTickets
                   .filter(ticket => {
                     const quoteStatus = getQuoteStatus(ticket);
                     
@@ -577,212 +820,7 @@ const Dashboard = () => {
                     // 'all' tab shows everything
                     return true;
                   })
-                  .map((ticket) => {
-                  const statusDisplay = getStatusDisplay(ticket.status);
-                  const priorityDisplay = getPriorityDisplay(ticket.priority);
-                  const quoteStatus = getQuoteStatus(ticket);
-
-                  return (
-                    <div
-                      key={ticket.id}
-                      className="p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4"
-                      onClick={() => navigate(`/tickets/${ticket.id}`)}
-                    >
-                      {/* Mobile Layout */}
-                      <div className="lg:hidden space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
-                            <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                              <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
-                              <span>→</span>
-                              <span>
-                                {new Date(ticket.created_at).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })}
-                              </span>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {ticket.categories?.name || 'Uncategorized'} • {' '}
-                              <span className={priorityDisplay.className}>
-                                {ticket.priority.toUpperCase()}
-                              </span>
-                            </div>
-                          </div>
-                          <Badge className={cn('w-fit shrink-0', statusDisplay.className)}>
-                            {statusDisplay.label}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                            <div className="flex flex-wrap items-center gap-x-1">
-                              <span>{ticket.client.managing_agency.name}</span>
-                              <span>→</span>
-                              <span className={ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client.name && 
-                               ticket.end_client_name !== ticket.client.managing_agency.name ? '' : 'font-semibold'}>{ticket.client.name}</span>
-                              {ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client.name && 
-                               ticket.end_client_name !== ticket.client.managing_agency.name && (
-                                <>
-                                  <span>→</span>
-                                  <span className="font-semibold">{ticket.end_client_name}</span>
-                                </>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="flex flex-wrap items-center gap-x-1">
-                              <span className={ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client?.name ? '' : 'font-semibold'}>{ticket.client?.name || 'No Client'}</span>
-                              {ticket.end_client_name && 
-                               ticket.end_client_name !== ticket.client?.name && (
-                                <>
-                                  <span>→</span>
-                                  <span className="font-semibold">{ticket.end_client_name}</span>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">Due: </span>
-                          <span className="font-medium">
-                            {ticket.due_date 
-                              ? new Date(ticket.due_date).toLocaleDateString('en-US', {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })
-                              : 'N/A'
-                            }
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Desktop Layout */}
-                      <div className="hidden lg:flex lg:items-center lg:gap-3">
-                        <input 
-                          type="checkbox" 
-                          className="rounded border-border w-4 h-4 shrink-0" 
-                          checked={selectedTickets.includes(ticket.id)}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleSelectTicket(ticket.id, e.target.checked);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </div>
-                      <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0">
-                        <div className="font-medium leading-tight truncate">{ticket.title}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                          <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
-                          <span>→</span>
-                          <span>
-                            {new Date(ticket.created_at).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0">
-                        {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
-                          <div className="flex flex-wrap items-center gap-x-1">
-                            <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
-                            <span className="shrink-0">→</span>
-                            <span className={`truncate max-w-[120px] ${ticket.end_client_name && 
-                             ticket.end_client_name !== ticket.client.name && 
-                             ticket.end_client_name !== ticket.client.managing_agency.name ? '' : 'font-semibold'}`}>{ticket.client.name}</span>
-                            {ticket.end_client_name && 
-                             ticket.end_client_name !== ticket.client.name && 
-                             ticket.end_client_name !== ticket.client.managing_agency.name && (
-                              <>
-                                <span className="shrink-0">→</span>
-                                <span className="truncate max-w-[120px] font-semibold">{ticket.end_client_name}</span>
-                              </>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex flex-wrap items-center gap-x-1">
-                            <span className={`truncate max-w-[180px] ${ticket.end_client_name && 
-                             ticket.end_client_name !== ticket.client?.name ? '' : 'font-semibold'}`}>{ticket.client?.name || 'No Client'}</span>
-                            {ticket.end_client_name && 
-                             ticket.end_client_name !== ticket.client?.name && (
-                              <>
-                                <span className="shrink-0">→</span>
-                                <span className="truncate max-w-[120px] font-semibold">{ticket.end_client_name}</span>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="hidden lg:flex lg:items-center lg:justify-center">
-                        {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
-                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
-                            {quoteStatus.label}
-                          </Badge>
-                        ) : (
-                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', 
-                            quoteStatus.className.includes('red-600') ? 'bg-gray-100 text-gray-600' : quoteStatus.className)}>
-                            {quoteStatus.label.replace('⚠️ PO NEEDED', 'Approved')}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="hidden lg:flex lg:items-center lg:justify-center">
-                        {userRole?.isAdmin ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              onClick={(e) => e.stopPropagation()}
-                              className="border-0 bg-transparent p-0 focus:outline-none focus:ring-0"
-                            >
-                              <Badge className={cn('rounded-md px-3 py-1.5 gap-1.5 font-medium w-full justify-center cursor-pointer hover:opacity-80 transition-opacity text-xs whitespace-nowrap', statusDisplay.className)}>
-                                {statusDisplay.label}
-                                <ChevronDown className="h-3 w-3" />
-                              </Badge>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent 
-                              className="w-[200px] z-[100]"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {statusOptions.map((option) => (
-                                <DropdownMenuItem
-                                  key={option.value}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleStatusChange(ticket.id, option.value);
-                                  }}
-                                  className="cursor-pointer p-1"
-                                >
-                                  <Badge className={cn('rounded-md px-3 py-1 text-xs font-medium w-full justify-center', option.className)}>
-                                    {option.label}
-                                  </Badge>
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : (
-                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', statusDisplay.className)}>
-                            {statusDisplay.label}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="hidden lg:flex lg:items-center lg:justify-end text-sm">
-                        {ticket.due_date 
-                          ? new Date(ticket.due_date).toLocaleDateString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })
-                          : <span className="text-muted-foreground">N/A</span>
-                        }
-                      </div>
-                    </div>
-                  );
-                })
+                  .map((ticket) => renderTicketRow(ticket))
               ) : (
                 <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
                   <p>No tickets found</p>

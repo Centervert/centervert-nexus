@@ -72,6 +72,7 @@ const TicketDetail = () => {
   const [editType, setEditType] = useState('');
   const [editSubtype, setEditSubtype] = useState('');
   const [editEndClientName, setEditEndClientName] = useState('');
+  const [editParentTicketId, setEditParentTicketId] = useState<string>('');
 
   // Type/Subtype options matching CreateTicketDialog
   const typeOptions = [
@@ -144,6 +145,7 @@ const TicketDetail = () => {
         setEditType(data.type || '');
         setEditSubtype(data.subtype || '');
         setEditEndClientName(data.end_client_name || '');
+        setEditParentTicketId((data as any).parent_ticket_id || '');
       }
       
       return data;
@@ -214,6 +216,22 @@ const TicketDetail = () => {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch available tickets for parent selection (excluding current ticket and its children)
+  const { data: availableParentTickets } = useQuery({
+    queryKey: ['available-parent-tickets', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('id, ticket_number, title')
+        .neq('id', id || '')
+        .is('parent_ticket_id', null) // Only allow top-level tickets as parents
+        .order('ticket_number', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
   });
 
   // Fetch ticket quotes for conversion
@@ -346,6 +364,7 @@ const TicketDetail = () => {
         type: editType || null,
         subtype: editSubtype || null,
         end_client_name: editEndClientName || null,
+        parent_ticket_id: editParentTicketId || null,
       };
 
       if (editCategoryId && editCategoryId !== 'none') updates.category_id = editCategoryId;
@@ -468,6 +487,7 @@ const TicketDetail = () => {
                           setEditType(ticket.type || '');
                           setEditSubtype(ticket.subtype || '');
                           setEditEndClientName(ticket.end_client_name || '');
+                          setEditParentTicketId((ticket as any).parent_ticket_id || '');
                         }
                       }}
                       className="gap-2"
@@ -685,6 +705,26 @@ const TicketDetail = () => {
                       placeholder="0.00"
                       className="mt-1"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-parent-ticket">Parent Ticket (Optional)</Label>
+                    <Select value={editParentTicketId || 'none'} onValueChange={(val) => setEditParentTicketId(val === 'none' ? '' : val)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="None - This is a standalone ticket" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None - Standalone Ticket</SelectItem>
+                        {availableParentTickets?.map((parentTicket) => (
+                          <SelectItem key={parentTicket.id} value={parentTicket.id}>
+                            #{parentTicket.ticket_number} - {parentTicket.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select a parent ticket to nest this ticket under it in the dashboard
+                    </p>
                   </div>
                 </div>
               </div>

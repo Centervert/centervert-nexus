@@ -1044,6 +1044,7 @@ export type Database = {
           end_client_name: string | null
           id: string
           managed_service_id: string | null
+          parent_ticket_id: string | null
           priority: Database["public"]["Enums"]["ticket_priority"]
           resolved_at: string | null
           revision_notes: string | null
@@ -1069,6 +1070,7 @@ export type Database = {
           end_client_name?: string | null
           id?: string
           managed_service_id?: string | null
+          parent_ticket_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           revision_notes?: string | null
@@ -1094,6 +1096,7 @@ export type Database = {
           end_client_name?: string | null
           id?: string
           managed_service_id?: string | null
+          parent_ticket_id?: string | null
           priority?: Database["public"]["Enums"]["ticket_priority"]
           resolved_at?: string | null
           revision_notes?: string | null
@@ -1145,6 +1148,13 @@ export type Database = {
             columns: ["managed_service_id"]
             isOneToOne: false
             referencedRelation: "managed_services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tickets_parent_ticket_id_fkey"
+            columns: ["parent_ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]
