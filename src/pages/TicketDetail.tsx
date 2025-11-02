@@ -45,6 +45,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect, useRef } from 'react';
@@ -59,6 +69,9 @@ const TicketDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [endClientComboOpen, setEndClientComboOpen] = useState(false);
+  const [cascadeDialogOpen, setCascadeDialogOpen] = useState(false);
+  const [pendingParentId, setPendingParentId] = useState<string>('');
+  const [cascadeAction, setCascadeAction] = useState<'move' | 'orphan' | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
   
   // Edit form state
@@ -234,6 +247,21 @@ const TicketDetail = () => {
     enabled: !!id,
   });
 
+  // Fetch children of current ticket
+  const { data: childTickets } = useQuery({
+    queryKey: ['ticket-children', id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('tickets')
+        .select('id, ticket_number, title')
+        .eq('parent_ticket_id', id || '')
+        .order('ticket_number', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
   // Fetch ticket quotes for conversion
   const { data: ticketQuote } = useQuery({
     queryKey: ['ticket-quote', id],
@@ -357,6 +385,35 @@ const TicketDetail = () => {
         throw new Error('Client must be selected before setting end client name');
       }
 
+      // Validate circular reference prevention
+      if (editParentTicketId && editParentTicketId !== '') {
+        // Check if the selected parent has this ticket in its ancestry chain
+        let currentParentId = editParentTicketId;
+        const checkedIds = new Set<string>();
+        
+        while (currentParentId) {
+          if (currentParentId === id) {
+            toast.error('Cannot create circular reference: This ticket is already a parent of the selected parent ticket');
+            throw new Error('Circular reference detected');
+          }
+          
+          if (checkedIds.has(currentParentId)) {
+            // Circular reference in the chain itself
+            break;
+          }
+          checkedIds.add(currentParentId);
+          
+          // Fetch parent's parent
+          const { data: parentTicket } = await supabase
+            .from('tickets')
+            .select('parent_ticket_id')
+            .eq('id', currentParentId)
+            .single();
+          
+          currentParentId = parentTicket?.parent_ticket_id || '';
+        }
+      }
+
       const updates: any = {
         title: editTitle,
         description: editDescription,
@@ -386,13 +443,83 @@ const TicketDetail = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ticket', id] });
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast.success('Ticket updated successfully');
-      setIsEditing(false);
+      
+      // Check if we need to cascade children
+      if (cascadeAction && childTickets && childTickets.length > 0) {
+        cascadeChildrenMutation.mutate(cascadeAction);
+        setCascadeAction(null); // Reset after cascading
+      } else {
+        toast.success('Ticket updated successfully');
+        setIsEditing(false);
+      }
     },
     onError: () => {
       toast.error('Failed to update ticket');
     },
   });
+
+  // Cascade mutation to move children when parent changes
+  const cascadeChildrenMutation = useMutation({
+    mutationFn: async (action: 'move' | 'orphan') => {
+      if (!childTickets || childTickets.length === 0) return;
+
+      if (action === 'move') {
+        // Move all children to the new parent
+        const { error } = await supabase
+          .from('tickets')
+          .update({ parent_ticket_id: editParentTicketId || null })
+          .in('id', childTickets.map(c => c.id));
+        
+        if (error) throw error;
+      } else {
+        // Orphan the children (make them standalone)
+        const { error } = await supabase
+          .from('tickets')
+          .update({ parent_ticket_id: null })
+          .in('id', childTickets.map(c => c.id));
+        
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, action) => {
+      queryClient.invalidateQueries({ queryKey: ['ticket', id] });
+      queryClient.invalidateQueries({ queryKey: ['tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket-children', id] });
+      toast.success('Ticket and children updated successfully');
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast.error('Failed to update child tickets');
+    },
+  });
+
+  // Handle parent ticket change with cascade check
+  const handleParentChange = (newParentId: string) => {
+    const hasChildren = childTickets && childTickets.length > 0;
+    
+    if (hasChildren && newParentId && newParentId !== 'none') {
+      // This ticket has children and is being nested - show cascade dialog
+      setPendingParentId(newParentId);
+      setCascadeDialogOpen(true);
+    } else {
+      // No children or clearing parent - safe to update directly
+      setEditParentTicketId(newParentId === 'none' ? '' : newParentId);
+    }
+  };
+
+  // Handle cascade dialog response
+  const handleCascadeResponse = (action: 'move' | 'orphan' | 'cancel') => {
+    setCascadeDialogOpen(false);
+    
+    if (action === 'cancel') {
+      setPendingParentId('');
+      return;
+    }
+    
+    // Set the parent ID and store cascade action for when Save is clicked
+    setEditParentTicketId(pendingParentId === 'none' ? '' : pendingParentId);
+    setCascadeAction(action);
+  };
 
   if (isLoading) {
     return (
@@ -709,7 +836,7 @@ const TicketDetail = () => {
 
                   <div>
                     <Label htmlFor="edit-parent-ticket">Parent Ticket (Optional)</Label>
-                    <Select value={editParentTicketId || 'none'} onValueChange={(val) => setEditParentTicketId(val === 'none' ? '' : val)}>
+                    <Select value={editParentTicketId || 'none'} onValueChange={handleParentChange}>
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="None - This is a standalone ticket" />
                       </SelectTrigger>
@@ -906,6 +1033,40 @@ const TicketDetail = () => {
                 } : undefined}
               />
             )}
+
+            {/* Cascade Children Dialog */}
+            <AlertDialog open={cascadeDialogOpen} onOpenChange={setCascadeDialogOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>This ticket has {childTickets?.length || 0} child ticket(s)</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You're nesting this ticket under a parent. What should happen to its {childTickets?.length || 0} child ticket(s)?
+                    {childTickets && childTickets.length > 0 && (
+                      <ul className="mt-2 list-disc list-inside text-sm">
+                        {childTickets.slice(0, 3).map(child => (
+                          <li key={child.id}>#{child.ticket_number} - {child.title}</li>
+                        ))}
+                        {childTickets.length > 3 && <li>...and {childTickets.length - 3} more</li>}
+                      </ul>
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                  <AlertDialogCancel onClick={() => handleCascadeResponse('cancel')}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={() => handleCascadeResponse('orphan')}
+                    className="bg-yellow-600 hover:bg-yellow-700"
+                  >
+                    Make Them Standalone
+                  </AlertDialogAction>
+                  <AlertDialogAction onClick={() => handleCascadeResponse('move')}>
+                    Move Them Too
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </main>
       </div>

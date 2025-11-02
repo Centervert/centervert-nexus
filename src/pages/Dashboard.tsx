@@ -111,10 +111,20 @@ const Dashboard = () => {
     if (!confirmDelete) return;
 
     try {
+      // Smart filter: Only delete parent tickets if both parent and children are selected
+      const ticketsToDelete = selectedTickets.filter(ticketId => {
+        const ticket = tickets?.find(t => t.id === ticketId);
+        // If this ticket is a child and its parent is also selected, skip it (parent deletion will cascade)
+        if (ticket?.parent_ticket_id && selectedTickets.includes(ticket.parent_ticket_id)) {
+          return false;
+        }
+        return true;
+      });
+
       const { error } = await supabase
         .from('tickets')
         .delete()
-        .in('id', selectedTickets);
+        .in('id', ticketsToDelete);
 
       if (error) throw error;
 
@@ -122,7 +132,7 @@ const Dashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
       setSelectedTickets([]);
       
-      toast.success(`Successfully deleted ${selectedTickets.length} ticket(s)`);
+      toast.success(`Successfully deleted ${ticketsToDelete.length} ticket(s)`);
     } catch (error) {
       console.error('Error deleting tickets:', error);
       toast.error('Failed to delete tickets');
@@ -133,10 +143,20 @@ const Dashboard = () => {
     if (selectedTickets.length === 0) return;
 
     try {
+      // Smart filter: Only update parent tickets if both parent and children are selected
+      const ticketsToUpdate = selectedTickets.filter(ticketId => {
+        const ticket = tickets?.find(t => t.id === ticketId);
+        // If this ticket is a child and its parent is also selected, skip it
+        if (ticket?.parent_ticket_id && selectedTickets.includes(ticket.parent_ticket_id)) {
+          return false;
+        }
+        return true;
+      });
+
       const { error } = await supabase
         .from('tickets')
         .update({ status: newStatus })
-        .in('id', selectedTickets);
+        .in('id', ticketsToUpdate);
 
       if (error) throw error;
 
@@ -144,7 +164,7 @@ const Dashboard = () => {
       queryClient.invalidateQueries({ queryKey: ['ticket-stats'] });
       setSelectedTickets([]);
       
-      toast.success(`Successfully updated ${selectedTickets.length} ticket(s)`);
+      toast.success(`Successfully updated ${ticketsToUpdate.length} ticket(s)`);
     } catch (error) {
       console.error('Error updating tickets:', error);
       toast.error('Failed to update tickets');
@@ -283,12 +303,25 @@ const Dashboard = () => {
           <div className="lg:hidden space-y-3" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
-                {hasChildren && (
-                  <CollapsibleTrigger className="mr-2 inline-flex" onClick={(e) => e.stopPropagation()}>
-                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </CollapsibleTrigger>
-                )}
-                <div className="font-medium mb-1 line-clamp-2">{ticket.title}</div>
+                <div className="flex items-center gap-2">
+                  {hasChildren && (
+                    <CollapsibleTrigger className="inline-flex shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="p-1 rounded bg-primary/10 hover:bg-primary/20">
+                        {isExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-primary" />}
+                      </div>
+                    </CollapsibleTrigger>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium mb-1 line-clamp-2 flex items-center gap-2">
+                      {ticket.title}
+                      {hasChildren && (
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          +{childTickets.length}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
                   <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
                   <span>→</span>
