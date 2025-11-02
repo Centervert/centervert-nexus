@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { z } from 'zod';
 import centervertLogo from '@/assets/centervert-logo-white.png';
+import authGradient from '@/assets/auth-gradient.webp';
 import { useQuery } from '@tanstack/react-query';
 
 const authSchema = z.object({
@@ -189,7 +190,10 @@ const Auth = () => {
 
   if (isValidating) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500">
+      <div 
+        className="relative flex min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${authGradient})` }}
+      >
         <div className="text-white text-xl">Validating invitation...</div>
       </div>
     );
@@ -197,7 +201,10 @@ const Auth = () => {
 
   if (inviteToken && invitationData?.error) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500">
+      <div 
+        className="relative flex min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: `url(${authGradient})` }}
+      >
         <div className="text-center">
           <h1 className="text-white text-2xl font-bold mb-4">Invalid Invitation</h1>
           <p className="text-white/80 mb-6">{invitationData.error}</p>
@@ -210,7 +217,10 @@ const Auth = () => {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 p-4">
+    <div 
+      className="relative flex min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat p-4"
+      style={{ backgroundImage: `url(${authGradient})` }}
+    >
       <div className="relative z-10 w-full max-w-md">
         <div className="rounded-2xl bg-black/40 p-6 sm:p-8 backdrop-blur-xl border border-white/10 shadow-2xl animate-scale-in">
           <div className="mb-6 sm:mb-8 flex justify-center animate-fade-in">
