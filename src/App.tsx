@@ -17,6 +17,8 @@ import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
 import ManagedServices from "./pages/ManagedServices";
 import ManagedServiceDetail from "./pages/ManagedServiceDetail";
+import Opportunities from "./pages/Opportunities";
+import OpportunityDetail from "./pages/OpportunityDetail";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +113,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ManagedServiceDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/opportunities"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <Opportunities />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/opportunities/:id"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <OpportunityDetail />
                   </ProtectedRoute>
                 }
               />

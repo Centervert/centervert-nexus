@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, LogOut, RefreshCw, Settings, User } from 'lucide-react';
+import { Ticket, LogOut, RefreshCw, Settings, User, Briefcase } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -57,6 +57,7 @@ const Sidebar = () => {
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
     { name: 'Managed Services', href: '/managed-services', icon: RefreshCw },
+    ...(userRole?.isAdmin ? [{ name: 'Sales & Opportunities', href: '/opportunities', icon: Briefcase }] : []),
   ];
 
   const initials = userProfile?.fullName

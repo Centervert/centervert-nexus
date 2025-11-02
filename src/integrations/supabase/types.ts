@@ -305,6 +305,45 @@ export type Database = {
           },
         ]
       }
+      contacts: {
+        Row: {
+          contact_type: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string
+          id: string
+          notes: string | null
+          organization: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_type?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_type?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          organization?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -438,6 +477,232 @@ export type Database = {
             columns: ["original_ticket_id"]
             isOneToOne: false
             referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunities: {
+        Row: {
+          assigned_to: string | null
+          award_date: string | null
+          conference_date: string | null
+          conference_link: string | null
+          conference_location: string | null
+          conference_type: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          estimated_value: number | null
+          id: string
+          issue_date: string | null
+          issuing_organization: string | null
+          notes: string | null
+          opportunity_number: string
+          opportunity_type: Database["public"]["Enums"]["opportunity_type"]
+          priority: Database["public"]["Enums"]["opportunity_priority"]
+          procurement_officer_email: string | null
+          procurement_officer_name: string | null
+          procurement_officer_phone: string | null
+          questions_deadline: string | null
+          rfp_number: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          submission_address: string | null
+          submission_deadline: string | null
+          submission_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          award_date?: string | null
+          conference_date?: string | null
+          conference_link?: string | null
+          conference_location?: string | null
+          conference_type?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          notes?: string | null
+          opportunity_number: string
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          priority?: Database["public"]["Enums"]["opportunity_priority"]
+          procurement_officer_email?: string | null
+          procurement_officer_name?: string | null
+          procurement_officer_phone?: string | null
+          questions_deadline?: string | null
+          rfp_number?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          submission_address?: string | null
+          submission_deadline?: string | null
+          submission_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          award_date?: string | null
+          conference_date?: string | null
+          conference_link?: string | null
+          conference_location?: string | null
+          conference_type?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          estimated_value?: number | null
+          id?: string
+          issue_date?: string | null
+          issuing_organization?: string | null
+          notes?: string | null
+          opportunity_number?: string
+          opportunity_type?: Database["public"]["Enums"]["opportunity_type"]
+          priority?: Database["public"]["Enums"]["opportunity_priority"]
+          procurement_officer_email?: string | null
+          procurement_officer_name?: string | null
+          procurement_officer_phone?: string | null
+          questions_deadline?: string | null
+          rfp_number?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          submission_address?: string | null
+          submission_deadline?: string | null
+          submission_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      opportunity_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          opportunity_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          opportunity_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          opportunity_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_attachments_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          opportunity_id: string
+          relationship_type: string | null
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opportunity_id: string
+          relationship_type?: string | null
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          opportunity_id?: string
+          relationship_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_contacts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          format: string | null
+          id: string
+          is_important: boolean | null
+          marked_important_at: string | null
+          marked_important_by: string | null
+          opportunity_id: string
+          updated_at: string | null
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          format?: string | null
+          id?: string
+          is_important?: boolean | null
+          marked_important_at?: string | null
+          marked_important_by?: string | null
+          opportunity_id: string
+          updated_at?: string | null
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          format?: string | null
+          id?: string
+          is_important?: boolean | null
+          marked_important_at?: string | null
+          marked_important_by?: string | null
+          opportunity_id?: string
+          updated_at?: string | null
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_messages_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
         ]
@@ -921,6 +1186,7 @@ export type Database = {
           deleted_profile_id: string
         }[]
       }
+      generate_opportunity_number: { Args: never; Returns: string }
       get_available_agents: {
         Args: never
         Returns: {
@@ -958,6 +1224,15 @@ export type Database = {
       app_role: "admin" | "agent" | "user"
       client_access_level: "admin" | "member" | "viewer"
       client_type: "direct" | "agency" | "agency_managed"
+      opportunity_priority: "low" | "medium" | "high" | "critical"
+      opportunity_status:
+        | "lead"
+        | "qualified"
+        | "proposal_submitted"
+        | "awarded"
+        | "lost"
+        | "on_hold"
+      opportunity_type: "private" | "government"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status:
         | "open"
@@ -1097,6 +1372,16 @@ export const Constants = {
       app_role: ["admin", "agent", "user"],
       client_access_level: ["admin", "member", "viewer"],
       client_type: ["direct", "agency", "agency_managed"],
+      opportunity_priority: ["low", "medium", "high", "critical"],
+      opportunity_status: [
+        "lead",
+        "qualified",
+        "proposal_submitted",
+        "awarded",
+        "lost",
+        "on_hold",
+      ],
+      opportunity_type: ["private", "government"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: [
         "open",
