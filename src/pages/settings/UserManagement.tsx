@@ -248,7 +248,7 @@ const UserManagement = () => {
                                   {format(new Date(user.created_at), 'MMM d, yyyy')}
                                 </div>
                                 <div className="flex gap-2">
-                                  {user.roles?.map((role) => (
+                                  {user.roles?.filter((role) => role !== 'user').map((role) => (
                                     <Badge 
                                       key={role} 
                                       variant={getRoleBadgeVariant(role)}
@@ -257,6 +257,9 @@ const UserManagement = () => {
                                       {role}
                                     </Badge>
                                   ))}
+                                  {(!user.roles || user.roles.every((r) => r === 'user')) && (
+                                    <span className="text-sm text-muted-foreground">—</span>
+                                  )}
                                 </div>
                                 <div className="flex justify-center">
                                   <DropdownMenu>
@@ -346,7 +349,7 @@ const UserManagement = () => {
                                   {format(new Date(user.created_at), 'MMM d, yyyy')}
                                 </div>
                                 <div className="flex gap-2">
-                                  {user.roles?.map((role) => (
+                                  {user.roles?.filter((role) => role !== 'user').map((role) => (
                                     <Badge 
                                       key={role} 
                                       variant={getRoleBadgeVariant(role)}
@@ -355,6 +358,9 @@ const UserManagement = () => {
                                       {role}
                                     </Badge>
                                   ))}
+                                  {(!user.roles || user.roles.every((r) => r === 'user')) && (
+                                    <span className="text-sm text-muted-foreground">—</span>
+                                  )}
                                 </div>
                                 <div className="flex justify-center">
                                   <DropdownMenu>
