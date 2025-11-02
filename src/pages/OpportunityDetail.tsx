@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import OpportunityMessages from '@/components/opportunities/OpportunityMessages';
 import OpportunityAttachments from '@/components/opportunities/OpportunityAttachments';
 import OpportunityContacts from '@/components/opportunities/OpportunityContacts';
+import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
 
 const OpportunityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const OpportunityDetail = () => {
   const updateOpportunity = useUpdateOpportunity();
   const deleteOpportunity = useDeleteOpportunity();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -108,7 +110,7 @@ const OpportunityDetail = () => {
                 <SelectItem value="on_hold">On Hold</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" onClick={() => setEditDialogOpen(true)}>
               <Edit className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="icon" onClick={() => setDeleteDialogOpen(true)}>
@@ -317,6 +319,12 @@ const OpportunityDetail = () => {
           </TabsContent>
         </Tabs>
           </div>
+
+          <EditOpportunityDialog 
+            open={editDialogOpen} 
+            onOpenChange={setEditDialogOpen}
+            opportunity={opportunity}
+          />
 
           <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
