@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Search, Mail, Shield, Clock, CheckCircle, XCircle, Users, UserCheck, UserPlus, MoreVertical } from 'lucide-react';
+import { Plus, Search, Mail, Shield, Clock, CheckCircle, XCircle, Users, UserCheck, UserPlus, MoreVertical, RefreshCw } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -17,14 +18,30 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('team');
+  const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users-with-roles'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_users_with_roles');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch profiles to get client_id information
+  const { data: profiles } = useQuery({
+    queryKey: ['user-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, client_id');
       if (error) throw error;
       return data;
     },
@@ -36,16 +53,52 @@ const UserManagement = () => {
       const { data, error } = await supabase
         .from('invitations')
         .select('*')
+        .eq('status', 'pending') // Only get pending invitations
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data;
+      
+      // Filter out expired invitations that should be removed
+      const now = new Date();
+      return data?.filter(inv => new Date(inv.expires_at) > now) || [];
     },
   });
 
-  const filteredUsers = users?.filter(user =>
+  // Separate internal team from client users
+  const internalUsers = users?.filter(user => {
+    const profile = profiles?.find(p => p.id === user.id);
+    return !profile?.client_id;
+  });
+
+  const clientUsers = users?.filter(user => {
+    const profile = profiles?.find(p => p.id === user.id);
+    return profile?.client_id;
+  });
+
+  const filteredInternalUsers = internalUsers?.filter(user =>
     user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredClientUsers = clientUsers?.filter(user =>
+    user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleResendInvitation = async (invitationId: string, email: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('send-user-invite', {
+        body: { invitationId }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Invitation resent to ${email}`);
+      queryClient.invalidateQueries({ queryKey: ['pending-invitations'] });
+    } catch (error) {
+      console.error('Error resending invitation:', error);
+      toast.error('Failed to resend invitation');
+    }
+  };
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
@@ -119,110 +172,219 @@ const UserManagement = () => {
               <h2 className="text-2xl font-bold">User Management</h2>
             </div>
 
-            {/* Search and Actions Bar */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between gap-4 mb-6">
-                  <div className="relative w-full sm:w-80">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 bg-background"
-                    />
-                  </div>
-                  <InviteUserDialog
-                    trigger={
-                      <Button className="bg-foreground text-background hover:bg-foreground/90 gap-2">
-                        <Plus className="h-4 w-4" />
-                        Add New User
-                      </Button>
-                    }
-                  />
-                </div>
-                {/* Users Table */}
-                <div className="border rounded-lg overflow-hidden bg-background">
-                  {/* Table Header */}
-                  <div className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-3 bg-muted/30 text-sm font-medium text-muted-foreground border-b">
-                    <div>User</div>
-                    <div>Joined</div>
-                    <div>Role</div>
-                    <div className="text-center">Action</div>
-                  </div>
+            {/* Tabs for Team vs Client Users */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="team">
+                  Team Members ({internalUsers?.length || 0})
+                </TabsTrigger>
+                <TabsTrigger value="clients">
+                  Client Users ({clientUsers?.length || 0})
+                </TabsTrigger>
+              </TabsList>
 
-                  {/* Table Body */}
-                  {isLoading ? (
-                    <div className="text-center py-12 text-muted-foreground">
-                      Loading users...
+              {/* Team Members Tab */}
+              <TabsContent value="team" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between gap-4 mb-6">
+                      <div className="relative w-full sm:w-80">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search team members..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9 bg-background"
+                        />
+                      </div>
+                      <InviteUserDialog
+                        trigger={
+                          <Button className="bg-foreground text-background hover:bg-foreground/90 gap-2">
+                            <Plus className="h-4 w-4" />
+                            Add Team Member
+                          </Button>
+                        }
+                      />
                     </div>
-                  ) : filteredUsers && filteredUsers.length > 0 ? (
-                    <div className="divide-y">
-                      {filteredUsers.map((user) => {
-                        const initials = user.full_name
-                          ?.split(' ')
-                          .map(n => n[0])
-                          .join('')
-                          .toUpperCase() || user.email?.substring(0, 2).toUpperCase() || 'U';
+                    {/* Team Members Table */}
+                    <div className="border rounded-lg overflow-hidden bg-background">
+                      <div className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-3 bg-muted/30 text-sm font-medium text-muted-foreground border-b">
+                        <div>Team Member</div>
+                        <div>Joined</div>
+                        <div>Role</div>
+                        <div className="text-center">Action</div>
+                      </div>
 
-                        return (
-                          <div
-                            key={user.id}
-                            className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-4 hover:bg-muted/30 transition-colors items-center"
-                          >
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-10 w-10">
-                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                                  {initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="min-w-0">
-                                <p className="font-medium truncate">{user.full_name || 'Unnamed User'}</p>
-                                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                      {isLoading ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                          Loading team members...
+                        </div>
+                      ) : filteredInternalUsers && filteredInternalUsers.length > 0 ? (
+                        <div className="divide-y">
+                          {filteredInternalUsers.map((user) => {
+                            const initials = user.full_name
+                              ?.split(' ')
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase() || user.email?.substring(0, 2).toUpperCase() || 'U';
+
+                            return (
+                              <div
+                                key={user.id}
+                                className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-4 hover:bg-muted/30 transition-colors items-center"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="font-medium truncate">{user.full_name || 'Unnamed User'}</p>
+                                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {format(new Date(user.created_at), 'MMM d, yyyy')}
+                                </div>
+                                <div className="flex gap-2">
+                                  {user.roles?.map((role) => (
+                                    <Badge 
+                                      key={role} 
+                                      variant={getRoleBadgeVariant(role)}
+                                      className="capitalize"
+                                    >
+                                      {role}
+                                    </Badge>
+                                  ))}
+                                </div>
+                                <div className="flex justify-center">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem>Edit Roles</DropdownMenuItem>
+                                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                                      <DropdownMenuItem className="text-destructive">
+                                        Remove User
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
                               </div>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {format(new Date(user.created_at), 'MMM d, yyyy')}
-                            </div>
-                            <div className="flex gap-2">
-                              {user.roles?.map((role) => (
-                                <Badge 
-                                  key={role} 
-                                  variant={getRoleBadgeVariant(role)}
-                                  className="capitalize"
-                                >
-                                  {role}
-                                </Badge>
-                              ))}
-                            </div>
-                            <div className="flex justify-center">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-40">
-                                  <DropdownMenuItem>Edit User</DropdownMenuItem>
-                                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                                  <DropdownMenuItem className="text-destructive">
-                                    Remove User
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                        );
-                      })}
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                          {searchQuery ? 'No team members found matching your search' : 'No team members yet'}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center py-12 text-muted-foreground">
-                      {searchQuery ? 'No users found matching your search' : 'No users yet'}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Client Users Tab */}
+              <TabsContent value="clients" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between gap-4 mb-6">
+                      <div className="relative w-full sm:w-80">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search client users..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9 bg-background"
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {/* Client Users Table */}
+                    <div className="border rounded-lg overflow-hidden bg-background">
+                      <div className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-3 bg-muted/30 text-sm font-medium text-muted-foreground border-b">
+                        <div>Client User</div>
+                        <div>Joined</div>
+                        <div>Role</div>
+                        <div className="text-center">Action</div>
+                      </div>
+
+                      {isLoading ? (
+                        <div className="text-center py-12 text-muted-foreground">
+                          Loading client users...
+                        </div>
+                      ) : filteredClientUsers && filteredClientUsers.length > 0 ? (
+                        <div className="divide-y">
+                          {filteredClientUsers.map((user) => {
+                            const initials = user.full_name
+                              ?.split(' ')
+                              .map(n => n[0])
+                              .join('')
+                              .toUpperCase() || user.email?.substring(0, 2).toUpperCase() || 'U';
+
+                            return (
+                              <div
+                                key={user.id}
+                                className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-4 hover:bg-muted/30 transition-colors items-center"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-muted">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="font-medium truncate">{user.full_name || 'Unnamed User'}</p>
+                                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {format(new Date(user.created_at), 'MMM d, yyyy')}
+                                </div>
+                                <div className="flex gap-2">
+                                  {user.roles?.map((role) => (
+                                    <Badge 
+                                      key={role} 
+                                      variant={getRoleBadgeVariant(role)}
+                                      className="capitalize"
+                                    >
+                                      {role}
+                                    </Badge>
+                                  ))}
+                                </div>
+                                <div className="flex justify-center">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-40">
+                                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                                      <DropdownMenuItem className="text-destructive">
+                                        Deactivate
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                          {searchQuery ? 'No client users found matching your search' : 'No client users yet'}
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
 
             {/* Pending Invitations */}
             {invitations && invitations.length > 0 && (
@@ -293,8 +455,11 @@ const UserManagement = () => {
                                       <MoreVertical className="h-4 w-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-40">
-                                    <DropdownMenuItem>Resend</DropdownMenuItem>
+                                  <DropdownMenuContent align="end" className="w-40 bg-popover z-50">
+                                    <DropdownMenuItem onClick={() => handleResendInvitation(invitation.id, invitation.email)}>
+                                      <RefreshCw className="h-4 w-4 mr-2" />
+                                      Resend
+                                    </DropdownMenuItem>
                                     <DropdownMenuItem className="text-destructive">
                                       Cancel
                                     </DropdownMenuItem>
