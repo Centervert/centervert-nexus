@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Briefcase, Plus, TrendingUp, DollarSign, Target, Clock } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -68,8 +70,16 @@ const Opportunities = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center px-4">
+              <SidebarTrigger />
+            </div>
+          </div>
+          <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -237,10 +247,12 @@ const Opportunities = () => {
             </Table>
           </div>
         </Card>
-      </div>
+          </div>
 
-      <CreateOpportunityDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
-    </div>
+          <CreateOpportunityDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 

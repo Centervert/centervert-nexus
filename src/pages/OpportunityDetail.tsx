@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, Building2 } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -67,8 +69,16 @@ const OpportunityDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex h-14 items-center px-4">
+              <SidebarTrigger />
+            </div>
+          </div>
+          <div className="container mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="space-y-2">
@@ -306,9 +316,9 @@ const OpportunityDetail = () => {
             <OpportunityAttachments opportunityId={id!} />
           </TabsContent>
         </Tabs>
-      </div>
+          </div>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Opportunity</AlertDialogTitle>
@@ -323,8 +333,10 @@ const OpportunityDetail = () => {
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
-    </div>
+          </AlertDialog>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 
