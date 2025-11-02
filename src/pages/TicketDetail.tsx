@@ -387,7 +387,13 @@ const TicketDetail = () => {
 
       // Validate circular reference prevention
       if (editParentTicketId && editParentTicketId !== '') {
-        // Check if the selected parent has this ticket in its ancestry chain
+        // First check: Can't be its own parent
+        if (editParentTicketId === id) {
+          toast.error('A ticket cannot be its own parent');
+          throw new Error('Self-referential parent detected');
+        }
+        
+        // Second check: Check if the selected parent has this ticket in its ancestry chain
         let currentParentId = editParentTicketId;
         const checkedIds = new Set<string>();
         

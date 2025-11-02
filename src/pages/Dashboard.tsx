@@ -300,12 +300,15 @@ const Dashboard = () => {
           )}
         >
           {/* Mobile Layout */}
-          <div className="lg:hidden space-y-3" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
-            <div className="flex items-start justify-between gap-2">
+          <div className="lg:hidden space-y-3">
+            <div className="flex items-start justify-between gap-2" onClick={() => navigate(`/tickets/${ticket.id}`)}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   {hasChildren && (
-                    <CollapsibleTrigger className="inline-flex shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <CollapsibleTrigger className="inline-flex shrink-0" onClick={(e) => {
+                      e.stopPropagation();
+                      toggleTicketExpansion(ticket.id);
+                    }}>
                       <div className="p-1 rounded bg-primary/10 hover:bg-primary/20">
                         {isExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-primary" />}
                       </div>
@@ -391,9 +394,7 @@ const Dashboard = () => {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex lg:items-center lg:gap-3" onClick={(e) => {
-            if (!hasChildren) navigate(`/tickets/${ticket.id}`);
-          }}>
+          <div className="hidden lg:flex lg:items-center lg:gap-3">
             <input 
               type="checkbox" 
               className="rounded border-border w-4 h-4 shrink-0" 
@@ -405,14 +406,17 @@ const Dashboard = () => {
               onClick={(e) => e.stopPropagation()}
             />
             {hasChildren ? (
-              <CollapsibleTrigger onClick={(e) => e.stopPropagation()}>
+              <CollapsibleTrigger onClick={(e) => {
+                e.stopPropagation();
+                toggleTicketExpansion(ticket.id);
+              }}>
                 {isExpanded ? <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />}
               </CollapsibleTrigger>
             ) : (
               <div className="w-4" />
             )}
           </div>
-          <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <div className="font-medium leading-tight truncate">{ticket.title}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
               <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
@@ -426,7 +430,7 @@ const Dashboard = () => {
               </span>
             </div>
           </div>
-          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
               <div className="flex flex-wrap items-center gap-x-1">
                 <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
@@ -457,7 +461,7 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
               <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
                 {quoteStatus.label}
@@ -469,7 +473,7 @@ const Dashboard = () => {
               </Badge>
             )}
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {userRole?.isAdmin ? (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -505,7 +509,7 @@ const Dashboard = () => {
               </Badge>
             )}
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-end text-sm" onClick={() => !hasChildren && navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden lg:flex lg:items-center lg:justify-end text-sm" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {ticket.due_date 
               ? new Date(ticket.due_date).toLocaleDateString('en-US', {
                   month: 'short',
