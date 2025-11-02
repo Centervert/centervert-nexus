@@ -20,7 +20,7 @@ import { useTickets, useTicketStats, Ticket } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AITicketDialog } from '@/components/ticket/AITicketDialog';
 import { CreateTicketDialog } from '@/components/ticket/CreateTicketDialog';
@@ -31,6 +31,8 @@ const Dashboard = () => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('all');
+  const [poFilter, setPoFilter] = useState<'all' | 'with_po' | 'without_po'>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
@@ -43,10 +45,28 @@ const Dashboard = () => {
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
     search: searchQuery, 
     status: statusFilter,
+    clientId: clientFilter,
+    poStatus: poFilter,
     sortBy,
     sortDirection
   });
   const { data: stats, isLoading: statsLoading } = useTicketStats();
+
+  // Fetch clients for filter dropdown (admin only)
+  const { data: clients } = useQuery({
+    queryKey: ['clients-for-filter'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('id, name')
+        .is('deleted_at', null)
+        .order('name');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: userRole?.isAdmin,
+  });
 
   const statusOptions = [
     { value: 'open' as const, label: 'New Request', className: 'bg-gray-900 text-white' },
@@ -784,6 +804,74 @@ const Dashboard = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              
+              {/* Client Filter - Admin Only */}
+              {userRole?.isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Filter className="h-4 w-4" />
+                      <span className="hidden sm:inline">
+                        {clientFilter === 'all' ? 'All Clients' : clients?.find(c => c.id === clientFilter)?.name || 'Client'}
+                      </span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[220px] max-h-[300px] overflow-y-auto">
+                    <DropdownMenuItem
+                      onClick={() => setClientFilter('all')}
+                      className="cursor-pointer"
+                    >
+                      All Clients
+                    </DropdownMenuItem>
+                    {clients?.map((client) => (
+                      <DropdownMenuItem
+                        key={client.id}
+                        onClick={() => setClientFilter(client.id)}
+                        className="cursor-pointer"
+                      >
+                        {client.name}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {/* PO Filter - Admin Only */}
+              {userRole?.isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Filter className="h-4 w-4" />
+                      <span className="hidden sm:inline">
+                        {poFilter === 'all' ? 'All PO Status' : poFilter === 'with_po' ? 'Has PO' : 'No PO'}
+                      </span>
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-[180px]">
+                    <DropdownMenuItem
+                      onClick={() => setPoFilter('all')}
+                      className="cursor-pointer"
+                    >
+                      All PO Status
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setPoFilter('without_po')}
+                      className="cursor-pointer"
+                    >
+                      Missing PO
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setPoFilter('with_po')}
+                      className="cursor-pointer"
+                    >
+                      Has PO Number
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2 flex-1 sm:flex-initial">

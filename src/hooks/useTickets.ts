@@ -64,6 +64,8 @@ interface UseTicketsParams {
   status?: string;
   sortBy?: 'created_at' | 'title' | 'priority' | 'status' | 'client';
   sortDirection?: 'asc' | 'desc';
+  clientId?: string;
+  poStatus?: 'all' | 'with_po' | 'without_po';
 }
 
 export const useTickets = (params?: UseTicketsParams) => {
@@ -115,6 +117,10 @@ export const useTickets = (params?: UseTicketsParams) => {
         query = query.eq('status', params.status as any);
       }
 
+      if (params?.clientId && params.clientId !== 'all') {
+        query = query.eq('client_id', params.clientId);
+      }
+
       const sortField = params?.sortBy || 'created_at';
       const ascending = params?.sortDirection === 'asc';
       
@@ -127,7 +133,25 @@ export const useTickets = (params?: UseTicketsParams) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return (data || []) as unknown as Ticket[];
+      
+      let filteredData = (data || []) as unknown as Ticket[];
+      
+      // Filter by PO status if specified
+      if (params?.poStatus && params.poStatus !== 'all') {
+        filteredData = filteredData.filter(ticket => {
+          const hasApprovedQuote = ticket.ticket_quotes?.some(q => q.status === 'approved');
+          const hasPoNumber = ticket.ticket_quotes?.some(q => q.status === 'approved' && q.po_number);
+          
+          if (params.poStatus === 'without_po') {
+            return hasApprovedQuote && !hasPoNumber;
+          } else if (params.poStatus === 'with_po') {
+            return hasPoNumber;
+          }
+          return true;
+        });
+      }
+      
+      return filteredData;
     },
   });
 };
