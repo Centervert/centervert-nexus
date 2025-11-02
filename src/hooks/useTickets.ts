@@ -29,6 +29,7 @@ export interface Ticket {
   client: {
     name: string;
     client_type: string;
+    managing_agency_id: string | null;
     managing_agency: {
       name: string;
     } | null;
@@ -83,6 +84,7 @@ export const useTickets = (params?: UseTicketsParams) => {
           client:client_id (
             name,
             client_type,
+            managing_agency_id,
             po_system_enabled,
             managing_agency:managing_agency_id (
               name
@@ -117,13 +119,6 @@ export const useTickets = (params?: UseTicketsParams) => {
         query = query.eq('status', params.status as any);
       }
 
-      if (params?.clientId && params.clientId !== 'all') {
-        // Filter to show tickets where:
-        // 1. client_id matches the selected client (direct client tickets)
-        // 2. OR the ticket's client has managing_agency_id matching selected client (agency-managed tickets)
-        query = query.or(`client_id.eq.${params.clientId},client.managing_agency_id.eq.${params.clientId}`);
-      }
-
       const sortField = params?.sortBy || 'created_at';
       const ascending = params?.sortDirection === 'asc';
       
@@ -138,6 +133,16 @@ export const useTickets = (params?: UseTicketsParams) => {
       if (error) throw error;
       
       let filteredData = (data || []) as unknown as Ticket[];
+      
+      // Filter by client (including agency-managed clients)
+      if (params?.clientId && params.clientId !== 'all') {
+        filteredData = filteredData.filter(ticket => {
+          // Show tickets where client_id matches OR managing_agency_id matches
+          return ticket.client_id === params.clientId || 
+                 ticket.client?.managing_agency?.name && 
+                 ticket.client.managing_agency_id === params.clientId;
+        });
+      }
       
       // Filter by PO status if specified
       if (params?.poStatus && params.poStatus !== 'all') {
