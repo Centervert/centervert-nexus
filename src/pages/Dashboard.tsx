@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Plus, Search, Filter, ArrowUpDown, Ticket as TicketIcon, MessageSquare, Clock, FileText, ChevronDown, Sparkles, Trash2 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useTickets, useTicketStats, Ticket } from '@/hooks/useTickets';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState('open');
   const { data: userRole } = useUserRole();
 
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
@@ -255,8 +257,11 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Pending Review Section */}
-        {!ticketsLoading && tickets && tickets.filter(t => t.status === 'pending_acknowledgment').length > 0 && (
+        {/* Pending Review Section - Only show tickets needing PO */}
+        {!ticketsLoading && tickets && tickets.filter(t => {
+          const quoteStatus = getQuoteStatus(t);
+          return quoteStatus.needsPO && (t.status === 'resolved' || t.status === 'pending_acknowledgment');
+        }).length > 0 && (
           <Card className="mb-6 border-2 border-amber-500 bg-amber-50 dark:bg-amber-950/20">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -266,14 +271,20 @@ const Dashboard = () => {
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold">Pending Your Review</h3>
                   <p className="text-sm text-muted-foreground">
-                    {tickets.filter(t => t.status === 'pending_acknowledgment').length} ticket(s) completed and awaiting your acknowledgment
+                    {tickets.filter(t => {
+                      const quoteStatus = getQuoteStatus(t);
+                      return quoteStatus.needsPO && (t.status === 'resolved' || t.status === 'pending_acknowledgment');
+                    }).length} ticket(s) requiring PO number
                   </p>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {tickets.filter(t => t.status === 'pending_acknowledgment').map((ticket) => {
+                {tickets.filter(t => {
+                  const quoteStatus = getQuoteStatus(t);
+                  return quoteStatus.needsPO && (t.status === 'resolved' || t.status === 'pending_acknowledgment');
+                }).map((ticket) => {
                   const quoteStatus = getQuoteStatus(ticket);
                   
                   return (
@@ -294,7 +305,7 @@ const Dashboard = () => {
                       </div>
                     </div>
                     <Button variant="outline" size="sm" className="ml-3">
-                      Review
+                      Add PO Number
                     </Button>
                   </div>
                   );
@@ -344,47 +355,8 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Completed Section */}
-        {!ticketsLoading && tickets && tickets.filter(t => t.status === 'closed').length > 0 && (
-          <Card className="mb-6 border-2 border-green-600 bg-green-50 dark:bg-green-950/20">
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <TicketIcon className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">Completed</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {tickets.filter(t => t.status === 'closed').length} ticket(s) successfully completed
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {tickets.filter(t => t.status === 'closed').slice(0, 5).map((ticket) => (
-                  <div
-                    key={ticket.id}
-                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/tickets/${ticket.id}`)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{ticket.title}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Ticket #{parseInt(ticket.ticket_number?.toString() || '0')}
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" className="ml-3">
-                      View
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
-        {/* Tickets Section */}
+        {/* Tickets Section with Tabs */}
         <div className="mb-4 md:mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl md:text-2xl font-bold">Your Tickets</h2>
             <Button 
@@ -395,6 +367,15 @@ const Dashboard = () => {
               <span className="sm:inline">Submit New Request</span>
             </Button>
           </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-4">
+            <TabsList className="grid w-full grid-cols-4 max-w-md">
+              <TabsTrigger value="open">Open</TabsTrigger>
+              <TabsTrigger value="complete">Complete</TabsTrigger>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="po-needed">PO Needed</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           {/* Search and Filters */}
           <div className="mb-4 md:mb-6 flex flex-col gap-3 md:flex-row md:items-center">
@@ -582,7 +563,20 @@ const Dashboard = () => {
                 ))
               ) : tickets && tickets.length > 0 ? (
                 tickets
-                  .filter(ticket => !['pending_acknowledgment', 'awaiting_payment', 'closed'].includes(ticket.status))
+                  .filter(ticket => {
+                    const quoteStatus = getQuoteStatus(ticket);
+                    
+                    // Filter based on active tab
+                    if (activeTab === 'open') {
+                      return !['resolved', 'closed'].includes(ticket.status);
+                    } else if (activeTab === 'complete') {
+                      return ['resolved', 'closed'].includes(ticket.status);
+                    } else if (activeTab === 'po-needed') {
+                      return quoteStatus.needsPO;
+                    }
+                    // 'all' tab shows everything
+                    return true;
+                  })
                   .map((ticket) => {
                   const statusDisplay = getStatusDisplay(ticket.status);
                   const priorityDisplay = getPriorityDisplay(ticket.priority);
@@ -727,9 +721,16 @@ const Dashboard = () => {
                         )}
                       </div>
                       <div className="hidden lg:flex lg:items-center lg:justify-center">
-                        <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
-                          {quoteStatus.label}
-                        </Badge>
+                        {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
+                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
+                            {quoteStatus.label}
+                          </Badge>
+                        ) : (
+                          <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', 
+                            quoteStatus.className.includes('red-600') ? 'bg-gray-100 text-gray-600' : quoteStatus.className)}>
+                            {quoteStatus.label.replace('⚠️ PO NEEDED', 'Approved')}
+                          </Badge>
+                        )}
                       </div>
                       <div className="hidden lg:flex lg:items-center lg:justify-center">
                         {userRole?.isAdmin ? (
@@ -782,10 +783,6 @@ const Dashboard = () => {
                     </div>
                   );
                 })
-              ) : (tickets && tickets.filter(t => !['pending_acknowledgment', 'awaiting_payment', 'closed'].includes(t.status)).length === 0) ? (
-                <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
-                  <p>No active tickets found</p>
-                </div>
               ) : (
                 <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
                   <p>No tickets found</p>
