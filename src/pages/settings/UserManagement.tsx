@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, Search, Mail, Shield, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Search, Mail, Shield, Clock, CheckCircle, XCircle, Users, UserCheck, UserPlus, MoreVertical } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { InviteUserDialog } from '@/components/admin/InviteUserDialog';
 import { format } from 'date-fns';
 
@@ -66,180 +72,244 @@ const UserManagement = () => {
             </div>
           </div>
 
-          <div className="p-4 md:p-8 max-w-7xl">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Users & Permissions</h2>
-                <p className="text-muted-foreground mt-1">
-                  Manage user accounts, roles, and access permissions
-                </p>
-              </div>
-              <InviteUserDialog
-                trigger={
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Invite User
-                  </Button>
-                }
-              />
+          <div className="p-4 md:p-8 max-w-7xl space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-card">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Total Users</p>
+                    <p className="text-4xl font-bold">{users?.length || 0}</p>
+                    <div className="flex items-center gap-1 text-sm text-green-600">
+                      <span>↑ 12.04%</span>
+                      <span className="text-muted-foreground">Last 30 days</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Active Users</p>
+                    <p className="text-4xl font-bold">{users?.length || 0}</p>
+                    <div className="flex items-center gap-1 text-sm text-green-600">
+                      <span>↑ 8.5%</span>
+                      <span className="text-muted-foreground">Last 30 days</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card">
+                <CardContent className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Pending Invitations</p>
+                    <p className="text-4xl font-bold">{invitations?.length || 0}</p>
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <span>Awaiting response</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
+            {/* Users Section Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">User Management</h2>
+            </div>
+
+            {/* Search and Actions Bar */}
             <Card>
-              <CardHeader>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <CardTitle>All Users</CardTitle>
-                    <CardDescription>
-                      {users?.length || 0} total users in the system
-                    </CardDescription>
-                  </div>
-                  <div className="relative w-full sm:w-64">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between gap-4 mb-6">
+                  <div className="relative w-full sm:w-80">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      placeholder="Search users..."
+                      placeholder="Search"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
+                      className="pl-9 bg-background"
                     />
                   </div>
+                  <InviteUserDialog
+                    trigger={
+                      <Button className="bg-foreground text-background hover:bg-foreground/90 gap-2">
+                        <Plus className="h-4 w-4" />
+                        Add New User
+                      </Button>
+                    }
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Loading users...
+                {/* Users Table */}
+                <div className="border rounded-lg overflow-hidden bg-background">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-3 bg-muted/30 text-sm font-medium text-muted-foreground border-b">
+                    <div>User</div>
+                    <div>Joined</div>
+                    <div>Role</div>
+                    <div className="text-center">Action</div>
                   </div>
-                ) : filteredUsers && filteredUsers.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredUsers.map((user) => {
-                      const initials = user.full_name
-                        ?.split(' ')
-                        .map(n => n[0])
-                        .join('')
-                        .toUpperCase() || user.email?.substring(0, 2).toUpperCase() || 'U';
 
-                      return (
-                        <div
-                          key={user.id}
-                          className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback>{initials}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{user.full_name || 'Unnamed User'}</p>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Mail className="h-3 w-3" />
-                                {user.email}
+                  {/* Table Body */}
+                  {isLoading ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      Loading users...
+                    </div>
+                  ) : filteredUsers && filteredUsers.length > 0 ? (
+                    <div className="divide-y">
+                      {filteredUsers.map((user) => {
+                        const initials = user.full_name
+                          ?.split(' ')
+                          .map(n => n[0])
+                          .join('')
+                          .toUpperCase() || user.email?.substring(0, 2).toUpperCase() || 'U';
+
+                        return (
+                          <div
+                            key={user.id}
+                            className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-4 hover:bg-muted/30 transition-colors items-center"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                                  {initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{user.full_name || 'Unnamed User'}</p>
+                                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right hidden sm:block">
-                              <p className="text-xs text-muted-foreground">
-                                Joined {format(new Date(user.created_at), 'MMM d, yyyy')}
-                              </p>
+                            <div className="text-sm text-muted-foreground">
+                              {format(new Date(user.created_at), 'MMM d, yyyy')}
                             </div>
                             <div className="flex gap-2">
                               {user.roles?.map((role) => (
-                                <Badge key={role} variant={getRoleBadgeVariant(role)}>
+                                <Badge 
+                                  key={role} 
+                                  variant={getRoleBadgeVariant(role)}
+                                  className="capitalize"
+                                >
                                   {role}
                                 </Badge>
                               ))}
                             </div>
+                            <div className="flex justify-center">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-40">
+                                  <DropdownMenuItem>Edit User</DropdownMenuItem>
+                                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                                  <DropdownMenuItem className="text-destructive">
+                                    Remove User
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {searchQuery ? 'No users found matching your search' : 'No users yet'}
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      {searchQuery ? 'No users found matching your search' : 'No users yet'}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
             {/* Pending Invitations */}
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Pending Invitations</CardTitle>
-                <CardDescription>
-                  {invitations?.length || 0} pending invitation(s)
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {invitationsLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    Loading invitations...
-                  </div>
-                ) : invitations && invitations.length > 0 ? (
-                  <div className="space-y-4">
-                    {invitations.map((invitation) => {
-                      const isExpired = new Date(invitation.expires_at) < new Date();
-                      const statusIcon = invitation.status === 'accepted' ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : isExpired ? (
-                        <XCircle className="h-4 w-4 text-destructive" />
-                      ) : (
-                        <Clock className="h-4 w-4 text-yellow-500" />
-                      );
+            {invitations && invitations.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pending Invitations</CardTitle>
+                  <CardDescription>
+                    {invitations?.length || 0} pending invitation(s)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="border rounded-lg overflow-hidden bg-background">
+                    {/* Invitations Header */}
+                    <div className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-3 bg-muted/30 text-sm font-medium text-muted-foreground border-b">
+                      <div>Email</div>
+                      <div>Sent</div>
+                      <div>Status</div>
+                      <div className="text-center">Action</div>
+                    </div>
 
-                      const statusText = invitation.status === 'accepted' 
-                        ? 'Accepted' 
-                        : isExpired 
-                        ? 'Expired' 
-                        : 'Pending';
+                    {/* Invitations Body */}
+                    {invitationsLoading ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        Loading invitations...
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {invitations.map((invitation) => {
+                          const isExpired = new Date(invitation.expires_at) < new Date();
+                          const isPending = invitation.status === 'pending' && !isExpired;
 
-                      return (
-                        <div
-                          key={invitation.id}
-                          className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-4">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback>
-                                {invitation.email.substring(0, 2).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-3 w-3" />
-                                <p className="font-medium">{invitation.email}</p>
+                          return (
+                            <div
+                              key={invitation.id}
+                              className="grid grid-cols-[1fr_200px_150px_80px] gap-4 px-6 py-4 hover:bg-muted/30 transition-colors items-center"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-10 w-10">
+                                  <AvatarFallback className="bg-muted">
+                                    {invitation.email.substring(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="font-medium truncate">{invitation.email}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Role: <span className="capitalize">{invitation.role}</span>
+                                  </p>
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground mt-1">
-                                Sent {format(new Date(invitation.created_at), 'MMM d, yyyy')}
+                              <div className="text-sm text-muted-foreground">
+                                {format(new Date(invitation.created_at), 'MMM d, yyyy')}
+                              </div>
+                              <div>
+                                <Badge 
+                                  variant={isPending ? "secondary" : isExpired ? "destructive" : "default"}
+                                  className="gap-1"
+                                >
+                                  {isPending && <Clock className="h-3 w-3" />}
+                                  {isExpired && <XCircle className="h-3 w-3" />}
+                                  {!isPending && !isExpired && <CheckCircle className="h-3 w-3" />}
+                                  {isPending ? 'Pending' : isExpired ? 'Expired' : 'Accepted'}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-center">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-40">
+                                    <DropdownMenuItem>Resend</DropdownMenuItem>
+                                    <DropdownMenuItem className="text-destructive">
+                                      Cancel
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right hidden sm:block">
-                              <p className="text-xs text-muted-foreground">
-                                Expires {format(new Date(invitation.expires_at), 'MMM d, yyyy')}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={getRoleBadgeVariant(invitation.role)}>
-                                {invitation.role}
-                              </Badge>
-                              <div className="flex items-center gap-1">
-                                {statusIcon}
-                                <span className="text-xs">{statusText}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No pending invitations
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </main>
       </div>
