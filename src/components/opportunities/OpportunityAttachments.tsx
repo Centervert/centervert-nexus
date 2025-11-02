@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText, Download, Trash2, Upload, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -17,6 +18,7 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
+  const [viewingFile, setViewingFile] = useState<{ name: string; url: string; blobUrl?: string } | null>(null);
 
   const { data: attachments, isLoading } = useQuery({
     queryKey: ['opportunity-attachments', opportunityId],
@@ -116,6 +118,25 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  const handleViewFile = async (fileName: string, fileUrl: string) => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setViewingFile({ name: fileName, url: fileUrl, blobUrl });
+    } catch (error) {
+      console.error('Error loading file:', error);
+      toast.error('Failed to load file');
+    }
+  };
+
+  const handleCloseViewer = () => {
+    if (viewingFile?.blobUrl) {
+      URL.revokeObjectURL(viewingFile.blobUrl);
+    }
+    setViewingFile(null);
+  };
+
   return (
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -165,17 +186,8 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => {
-                    // Create a temporary link and click it to download
-                    const link = document.createElement('a');
-                    link.href = attachment.file_url;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  }}
-                  title="Open document"
+                  onClick={() => handleViewFile(attachment.file_name, attachment.file_url)}
+                  title="View document"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -205,6 +217,23 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
           ))
         )}
       </div>
+
+      <Dialog open={!!viewingFile} onOpenChange={handleCloseViewer}>
+        <DialogContent className="max-w-6xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{viewingFile?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 h-full">
+            {viewingFile?.blobUrl && (
+              <iframe
+                src={viewingFile.blobUrl}
+                className="w-full h-full rounded border"
+                title={viewingFile.name}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
