@@ -44,6 +44,12 @@ const CreateOpportunityDialog = ({ open, onOpenChange }: CreateOpportunityDialog
       created_by: user?.id,
       assigned_to: data.assigned_to || null,
       estimated_value: data.estimated_value ? parseFloat(data.estimated_value) : null,
+      // Convert empty date strings to null
+      issue_date: data.issue_date || null,
+      questions_deadline: data.questions_deadline || null,
+      submission_deadline: data.submission_deadline || null,
+      award_date: data.award_date || null,
+      conference_date: data.conference_date || null,
     };
 
     // Clear government fields if type is private

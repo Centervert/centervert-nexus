@@ -119,8 +119,9 @@ export const useCreateOpportunity = () => {
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       toast.success('Opportunity created successfully');
     },
-    onError: (error) => {
-      toast.error('Failed to create opportunity');
+    onError: (error: any) => {
+      const errorMessage = error?.message || 'Failed to create opportunity';
+      toast.error(errorMessage);
       console.error('Error creating opportunity:', error);
     },
   });
