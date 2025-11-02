@@ -220,15 +220,54 @@ const Dashboard = () => {
   };
 
   // Filter tickets to get parent tickets (no parent_ticket_id) and child tickets
-  const parentTickets = tickets?.filter(t => !(t as any).parent_ticket_id) || [];
+  const parentTickets = tickets?.filter(t => !t.parent_ticket_id) || [];
   const getChildTickets = (parentId: string) => 
-    tickets?.filter(t => (t as any).parent_ticket_id === parentId) || [];
+    tickets?.filter(t => t.parent_ticket_id === parentId) || [];
+
+  // Helper to check if a ticket or any of its children match the active tab filter
+  const ticketMatchesFilter = (ticket: Ticket, childTickets: Ticket[]) => {
+    const quoteStatus = getQuoteStatus(ticket);
+    
+    const checkTicket = (t: Ticket, qs: ReturnType<typeof getQuoteStatus>) => {
+      if (activeTab === 'open') {
+        return !['resolved', 'closed'].includes(t.status);
+      } else if (activeTab === 'complete') {
+        return ['resolved', 'closed'].includes(t.status);
+      } else if (activeTab === 'po-needed') {
+        return qs.needsPO;
+      }
+      return true; // 'all' tab
+    };
+
+    // Check if parent matches
+    if (checkTicket(ticket, quoteStatus)) return true;
+    
+    // Check if any child matches
+    return childTickets.some(child => {
+      const childQuoteStatus = getQuoteStatus(child);
+      return checkTicket(child, childQuoteStatus);
+    });
+  };
 
   const renderTicketRow = (ticket: Ticket, isChild: boolean = false) => {
     const statusDisplay = getStatusDisplay(ticket.status);
     const priorityDisplay = getPriorityDisplay(ticket.priority);
     const quoteStatus = getQuoteStatus(ticket);
-    const childTickets = getChildTickets(ticket.id);
+    const allChildTickets = getChildTickets(ticket.id);
+    
+    // Filter children based on active tab (same logic as parent filter)
+    const childTickets = allChildTickets.filter(child => {
+      const childQuoteStatus = getQuoteStatus(child);
+      if (activeTab === 'open') {
+        return !['resolved', 'closed'].includes(child.status);
+      } else if (activeTab === 'complete') {
+        return ['resolved', 'closed'].includes(child.status);
+      } else if (activeTab === 'po-needed') {
+        return childQuoteStatus.needsPO;
+      }
+      return true; // 'all' tab shows all children
+    });
+    
     const hasChildren = childTickets.length > 0;
     const isExpanded = expandedTickets.includes(ticket.id);
 
@@ -807,18 +846,8 @@ const Dashboard = () => {
               ) : tickets && tickets.length > 0 ? (
                 parentTickets
                   .filter(ticket => {
-                    const quoteStatus = getQuoteStatus(ticket);
-                    
-                    // Filter based on active tab
-                    if (activeTab === 'open') {
-                      return !['resolved', 'closed'].includes(ticket.status);
-                    } else if (activeTab === 'complete') {
-                      return ['resolved', 'closed'].includes(ticket.status);
-                    } else if (activeTab === 'po-needed') {
-                      return quoteStatus.needsPO;
-                    }
-                    // 'all' tab shows everything
-                    return true;
+                    const childTickets = getChildTickets(ticket.id);
+                    return ticketMatchesFilter(ticket, childTickets);
                   })
                   .map((ticket) => renderTicketRow(ticket))
               ) : (

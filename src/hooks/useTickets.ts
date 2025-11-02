@@ -21,6 +21,7 @@ export interface Ticket {
   subtype: string | null;
   end_client_name: string | null;
   client_id: string | null;
+  parent_ticket_id: string | null;
   categories: {
     name: string;
     description: string | null;

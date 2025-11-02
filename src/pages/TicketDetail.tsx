@@ -145,7 +145,7 @@ const TicketDetail = () => {
         setEditType(data.type || '');
         setEditSubtype(data.subtype || '');
         setEditEndClientName(data.end_client_name || '');
-        setEditParentTicketId((data as any).parent_ticket_id || '');
+        setEditParentTicketId(data.parent_ticket_id || '');
       }
       
       return data;
@@ -487,7 +487,7 @@ const TicketDetail = () => {
                           setEditType(ticket.type || '');
                           setEditSubtype(ticket.subtype || '');
                           setEditEndClientName(ticket.end_client_name || '');
-                          setEditParentTicketId((ticket as any).parent_ticket_id || '');
+                          setEditParentTicketId(ticket.parent_ticket_id || '');
                         }
                       }}
                       className="gap-2"
