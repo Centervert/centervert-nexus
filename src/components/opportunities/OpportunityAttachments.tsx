@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText, Download, Trash2, Upload, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -18,7 +17,6 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
-  const [viewingFile, setViewingFile] = useState<{ name: string; url: string } | null>(null);
 
   const { data: attachments, isLoading } = useQuery({
     queryKey: ['opportunity-attachments', opportunityId],
@@ -167,8 +165,17 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setViewingFile({ name: attachment.file_name, url: attachment.file_url })}
-                  title="View document"
+                  onClick={() => {
+                    // Create a temporary link and click it to download
+                    const link = document.createElement('a');
+                    link.href = attachment.file_url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  title="Open document"
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -198,29 +205,6 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
           ))
         )}
       </div>
-
-      <Dialog open={!!viewingFile} onOpenChange={() => setViewingFile(null)}>
-        <DialogContent className="max-w-6xl h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>{viewingFile?.name}</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 h-full">
-            {viewingFile && (
-              <object
-                data={viewingFile.url}
-                type="application/pdf"
-                className="w-full h-full rounded border"
-              >
-                <iframe
-                  src={`${viewingFile.url}#toolbar=0`}
-                  className="w-full h-full rounded border"
-                  title={viewingFile.name}
-                />
-              </object>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 };
