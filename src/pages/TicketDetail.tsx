@@ -769,7 +769,7 @@ const TicketDetail = () => {
             )}
 
             {/* Client Acknowledgment Section */}
-            {ticket.status === 'pending_acknowledgment' && !userRole?.isAdmin && (
+            {ticket.status === 'pending_acknowledgment' && !userRole?.isAdmin && !userRole?.isAgent && (
               <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-500 rounded-lg p-6 space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center">
