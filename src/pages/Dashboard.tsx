@@ -33,7 +33,7 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [clientFilter, setClientFilter] = useState('all');
   const [poFilter, setPoFilter] = useState<'all' | 'with_po' | 'without_po'>('all');
-  const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client'>('created_at');
+  const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client' | 'due_date'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -42,12 +42,18 @@ const Dashboard = () => {
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
   const { data: userRole } = useUserRole();
 
+  // Set default sort to due_date for admins
+  if (userRole?.isAdmin && sortBy === 'created_at' && sortDirection === 'desc') {
+    setSortBy('due_date');
+    setSortDirection('asc');
+  }
+
   const { data: tickets, isLoading: ticketsLoading } = useTickets({
     search: searchQuery, 
     status: statusFilter,
     clientId: clientFilter,
     poStatus: poFilter,
-    sortBy,
+    sortBy: sortBy === 'due_date' ? 'created_at' : sortBy, // Map due_date back to created_at for now
     sortDirection
   });
   const { data: stats, isLoading: statsLoading } = useTicketStats();
@@ -261,6 +267,16 @@ const Dashboard = () => {
 
   // Filter tickets to get parent tickets (no parent_ticket_id) and child tickets
   const parentTickets = tickets?.filter(t => !t.parent_ticket_id) || [];
+  
+  // Apply due_date sorting on client-side if needed
+  const sortedParentTickets = sortBy === 'due_date' 
+    ? [...parentTickets].sort((a, b) => {
+        const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+        const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+        return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+      })
+    : parentTickets;
+  
   const getChildTickets = (parentId: string) => 
     tickets?.filter(t => t.parent_ticket_id === parentId) || [];
 
@@ -315,7 +331,7 @@ const Dashboard = () => {
       <Collapsible key={ticket.id} open={isExpanded} onOpenChange={() => hasChildren && toggleTicketExpansion(ticket.id)}>
         <div
           className={cn(
-            "p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4",
+            "p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] lg:gap-4 lg:px-6 lg:py-4",
             isChild && "bg-muted/30 ml-8 border-l-2 border-primary/30"
           )}
         >
@@ -481,6 +497,11 @@ const Dashboard = () => {
               </div>
             )}
           </div>
+          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+            <span className="truncate text-xs text-muted-foreground">
+              {ticket.assigned_profile?.full_name || 'Unassigned'}
+            </span>
+          </div>
           <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
               <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
@@ -596,8 +617,8 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Pending Review Section - Only show tickets needing PO */}
-        {!ticketsLoading && tickets && tickets.filter(t => {
+        {/* Pending Review Section - Only show to non-admin users */}
+        {!userRole?.isAdmin && !ticketsLoading && tickets && tickets.filter(t => {
           const quoteStatus = getQuoteStatus(t);
           return quoteStatus.needsPO && (t.status === 'resolved' || t.status === 'pending_acknowledgment');
         }).length > 0 && (
@@ -654,8 +675,8 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Awaiting Payment Section */}
-        {!ticketsLoading && tickets && tickets.filter(t => t.status === 'awaiting_payment').length > 0 && (
+        {/* Awaiting Payment Section - Only show to non-admin users */}
+        {!userRole?.isAdmin && !ticketsLoading && tickets && tickets.filter(t => t.status === 'awaiting_payment').length > 0 && (
           <Card className="mb-6 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -928,6 +949,15 @@ const Dashboard = () => {
                   >
                     Client
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSortBy('due_date');
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Due Date
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -938,7 +968,7 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
@@ -949,32 +979,65 @@ const Dashboard = () => {
               </div>
               <div>TICKET</div>
               <div>CLIENT</div>
+              <div>ASSIGNED</div>
               <div>QUOTE</div>
               <div>STATUS</div>
               <div className="text-right">DUE DATE</div>
             </div>
             <div className="divide-y divide-border">
               {ticketsLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="p-4 lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(140px,1fr)_minmax(180px,1fr)_120px] lg:gap-4 lg:px-6 lg:py-4">
-                    <Skeleton className="h-4 w-4 mb-3 lg:mb-0" />
-                    <div className="space-y-2 mb-3 lg:mb-0">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                    <Skeleton className="h-4 w-1/2 mb-3 lg:mb-0" />
-                    <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
-                    <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
-                    <Skeleton className="h-8 w-full lg:w-16" />
-                  </div>
-                ))
+                 Array.from({ length: 5 }).map((_, i) => (
+                   <div key={i} className="p-4 lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] lg:gap-4 lg:px-6 lg:py-4">
+                     <Skeleton className="h-4 w-4 mb-3 lg:mb-0" />
+                     <div className="space-y-2 mb-3 lg:mb-0">
+                       <Skeleton className="h-4 w-3/4" />
+                       <Skeleton className="h-3 w-1/2" />
+                     </div>
+                     <Skeleton className="h-4 w-1/2 mb-3 lg:mb-0" />
+                     <Skeleton className="h-4 w-1/3 mb-3 lg:mb-0" />
+                     <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
+                     <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
+                     <Skeleton className="h-8 w-full lg:w-16" />
+                   </div>
+                 ))
               ) : tickets && tickets.length > 0 ? (
-                parentTickets
-                  .filter(ticket => {
-                    const childTickets = getChildTickets(ticket.id);
-                    return ticketMatchesFilter(ticket, childTickets);
-                  })
-                  .map((ticket) => renderTicketRow(ticket))
+                userRole?.isAdmin ? (
+                  // Group by client for admins
+                  (() => {
+                    const groupedTickets: { [key: string]: typeof sortedParentTickets } = {};
+                    sortedParentTickets
+                      .filter(ticket => {
+                        const childTickets = getChildTickets(ticket.id);
+                        return ticketMatchesFilter(ticket, childTickets);
+                      })
+                      .forEach(ticket => {
+                        const clientName = ticket.client?.name || 'No Client';
+                        if (!groupedTickets[clientName]) {
+                          groupedTickets[clientName] = [];
+                        }
+                        groupedTickets[clientName].push(ticket);
+                      });
+
+                    return Object.entries(groupedTickets)
+                      .sort(([a], [b]) => a.localeCompare(b))
+                      .map(([clientName, clientTickets]) => (
+                        <div key={clientName}>
+                          <div className="bg-muted/70 px-6 py-2 font-semibold text-sm border-b border-border">
+                            {clientName}
+                          </div>
+                          {clientTickets.map(ticket => renderTicketRow(ticket))}
+                        </div>
+                      ));
+                  })()
+                ) : (
+                  // Original flat list for non-admins
+                  sortedParentTickets
+                    .filter(ticket => {
+                      const childTickets = getChildTickets(ticket.id);
+                      return ticketMatchesFilter(ticket, childTickets);
+                    })
+                    .map((ticket) => renderTicketRow(ticket))
+                )
               ) : (
                 <div className="px-4 md:px-6 py-12 text-center text-muted-foreground">
                   <p>No tickets found</p>
