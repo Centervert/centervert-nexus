@@ -148,25 +148,45 @@ export const MentionTextarea = ({ value, onChange, placeholder, disabled }: Ment
 
       {showSuggestions && filteredUsers.length > 0 && (
         <Card
-          className="absolute z-50 max-h-48 overflow-y-auto p-1"
+          className="absolute z-[100] w-full max-h-60 overflow-y-auto border-2 shadow-lg mt-1"
           style={{
-            top: `${suggestionPosition.top + 20}px`,
-            left: `${suggestionPosition.left}px`,
-            minWidth: '200px',
+            top: '100%',
           }}
         >
-          {filteredUsers.map((user, index) => (
-            <div
-              key={user.id}
-              className={`px-3 py-2 cursor-pointer rounded ${
-                index === selectedIndex ? 'bg-secondary' : 'hover:bg-secondary/50'
-              }`}
-              onClick={() => insertMention(user)}
-            >
-              <div className="font-medium">{user.full_name || user.email}</div>
-              {user.full_name && <div className="text-xs text-muted-foreground">{user.email}</div>}
+          <div className="p-1 border-b bg-muted/50">
+            <div className="text-xs font-medium text-muted-foreground px-2 py-1">
+              Mention someone
             </div>
-          ))}
+          </div>
+          <div className="p-1">
+            {filteredUsers.map((user, index) => (
+              <div
+                key={user.id}
+                className={`px-3 py-2 cursor-pointer rounded transition-colors ${
+                  index === selectedIndex 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:bg-secondary'
+                }`}
+                onClick={() => insertMention(user)}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                    {(user.full_name || user.email).charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{user.full_name || user.email}</div>
+                    {user.full_name && (
+                      <div className={`text-xs truncate ${
+                        index === selectedIndex ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                      }`}>
+                        {user.email}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </Card>
       )}
     </div>
