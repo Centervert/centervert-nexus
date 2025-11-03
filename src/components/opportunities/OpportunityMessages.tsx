@@ -173,15 +173,17 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <MentionTextarea
-          value={newMessage}
-          onChange={(value, mentions) => {
-            setNewMessage(value);
-            setMessageMentions(mentions);
-          }}
-          placeholder="Type @ to mention someone... (Enter to send, Shift+Enter for new line)"
-        />
+      <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+        <div className="flex-1">
+          <MentionTextarea
+            value={newMessage}
+            onChange={(value, mentions) => {
+              setNewMessage(value);
+              setMessageMentions(mentions);
+            }}
+            placeholder="Type @ to mention someone... (Enter to send, Shift+Enter for new line)"
+          />
+        </div>
         <Button type="submit" size="icon" disabled={!newMessage.trim() || createMessage.isPending}>
           <Send className="h-4 w-4" />
         </Button>
