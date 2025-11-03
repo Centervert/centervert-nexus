@@ -21,6 +21,7 @@ import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
 import Profile from "./pages/Profile";
 import DevProjects from "./pages/DevProjects";
+import DevProjectDetail from "./pages/DevProjectDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -138,6 +139,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <DevProjects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dev-projects/:id"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <DevProjectDetail />
                   </ProtectedRoute>
                 }
               />

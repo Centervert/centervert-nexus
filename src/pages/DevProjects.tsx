@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -11,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { CreateProjectDialog } from '@/components/development/CreateProjectDialog';
 
 const DevProjects = () => {
+  const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   const { data: projects, isLoading } = useQuery({
@@ -72,7 +74,11 @@ const DevProjects = () => {
             ) : projects && projects.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {projects.map((project) => (
-                  <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <Card 
+                    key={project.id} 
+                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => navigate(`/dev-projects/${project.id}`)}
+                  >
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
