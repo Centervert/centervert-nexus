@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Mail, Phone, Trash2 } from 'lucide-react';
-import { useOpportunityContacts, useLinkContact, useUnlinkContact, useContacts } from '@/hooks/useContacts';
+import { Plus, Mail, Phone, Trash2, Edit } from 'lucide-react';
+import { useOpportunityContacts, useLinkContact, useUnlinkContact, useContacts, type Contact } from '@/hooks/useContacts';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import CreateContactDialog from '@/components/contacts/CreateContactDialog';
+import EditContactDialog from '@/components/contacts/EditContactDialog';
 
 interface OpportunityContactsProps {
   opportunityId: string;
@@ -20,6 +21,8 @@ const OpportunityContacts = ({ opportunityId }: OpportunityContactsProps) => {
   const unlinkContact = useUnlinkContact();
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [selectedContactId, setSelectedContactId] = useState('');
   const [relationshipType, setRelationshipType] = useState('primary');
 
@@ -51,6 +54,11 @@ const OpportunityContacts = ({ opportunityId }: OpportunityContactsProps) => {
       opportunity_id: opportunityId,
       contact_id: contactId,
     });
+  };
+
+  const handleEditClick = (contact: Contact) => {
+    setSelectedContact(contact);
+    setEditDialogOpen(true);
   };
 
   const getRelationshipBadge = (type: string | null) => {
@@ -105,13 +113,22 @@ const OpportunityContacts = ({ opportunityId }: OpportunityContactsProps) => {
                     <p className="text-sm text-muted-foreground">{oc.contact.organization}</p>
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleUnlink(oc.contact_id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEditClick(oc.contact)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleUnlink(oc.contact_id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="flex gap-4 text-sm">
@@ -195,6 +212,12 @@ const OpportunityContacts = ({ opportunityId }: OpportunityContactsProps) => {
         open={createDialogOpen} 
         onOpenChange={setCreateDialogOpen}
         opportunityId={opportunityId}
+      />
+
+      <EditContactDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        contact={selectedContact}
       />
     </Card>
   );
