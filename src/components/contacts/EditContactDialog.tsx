@@ -18,6 +18,25 @@ const EditContactDialog = ({ open, onOpenChange, contact }: EditContactDialogPro
   const { register, handleSubmit, reset, setValue } = useForm();
   const updateContact = useUpdateContact();
 
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-numeric characters
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length <= 3) {
+      return phoneNumber;
+    } else if (phoneNumber.length <= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value);
+    setValue('phone', formatted);
+  };
+
   useEffect(() => {
     if (contact) {
       reset({
@@ -82,7 +101,14 @@ const EditContactDialog = ({ open, onOpenChange, contact }: EditContactDialogPro
 
             <div>
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" type="tel" {...register('phone')} placeholder="(555) 555-5555" />
+              <Input 
+                id="phone" 
+                type="tel" 
+                {...register('phone')} 
+                onChange={handlePhoneChange}
+                placeholder="(555) 555-5555"
+                maxLength={14}
+              />
             </div>
           </div>
 
