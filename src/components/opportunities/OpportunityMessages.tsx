@@ -4,10 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Star, StarOff, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { MentionTextarea } from '@/components/messages/MentionTextarea';
+import { MessageReactions } from '@/components/messages/MessageReactions';
 
 interface OpportunityMessagesProps {
   opportunityId: string;
@@ -17,6 +18,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [newMessage, setNewMessage] = useState('');
+  const [messageMentions, setMessageMentions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { data: profile } = useQuery({
@@ -47,7 +49,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
   });
 
   const createMessage = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, mentions }: { content: string; mentions: string[] }) => {
       const { data, error } = await supabase
         .from('opportunity_messages')
         .insert([{
@@ -55,6 +57,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
           user_id: user?.id,
           user_name: profile?.full_name || user?.email || 'Unknown',
           content,
+          mentions,
         }])
         .select()
         .single();
@@ -64,6 +67,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['opportunity-messages', opportunityId] });
       setNewMessage('');
+      setMessageMentions([]);
       toast.success('Message sent');
     },
   });
@@ -114,16 +118,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    createMessage.mutate(newMessage);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (newMessage.trim()) {
-        createMessage.mutate(newMessage);
-      }
-    }
+    createMessage.mutate({ content: newMessage, mentions: messageMentions });
   };
 
   return (
@@ -169,22 +164,23 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-              </div>
-            </div>
+                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                 <MessageReactions messageId={message.id} messageType="opportunity" />
+               </div>
+             </div>
           ))
         )}
         <div ref={messagesEndRef} />
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <Textarea
+        <MentionTextarea
           value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
-          className="flex-1"
-          rows={2}
+          onChange={(value, mentions) => {
+            setNewMessage(value);
+            setMessageMentions(mentions);
+          }}
+          placeholder="Type @ to mention someone... (Enter to send, Shift+Enter for new line)"
         />
         <Button type="submit" size="icon" disabled={!newMessage.trim() || createMessage.isPending}>
           <Send className="h-4 w-4" />
