@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Trash2, Info, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Trash2, Info, DollarSign, TrendingUp, Edit2, Check, X } from 'lucide-react';
 import {
   useOpportunityQuoteItems,
   useCreateQuoteItem,
@@ -31,6 +31,9 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
     item_type: 'one_time' as 'one_time' | 'monthly',
   });
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState<Partial<OpportunityQuoteItem>>({});
+
   const handleAddItem = () => {
     if (!newItem.item_name.trim()) return;
     
@@ -54,6 +57,36 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
 
   const handleDeleteItem = (id: string) => {
     deleteItem.mutate({ id, opportunityId });
+  };
+
+  const startEditing = (item: OpportunityQuoteItem) => {
+    setEditingId(item.id);
+    setEditValues({
+      item_name: item.item_name,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      unit_cost: item.unit_cost,
+      item_type: item.item_type,
+    });
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditValues({});
+  };
+
+  const saveEditing = () => {
+    if (editingId && editValues.item_name?.trim()) {
+      updateItem.mutate(
+        { id: editingId, ...editValues },
+        {
+          onSuccess: () => {
+            setEditingId(null);
+            setEditValues({});
+          },
+        }
+      );
+    }
   };
 
   const calculateItemTotals = (item: OpportunityQuoteItem) => {
@@ -201,16 +234,87 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   <TableBody>
                     {items.map((item) => {
                       const { revenue, profit } = calculateItemTotals(item);
+                      const isEditing = editingId === item.id;
+                      
                       return (
                         <TableRow key={item.id}>
-                          <TableCell className="font-medium">{item.item_name}</TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
-                          <TableCell className="text-right">${item.unit_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                          <TableCell className="text-right">${item.unit_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="font-medium">
+                            {isEditing ? (
+                              <Input
+                                value={editValues.item_name || ''}
+                                onChange={(e) => setEditValues({ ...editValues, item_name: e.target.value })}
+                                className="h-8"
+                              />
+                            ) : (
+                              item.item_name
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                min="1"
+                                value={editValues.quantity || 0}
+                                onChange={(e) => setEditValues({ ...editValues, quantity: parseFloat(e.target.value) || 1 })}
+                                className="h-8 text-right"
+                              />
+                            ) : (
+                              item.quantity
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editValues.unit_price || 0}
+                                onChange={(e) => setEditValues({ ...editValues, unit_price: parseFloat(e.target.value) || 0 })}
+                                className="h-8 text-right"
+                              />
+                            ) : (
+                              `$${item.unit_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {isEditing ? (
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={editValues.unit_cost || 0}
+                                onChange={(e) => setEditValues({ ...editValues, unit_cost: parseFloat(e.target.value) || 0 })}
+                                className="h-8 text-right"
+                              />
+                            ) : (
+                              `$${item.unit_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            )}
+                          </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-xs px-2 py-1 rounded-full bg-secondary">
-                              {item.item_type === 'one_time' ? 'One-time' : 'Monthly'}
-                            </span>
+                            {isEditing ? (
+                              <div className="flex gap-1">
+                                <Button
+                                  size="sm"
+                                  variant={editValues.item_type === 'one_time' ? 'default' : 'outline'}
+                                  onClick={() => setEditValues({ ...editValues, item_type: 'one_time' })}
+                                  className="flex-1 h-7 text-xs"
+                                >
+                                  One-time
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={editValues.item_type === 'monthly' ? 'default' : 'outline'}
+                                  onClick={() => setEditValues({ ...editValues, item_type: 'monthly' })}
+                                  className="flex-1 h-7 text-xs"
+                                >
+                                  Monthly
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="text-xs px-2 py-1 rounded-full bg-secondary">
+                                {item.item_type === 'one_time' ? 'One-time' : 'Monthly'}
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-right font-medium">${revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                           <TableCell className="text-right">
@@ -219,13 +323,45 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                             </span>
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {isEditing ? (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={saveEditing}
+                                  className="h-8 w-8"
+                                >
+                                  <Check className="h-4 w-4 text-green-600" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={cancelEditing}
+                                  className="h-8 w-8"
+                                >
+                                  <X className="h-4 w-4 text-red-600" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => startEditing(item)}
+                                  className="h-8 w-8"
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  className="h-8 w-8"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
