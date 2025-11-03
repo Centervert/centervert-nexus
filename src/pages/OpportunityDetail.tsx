@@ -15,6 +15,7 @@ import OpportunityMessages from '@/components/opportunities/OpportunityMessages'
 import OpportunityAttachments from '@/components/opportunities/OpportunityAttachments';
 import OpportunityContacts from '@/components/opportunities/OpportunityContacts';
 import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
+import { OpportunityQuotePlayground } from '@/components/opportunities/OpportunityQuotePlayground';
 
 const OpportunityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -159,6 +160,7 @@ const OpportunityDetail = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="quote">Quote Playground</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="communication">Communication</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -304,6 +306,10 @@ const OpportunityDetail = () => {
                 </div>
               )}
             </Card>
+          </TabsContent>
+
+          <TabsContent value="quote">
+            <OpportunityQuotePlayground opportunityId={id!} />
           </TabsContent>
 
           <TabsContent value="contacts">

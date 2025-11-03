@@ -707,6 +707,50 @@ export type Database = {
           },
         ]
       }
+      opportunity_quote_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_name: string
+          item_type: string
+          opportunity_id: string
+          quantity: number
+          unit_cost: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_name: string
+          item_type?: string
+          opportunity_id: string
+          quantity?: number
+          unit_cost?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_name?: string
+          item_type?: string
+          opportunity_id?: string
+          quantity?: number
+          unit_cost?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_quote_items_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
