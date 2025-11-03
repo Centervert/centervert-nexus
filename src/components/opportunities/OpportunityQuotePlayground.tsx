@@ -204,18 +204,18 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                       return (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.item_name}</TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
-                          <TableCell className="text-right">${item.unit_price.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">${item.unit_cost.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">${item.quantity}</TableCell>
+                          <TableCell className="text-right">${item.unit_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-right">${item.unit_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                           <TableCell className="text-center">
                             <span className="text-xs px-2 py-1 rounded-full bg-secondary">
                               {item.item_type === 'one_time' ? 'One-time' : 'Monthly'}
                             </span>
                           </TableCell>
-                          <TableCell className="text-right font-medium">${revenue.toFixed(2)}</TableCell>
+                          <TableCell className="text-right font-medium">${revenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                           <TableCell className="text-right">
                             <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>
-                              ${profit.toFixed(2)}
+                              ${profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -259,28 +259,28 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                 <p className="text-sm text-muted-foreground">Total One-Time</p>
                 <p className="text-2xl font-bold flex items-center gap-1">
                   <DollarSign className="h-5 w-5" />
-                  {totals.totalOneTime.toFixed(2)}
+                  {totals.totalOneTime.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">Total MRR</p>
                 <p className="text-2xl font-bold flex items-center gap-1">
                   <DollarSign className="h-5 w-5" />
-                  {totals.totalMRR.toFixed(2)}
+                  {totals.totalMRR.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">One-Time Profit</p>
                 <p className={`text-2xl font-bold flex items-center gap-1 ${totals.totalOneTimeProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   <DollarSign className="h-5 w-5" />
-                  {totals.totalOneTimeProfit.toFixed(2)}
+                  {totals.totalOneTimeProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">MRR Profit</p>
                 <p className={`text-2xl font-bold flex items-center gap-1 ${totals.totalMRRProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   <DollarSign className="h-5 w-5" />
-                  {totals.totalMRRProfit.toFixed(2)}
+                  {totals.totalMRRProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
             </div>
