@@ -118,12 +118,18 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const handleViewFile = async (fileName: string, fileUrl: string) => {
+  const handleViewFile = async (fileName: string, fileUrl: string, fileType: string) => {
     try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      setViewingFile({ name: fileName, url: fileUrl, blobUrl });
+      // PDFs can be displayed directly in iframe
+      if (fileType === 'application/pdf') {
+        const response = await fetch(fileUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        setViewingFile({ name: fileName, url: fileUrl, blobUrl });
+      } else {
+        // For Word/Excel docs, use Google Docs Viewer
+        setViewingFile({ name: fileName, url: fileUrl });
+      }
     } catch (error) {
       console.error('Error loading file:', error);
       toast.error('Failed to load file');
@@ -186,7 +192,7 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => handleViewFile(attachment.file_name, attachment.file_url)}
+                  onClick={() => handleViewFile(attachment.file_name, attachment.file_url, attachment.file_type)}
                   title="View document"
                 >
                   <Eye className="h-4 w-4" />
@@ -224,9 +230,9 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
             <DialogTitle>{viewingFile?.name}</DialogTitle>
           </DialogHeader>
           <div className="flex-1 min-h-0 h-full">
-            {viewingFile?.blobUrl && (
+            {viewingFile && (
               <iframe
-                src={viewingFile.blobUrl}
+                src={viewingFile.blobUrl || `https://docs.google.com/viewer?url=${encodeURIComponent(viewingFile.url)}&embedded=true`}
                 className="w-full h-full rounded border"
                 title={viewingFile.name}
               />
