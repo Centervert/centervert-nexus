@@ -204,7 +204,7 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                       return (
                         <TableRow key={item.id}>
                           <TableCell className="font-medium">{item.item_name}</TableCell>
-                          <TableCell className="text-right">${item.quantity}</TableCell>
+                          <TableCell className="text-right">{item.quantity}</TableCell>
                           <TableCell className="text-right">${item.unit_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                           <TableCell className="text-right">${item.unit_cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
                           <TableCell className="text-center">
