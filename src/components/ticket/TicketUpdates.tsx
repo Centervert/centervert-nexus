@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Send, Star, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import { useUserRole } from '@/hooks/useUserRole';
+import { MessageReactions } from '@/components/messages/MessageReactions';
+import { MentionTextarea } from '@/components/messages/MentionTextarea';
 
 interface Message {
   id: string;
@@ -26,6 +27,7 @@ interface TicketUpdatesProps {
 
 export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   const [newMessage, setNewMessage] = useState('');
+  const [messageMentions, setMessageMentions] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [markAsImportant, setMarkAsImportant] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
@@ -162,11 +164,13 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
         is_important: markAsImportant,
         marked_important_at: markAsImportant ? new Date().toISOString() : null,
         marked_important_by: markAsImportant ? user.id : null,
+        mentions: messageMentions.length > 0 ? messageMentions : null,
       });
 
       if (error) throw error;
 
       setNewMessage('');
+      setMessageMentions([]);
       setMarkAsImportant(false);
       
       // Scroll to bottom after sending message
@@ -333,10 +337,13 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
                     </div>
                   </div>
                   
-                  {/* Time below bubble */}
-                  <span className="text-[11px] text-muted-foreground mt-0.5 px-3">
-                    {formatTime(message.created_at)}
-                  </span>
+                  {/* Time and Reactions below bubble */}
+                  <div className="flex flex-col items-start gap-1 px-3">
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatTime(message.created_at)}
+                    </span>
+                    <MessageReactions messageId={message.id} messageType="ticket" />
+                  </div>
                 </div>
               </div>
             );
@@ -365,13 +372,14 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
 
         {/* Input area with border like iMessage */}
         <div className="relative">
-          <Textarea
-            ref={textareaRef}
+          <MentionTextarea
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="min-h-[60px] resize-none rounded-[20px] border-2 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary pr-12"
-            maxLength={1000}
+            onChange={(value, mentions) => {
+              setNewMessage(value);
+              setMessageMentions(mentions);
+            }}
+            placeholder="Type your message... (Use @ to mention someone)"
+            disabled={isSending}
           />
           <Button
             onClick={handleSendMessage}

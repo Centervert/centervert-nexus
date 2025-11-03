@@ -663,6 +663,38 @@ export type Database = {
           },
         ]
       }
+      opportunity_message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_messages: {
         Row: {
           content: string
@@ -672,6 +704,7 @@ export type Database = {
           is_important: boolean | null
           marked_important_at: string | null
           marked_important_by: string | null
+          mentions: string[] | null
           opportunity_id: string
           updated_at: string | null
           user_id: string
@@ -685,6 +718,7 @@ export type Database = {
           is_important?: boolean | null
           marked_important_at?: string | null
           marked_important_by?: string | null
+          mentions?: string[] | null
           opportunity_id: string
           updated_at?: string | null
           user_id: string
@@ -698,6 +732,7 @@ export type Database = {
           is_important?: boolean | null
           marked_important_at?: string | null
           marked_important_by?: string | null
+          mentions?: string[] | null
           opportunity_id?: string
           updated_at?: string | null
           user_id?: string
@@ -874,6 +909,38 @@ export type Database = {
           },
         ]
       }
+      ticket_message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_messages: {
         Row: {
           content: string
@@ -883,6 +950,7 @@ export type Database = {
           is_important: boolean | null
           marked_important_at: string | null
           marked_important_by: string | null
+          mentions: string[] | null
           ticket_id: string
           updated_at: string
           user_id: string
@@ -896,6 +964,7 @@ export type Database = {
           is_important?: boolean | null
           marked_important_at?: string | null
           marked_important_by?: string | null
+          mentions?: string[] | null
           ticket_id: string
           updated_at?: string
           user_id: string
@@ -909,6 +978,7 @@ export type Database = {
           is_important?: boolean | null
           marked_important_at?: string | null
           marked_important_by?: string | null
+          mentions?: string[] | null
           ticket_id?: string
           updated_at?: string
           user_id?: string
