@@ -129,7 +129,10 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   type="number"
                   min="1"
                   value={newItem.quantity}
-                  onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 1 })}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 1 : parseFloat(e.target.value);
+                    setNewItem({ ...newItem, quantity: isNaN(value) ? 1 : value });
+                  }}
                 />
               </div>
               <div className="md:col-span-2">
