@@ -1002,7 +1002,7 @@ const Dashboard = () => {
                  ))
               ) : tickets && tickets.length > 0 ? (
                 userRole?.isAdmin ? (
-                  // Group by client for admins
+                  // Group by client for admins (agency-managed clients grouped under agency)
                   (() => {
                     const groupedTickets: { [key: string]: typeof sortedParentTickets } = {};
                     sortedParentTickets
@@ -1011,19 +1011,20 @@ const Dashboard = () => {
                         return ticketMatchesFilter(ticket, childTickets);
                       })
                       .forEach(ticket => {
-                        const clientName = ticket.client?.name || 'No Client';
-                        if (!groupedTickets[clientName]) {
-                          groupedTickets[clientName] = [];
+                        // Group by managing agency if it's an agency-managed client, otherwise by client name
+                        const groupName = ticket.client?.managing_agency?.name || ticket.client?.name || 'No Client';
+                        if (!groupedTickets[groupName]) {
+                          groupedTickets[groupName] = [];
                         }
-                        groupedTickets[clientName].push(ticket);
+                        groupedTickets[groupName].push(ticket);
                       });
 
                     return Object.entries(groupedTickets)
                       .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([clientName, clientTickets]) => (
-                        <div key={clientName}>
+                      .map(([groupName, clientTickets]) => (
+                        <div key={groupName}>
                           <div className="bg-muted/70 px-6 py-2 font-semibold text-sm border-b border-border">
-                            {clientName}
+                            {groupName}
                           </div>
                           {clientTickets.map(ticket => renderTicketRow(ticket))}
                         </div>
