@@ -66,14 +66,14 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
     },
   });
 
-  // Real-time subscription for INSERT and UPDATE
+  // Real-time subscription for INSERT, UPDATE, and DELETE
   useEffect(() => {
     const channel = supabase
       .channel(`ticket-messages-${ticketId}`)
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'ticket_messages',
           filter: `ticket_id=eq.${ticketId}`,
@@ -85,10 +85,9 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
-          table: 'ticket_messages',
-          filter: `ticket_id=eq.${ticketId}`,
+          table: 'ticket_message_reactions',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['ticket-messages', ticketId] });

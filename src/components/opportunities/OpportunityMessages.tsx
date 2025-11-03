@@ -115,6 +115,17 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
           queryClient.invalidateQueries({ queryKey: ['opportunity-messages', opportunityId] });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'opportunity_message_reactions',
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['opportunity-messages', opportunityId] });
+        }
+      )
       .subscribe();
 
     return () => {
