@@ -695,6 +695,41 @@ export type Database = {
           },
         ]
       }
+      opportunity_message_read_receipts: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_read_at: string
+          opportunity_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_read_at?: string
+          opportunity_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_read_at?: string
+          opportunity_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_message_read_receipts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_messages: {
         Row: {
           content: string
@@ -937,6 +972,41 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "ticket_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_message_read_receipts: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_read_at: string
+          ticket_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_read_at?: string
+          ticket_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_read_at?: string
+          ticket_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_message_read_receipts_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
             referencedColumns: ["id"]
           },
         ]

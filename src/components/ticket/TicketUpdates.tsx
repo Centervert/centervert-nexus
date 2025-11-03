@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import { useUserRole } from '@/hooks/useUserRole';
 import { MessageReactions } from '@/components/messages/MessageReactions';
 import { MentionTextarea } from '@/components/messages/MentionTextarea';
+import { useMarkTicketMessagesRead } from '@/hooks/useUnreadMessages';
 
 interface Message {
   id: string;
@@ -35,6 +36,12 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
   const { data: userRole } = useUserRole();
+  const markAsRead = useMarkTicketMessagesRead();
+
+  // Mark messages as read when component mounts
+  useEffect(() => {
+    markAsRead.mutate(ticketId);
+  }, [ticketId]);
 
   // Get current user ID
   useEffect(() => {

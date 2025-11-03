@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { MentionTextarea } from '@/components/messages/MentionTextarea';
 import { MessageReactions } from '@/components/messages/MessageReactions';
+import { useMarkOpportunityMessagesRead } from '@/hooks/useUnreadMessages';
 
 interface OpportunityMessagesProps {
   opportunityId: string;
@@ -20,6 +21,12 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
   const [newMessage, setNewMessage] = useState('');
   const [messageMentions, setMessageMentions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const markAsRead = useMarkOpportunityMessagesRead();
+
+  // Mark messages as read when component mounts or becomes visible
+  useEffect(() => {
+    markAsRead.mutate(opportunityId);
+  }, [opportunityId]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],

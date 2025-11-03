@@ -59,6 +59,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+import { useMarkTicketMessagesRead } from '@/hooks/useUnreadMessages';
 
 const TicketDetail = () => {
   const { id } = useParams();
@@ -73,6 +74,14 @@ const TicketDetail = () => {
   const [pendingParentId, setPendingParentId] = useState<string>('');
   const [cascadeAction, setCascadeAction] = useState<'move' | 'orphan' | null>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const markAsRead = useMarkTicketMessagesRead();
+  
+  // Mark messages as read when viewing ticket
+  useEffect(() => {
+    if (id) {
+      markAsRead.mutate(id);
+    }
+  }, [id]);
   
   // Edit form state
   const [editTitle, setEditTitle] = useState('');

@@ -16,6 +16,7 @@ import OpportunityAttachments from '@/components/opportunities/OpportunityAttach
 import OpportunityContacts from '@/components/opportunities/OpportunityContacts';
 import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
 import { OpportunityQuotePlayground } from '@/components/opportunities/OpportunityQuotePlayground';
+import { useOpportunityUnreadCount } from '@/hooks/useUnreadMessages';
 
 const OpportunityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +26,7 @@ const OpportunityDetail = () => {
   const deleteOpportunity = useDeleteOpportunity();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const { data: unreadCount = 0 } = useOpportunityUnreadCount(id!);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -162,7 +164,14 @@ const OpportunityDetail = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="quote">Quote Playground</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="communication">Communication</TabsTrigger>
+            <TabsTrigger value="communication" className="relative">
+              Communication
+              {unreadCount > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 min-w-5 px-1.5 text-xs">
+                  {unreadCount}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
 
