@@ -8,6 +8,13 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Code, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DevProjectOverview } from '@/components/development/DevProjectOverview';
+import { DevProjectTasks } from '@/components/development/DevProjectTasks';
+import { DevProjectSprints } from '@/components/development/DevProjectSprints';
+import { DevProjectTimeTracking } from '@/components/development/DevProjectTimeTracking';
+import { DevProjectBuilds } from '@/components/development/DevProjectBuilds';
+import { DevProjectFiles } from '@/components/development/DevProjectFiles';
 
 const DevProjectDetail = () => {
   const { id } = useParams();
@@ -104,61 +111,41 @@ const DevProjectDetail = () => {
             </Badge>
           </header>
 
-          <div className="p-6 space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Details</CardTitle>
-                <CardDescription>{project.description || 'No description available'}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <span className="text-sm text-muted-foreground">Project Type</span>
-                    <p className="font-medium">{getProjectTypeLabel(project.project_type)}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm text-muted-foreground">Priority</span>
-                    <p className="font-medium capitalize">{project.priority}</p>
-                  </div>
-                  {project.client && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Client</span>
-                      <p className="font-medium">{project.client.name}</p>
-                    </div>
-                  )}
-                  {project.lead_developer && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Lead Developer</span>
-                      <p className="font-medium">{project.lead_developer.full_name}</p>
-                    </div>
-                  )}
-                  {project.project_manager && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Project Manager</span>
-                      <p className="font-medium">{project.project_manager.full_name}</p>
-                    </div>
-                  )}
-                  {project.target_launch_date && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Target Launch Date</span>
-                      <p className="font-medium">
-                        {new Date(project.target_launch_date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
-                  {project.repository_url && (
-                    <div>
-                      <span className="text-sm text-muted-foreground">Repository</span>
-                      <p className="font-medium">
-                        <a href={project.repository_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                          View Repository
-                        </a>
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <div className="p-6">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                <TabsTrigger value="sprints">Sprints</TabsTrigger>
+                <TabsTrigger value="time">Time Tracking</TabsTrigger>
+                <TabsTrigger value="builds">Builds</TabsTrigger>
+                <TabsTrigger value="files">Files</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="mt-6">
+                <DevProjectOverview project={project} />
+              </TabsContent>
+              
+              <TabsContent value="tasks" className="mt-6">
+                <DevProjectTasks projectId={project.id} />
+              </TabsContent>
+              
+              <TabsContent value="sprints" className="mt-6">
+                <DevProjectSprints projectId={project.id} />
+              </TabsContent>
+              
+              <TabsContent value="time" className="mt-6">
+                <DevProjectTimeTracking projectId={project.id} />
+              </TabsContent>
+              
+              <TabsContent value="builds" className="mt-6">
+                <DevProjectBuilds projectId={project.id} />
+              </TabsContent>
+              
+              <TabsContent value="files" className="mt-6">
+                <DevProjectFiles projectId={project.id} />
+              </TabsContent>
+            </Tabs>
           </div>
         </main>
       </div>
