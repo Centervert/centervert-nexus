@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Plus, Code, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CreateProjectDialog } from '@/components/development/CreateProjectDialog';
 
 const DevProjects = () => {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
   const { data: projects, isLoading } = useQuery({
     queryKey: ['dev-projects'],
     queryFn: async () => {
@@ -55,7 +58,7 @@ const DevProjects = () => {
             <div className="flex-1">
               <h1 className="text-2xl font-semibold">Development Projects</h1>
             </div>
-            <Button>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Project
             </Button>
@@ -129,7 +132,7 @@ const DevProjects = () => {
                 <p className="text-muted-foreground mb-6 max-w-md">
                   Create your first development project to start tracking app and software development.
                 </p>
-                <Button>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create First Project
                 </Button>
@@ -138,6 +141,11 @@ const DevProjects = () => {
           </div>
         </main>
       </div>
+
+      <CreateProjectDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+      />
     </SidebarProvider>
   );
 };
