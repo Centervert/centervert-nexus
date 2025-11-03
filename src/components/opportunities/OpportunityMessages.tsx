@@ -121,6 +121,17 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
     createMessage.mutate({ content: newMessage, mentions: messageMentions });
   };
 
+  const renderMessageContent = (content: string) => {
+    // Replace @mentions with bold text
+    const parts = content.split(/(@[\w\s]+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('@')) {
+        return <strong key={index} className="font-semibold">{part}</strong>;
+      }
+      return part;
+    });
+  };
+
   return (
     <Card className="p-6 space-y-4">
       <h3 className="font-semibold text-lg">Team Communication</h3>
@@ -140,7 +151,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
               <div
                 className={`max-w-[70%] rounded-lg p-3 ${
                   message.user_id === user?.id
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'bg-[#007AFF] text-white'
                     : 'bg-muted'
                 } ${message.is_important ? 'ring-2 ring-yellow-500' : ''}`}
               >
@@ -164,7 +175,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
                     </p>
                   </div>
                 </div>
-                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                 <p className="text-sm whitespace-pre-wrap">{renderMessageContent(message.content)}</p>
                  <MessageReactions messageId={message.id} messageType="opportunity" />
                </div>
              </div>

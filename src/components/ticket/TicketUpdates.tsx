@@ -226,16 +226,26 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
       );
     }
 
-    // Plain text with paragraph support
+    // Plain text with paragraph support and @mention bolding
     const paragraphs = message.content.split('\n\n');
     return paragraphs.map((para, idx) => (
       <p key={idx} className={idx < paragraphs.length - 1 ? 'mb-3' : ''}>
-        {para.split('\n').map((line, lineIdx, arr) => (
-          <span key={lineIdx}>
-            {line}
-            {lineIdx < arr.length - 1 && <br />}
-          </span>
-        ))}
+        {para.split('\n').map((line, lineIdx, arr) => {
+          // Split line by @mentions
+          const parts = line.split(/(@[\w\s]+)/g);
+          return (
+            <span key={lineIdx}>
+              {parts.map((part, partIdx) => 
+                part.startsWith('@') ? (
+                  <strong key={partIdx} className="font-semibold">{part}</strong>
+                ) : (
+                  part
+                )
+              )}
+              {lineIdx < arr.length - 1 && <br />}
+            </span>
+          );
+        })}
       </p>
     ));
   };
