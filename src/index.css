@@ -153,4 +153,22 @@ All colors MUST be HSL.
   .border-gradient-brand {
     border-image: linear-gradient(135deg, hsl(var(--gradient-start)), hsl(var(--gradient-end))) 1;
   }
+  
+  /* Mobile-first utilities */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .mobile-title {
+    @apply text-2xl lg:text-3xl;
+  }
+  
+  .mobile-card-padding {
+    @apply p-4 lg:p-6;
+  }
+  
+  .mobile-container {
+    @apply p-4 lg:p-6;
+  }
 }

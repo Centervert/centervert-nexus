@@ -79,16 +79,16 @@ const Opportunities = () => {
               <SidebarTrigger />
             </div>
           </div>
-          <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
+          <div className="mobile-container space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Briefcase className="h-8 w-8" />
+            <h1 className="mobile-title font-bold flex items-center gap-2">
+              <Briefcase className="h-6 w-6 sm:h-8 sm:w-8" />
               Sales & Opportunities
             </h1>
-            <p className="text-muted-foreground">Track government and private sector sales opportunities</p>
+            <p className="text-sm text-muted-foreground">Track government and private sector sales opportunities</p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => setCreateDialogOpen(true)} className="touch-target w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Create Opportunity
           </Button>
@@ -141,110 +141,177 @@ const Opportunities = () => {
           </Card>
         </div>
 
-        <Card className="p-6">
+        <Card className="mobile-card-padding">
           <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col gap-3">
               <Input
                 placeholder="Search opportunities..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1"
+                className="touch-target w-full"
               />
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
-                  <SelectItem value="awarded">Awarded</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full md:w-[200px]">
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="private">Private Sector</SelectItem>
-                  <SelectItem value="government">Government</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="touch-target w-full sm:w-[200px]">
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="lead">Lead</SelectItem>
+                    <SelectItem value="qualified">Qualified</SelectItem>
+                    <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
+                    <SelectItem value="awarded">Awarded</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="on_hold">On Hold</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="touch-target w-full sm:w-[200px]">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="private">Private Sector</SelectItem>
+                    <SelectItem value="government">Government</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Opportunity #</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Assigned To</TableHead>
-                  <TableHead>Deadline</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
+            {/* Desktop Table View - Hidden on Mobile */}
+            <div className="hidden lg:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      Loading opportunities...
-                    </TableCell>
+                    <TableHead>Opportunity #</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Assigned To</TableHead>
+                    <TableHead>Deadline</TableHead>
                   </TableRow>
-                ) : filteredOpportunities?.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
-                      No opportunities found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredOpportunities?.map((opp) => {
-                    const deadlineInfo = getDeadlineUrgency(opp.submission_deadline);
-                    return (
-                      <TableRow
-                        key={opp.id}
-                        className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => navigate(`/opportunities/${opp.id}`)}
-                      >
-                        <TableCell className="font-mono text-sm">{opp.opportunity_number}</TableCell>
-                        <TableCell className="font-medium">{opp.title}</TableCell>
-                        <TableCell>
-                          <Badge className={opp.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
-                            {opp.opportunity_type === 'government' ? 'Government' : 'Private'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusBadgeColor(opp.status)}>
-                            {opp.status.replace('_', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getPriorityBadgeColor(opp.priority)}>
-                            {opp.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {opp.estimated_value ? `$${opp.estimated_value.toLocaleString()}` : '-'}
-                        </TableCell>
-                        <TableCell>{opp.assigned_user?.full_name || 'Unassigned'}</TableCell>
-                        <TableCell>
-                          {deadlineInfo ? (
-                            <span className={deadlineInfo.color}>{deadlineInfo.text}</span>
-                          ) : (
-                            '-'
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        Loading opportunities...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredOpportunities?.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        No opportunities found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredOpportunities?.map((opp) => {
+                      const deadlineInfo = getDeadlineUrgency(opp.submission_deadline);
+                      return (
+                        <TableRow
+                          key={opp.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => navigate(`/opportunities/${opp.id}`)}
+                        >
+                          <TableCell className="font-mono text-sm">{opp.opportunity_number}</TableCell>
+                          <TableCell className="font-medium">{opp.title}</TableCell>
+                          <TableCell>
+                            <Badge className={opp.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
+                              {opp.opportunity_type === 'government' ? 'Government' : 'Private'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusBadgeColor(opp.status)}>
+                              {opp.status.replace('_', ' ')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getPriorityBadgeColor(opp.priority)}>
+                              {opp.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {opp.estimated_value ? `$${opp.estimated_value.toLocaleString()}` : '-'}
+                          </TableCell>
+                          <TableCell>{opp.assigned_user?.full_name || 'Unassigned'}</TableCell>
+                          <TableCell>
+                            {deadlineInfo ? (
+                              <span className={deadlineInfo.color}>{deadlineInfo.text}</span>
+                            ) : (
+                              '-'
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View - Shown on Mobile */}
+            <div className="lg:hidden space-y-3">
+              {isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  Loading opportunities...
+                </div>
+              ) : filteredOpportunities?.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No opportunities found
+                </div>
+              ) : (
+                filteredOpportunities?.map((opp) => {
+                  const deadlineInfo = getDeadlineUrgency(opp.submission_deadline);
+                  return (
+                    <Card
+                      key={opp.id}
+                      className="p-4 cursor-pointer hover:bg-muted/50 space-y-3"
+                      onClick={() => navigate(`/opportunities/${opp.id}`)}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium line-clamp-2 mb-1">{opp.title}</h3>
+                          <p className="text-xs text-muted-foreground font-mono">{opp.opportunity_number}</p>
+                        </div>
+                        <Badge className={opp.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
+                          {opp.opportunity_type === 'government' ? 'Gov' : 'Private'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className={getStatusBadgeColor(opp.status)} variant="secondary">
+                          {opp.status.replace('_', ' ')}
+                        </Badge>
+                        <Badge className={getPriorityBadgeColor(opp.priority)}>
+                          {opp.priority}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Value</p>
+                          <p className="font-medium">
+                            {opp.estimated_value ? `$${opp.estimated_value.toLocaleString()}` : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Deadline</p>
+                          <p className={`font-medium ${deadlineInfo?.color || ''}`}>
+                            {deadlineInfo?.text || '-'}
+                          </p>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-xs text-muted-foreground">Assigned To</p>
+                          <p className="font-medium">{opp.assigned_user?.full_name || 'Unassigned'}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
+            </div>
           </div>
         </Card>
           </div>

@@ -83,112 +83,116 @@ const OpportunityDetail = () => {
               <SidebarTrigger />
             </div>
           </div>
-          <div className="container mx-auto p-6 space-y-6">
+          <div className="mobile-container space-y-6">
         {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <Button variant="ghost" onClick={() => navigate('/opportunities')} className="mb-2">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Opportunities
-            </Button>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold">{opportunity.title}</h1>
-              <Badge className={opportunity.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
-                {opportunity.opportunity_type === 'government' ? 'Government' : 'Private'}
-              </Badge>
+        <div className="space-y-4">
+          <Button variant="ghost" onClick={() => navigate('/opportunities')} className="touch-target">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Opportunities
+          </Button>
+          
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="space-y-2 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="mobile-title font-bold">{opportunity.title}</h1>
+                <Badge className={opportunity.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
+                  {opportunity.opportunity_type === 'government' ? 'Government' : 'Private'}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground font-mono">{opportunity.opportunity_number}</p>
             </div>
-            <p className="text-muted-foreground font-mono">{opportunity.opportunity_number}</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={opportunity.status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="lead">Lead</SelectItem>
-                <SelectItem value="qualified">Qualified</SelectItem>
-                <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
-                <SelectItem value="awarded">Awarded</SelectItem>
-                <SelectItem value="lost">Lost</SelectItem>
-                <SelectItem value="on_hold">On Hold</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="icon" onClick={() => setEditDialogOpen(true)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => setDeleteDialogOpen(true)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <Select value={opportunity.status} onValueChange={handleStatusChange}>
+                <SelectTrigger className="touch-target w-full sm:w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="lead">Lead</SelectItem>
+                  <SelectItem value="qualified">Qualified</SelectItem>
+                  <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
+                  <SelectItem value="awarded">Awarded</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2">
+                <Button variant="outline" size="icon" onClick={() => setEditDialogOpen(true)} className="touch-target flex-1 sm:flex-none">
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => setDeleteDialogOpen(true)} className="touch-target flex-1 sm:flex-none">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Quick Info Bar */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div>
-                <p className="text-sm text-muted-foreground">Status</p>
-                <Badge className={getStatusBadgeColor(opportunity.status)}>
-                  {opportunity.status.replace('_', ' ')}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Priority</p>
-                <Badge className={getPriorityBadgeColor(opportunity.priority)}>
-                  {opportunity.priority}
-                </Badge>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Estimated Value</p>
-                <p className="font-semibold">
-                  {opportunity.estimated_value ? `$${opportunity.estimated_value.toLocaleString()}` : 'Not set'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Assigned To</p>
-                <p className="font-semibold">{opportunity.assigned_user?.full_name || 'Unassigned'}</p>
-              </div>
-              {opportunity.submission_deadline && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Deadline</p>
-                  <p className="font-semibold">{format(new Date(opportunity.submission_deadline), 'MMM d, yyyy')}</p>
-                </div>
-              )}
+        <Card className="mobile-card-padding">
+          <div className="grid grid-cols-2 lg:flex lg:items-center lg:justify-between gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              <Badge className={getStatusBadgeColor(opportunity.status)}>
+                {opportunity.status.replace('_', ' ')}
+              </Badge>
             </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Priority</p>
+              <Badge className={getPriorityBadgeColor(opportunity.priority)}>
+                {opportunity.priority}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Estimated Value</p>
+              <p className="font-semibold text-sm">
+                {opportunity.estimated_value ? `$${opportunity.estimated_value.toLocaleString()}` : 'Not set'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Assigned To</p>
+              <p className="font-semibold text-sm truncate">{opportunity.assigned_user?.full_name || 'Unassigned'}</p>
+            </div>
+            {opportunity.submission_deadline && (
+              <div>
+                <p className="text-xs text-muted-foreground">Deadline</p>
+                <p className="font-semibold text-sm">{format(new Date(opportunity.submission_deadline), 'MMM d, yyyy')}</p>
+              </div>
+            )}
           </div>
         </Card>
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="quote">Quote Playground</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="communication" className="relative">
-              Communication
+          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
+            <TabsTrigger value="overview" className="touch-target">Overview</TabsTrigger>
+            <TabsTrigger value="quote" className="touch-target whitespace-nowrap">Quote</TabsTrigger>
+            <TabsTrigger value="contacts" className="touch-target">Contacts</TabsTrigger>
+            <TabsTrigger value="communication" className="touch-target relative whitespace-nowrap">
+              Comm
               {unreadCount > 0 && (
-                <Badge variant="destructive" className="ml-2 h-5 min-w-5 px-1.5 text-xs">
+                <Badge variant="destructive" className="ml-1 h-4 min-w-4 px-1 text-xs">
                   {unreadCount}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="documents" className="touch-target">Docs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card className="p-6 space-y-6">
+            <Card className="mobile-card-padding space-y-6">
               {/* Description */}
               {opportunity.description && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Description</h3>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{opportunity.description}</p>
+                  <h3 className="font-semibold text-base lg:text-lg mb-2">Description</h3>
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">{opportunity.description}</p>
                 </div>
               )}
 
               {/* Important Dates */}
               <div>
-                <h3 className="font-semibold text-lg mb-4">Important Dates</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <h3 className="font-semibold text-base lg:text-lg mb-4">Important Dates</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {opportunity.issue_date && (
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Issue Date</p>
@@ -214,13 +218,13 @@ const OpportunityDetail = () => {
               {opportunity.opportunity_type === 'government' && (
                 <>
                   <div className="border-t pt-6">
-                    <h3 className="font-semibold text-lg mb-4 text-blue-600">Government Details</h3>
+                    <h3 className="font-semibold text-base lg:text-lg mb-4 text-blue-600">Government Details</h3>
                     
                     <div className="space-y-6">
                       {/* Procurement Info */}
                       <div>
-                        <h4 className="font-medium mb-3">Procurement Information</h4>
-                        <div className="grid grid-cols-2 gap-4">
+                        <h4 className="font-medium text-sm lg:text-base mb-3">Procurement Information</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {opportunity.rfp_number && (
                             <div className="space-y-1">
                               <p className="text-sm text-muted-foreground">RFP Number</p>
