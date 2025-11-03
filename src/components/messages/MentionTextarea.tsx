@@ -9,6 +9,7 @@ interface MentionTextareaProps {
   onChange: (value: string, mentions: string[]) => void;
   placeholder?: string;
   disabled?: boolean;
+  onSubmit?: () => void;
 }
 
 interface User {
@@ -17,7 +18,7 @@ interface User {
   email: string;
 }
 
-export const MentionTextarea = ({ value, onChange, placeholder, disabled }: MentionTextareaProps) => {
+export const MentionTextarea = ({ value, onChange, placeholder, disabled, onSubmit }: MentionTextareaProps) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionPosition, setSuggestionPosition] = useState({ top: 0, left: 0 });
   const [searchTerm, setSearchTerm] = useState('');
@@ -118,8 +119,16 @@ export const MentionTextarea = ({ value, onChange, placeholder, disabled }: Ment
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (!showSuggestions || filteredUsers.length === 0) return;
+    if (!showSuggestions || filteredUsers.length === 0) {
+      // No suggestions showing - handle Enter to submit
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        onSubmit?.();
+      }
+      return;
+    }
 
+    // Suggestions are showing - handle navigation and selection
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex((prev) => (prev + 1) % filteredUsers.length);

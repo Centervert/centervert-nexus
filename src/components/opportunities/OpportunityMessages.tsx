@@ -181,6 +181,11 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
               setNewMessage(value);
               setMessageMentions(mentions);
             }}
+            onSubmit={() => {
+              if (newMessage.trim()) {
+                createMessage.mutate({ content: newMessage, mentions: messageMentions });
+              }
+            }}
             placeholder="Type @ to mention someone... (Enter to send, Shift+Enter for new line)"
           />
         </div>

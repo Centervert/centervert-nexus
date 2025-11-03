@@ -378,6 +378,7 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
               setNewMessage(value);
               setMessageMentions(mentions);
             }}
+            onSubmit={handleSendMessage}
             placeholder="Type your message... (Use @ to mention someone)"
             disabled={isSending}
           />
