@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCreateOpportunity } from '@/hooks/useOpportunities';
+import { useCreateContact, useLinkContact } from '@/hooks/useContacts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -25,6 +26,8 @@ const CreateOpportunityDialog = ({ open, onOpenChange }: CreateOpportunityDialog
   const { user } = useAuth();
   const { register, handleSubmit, watch, setValue, reset } = useForm();
   const createOpportunity = useCreateOpportunity();
+  const createContact = useCreateContact();
+  const linkContact = useLinkContact();
   const [conferenceOpen, setConferenceOpen] = useState(false);
 
   const opportunityType = watch('opportunity_type', 'private');
@@ -52,6 +55,13 @@ const CreateOpportunityDialog = ({ open, onOpenChange }: CreateOpportunityDialog
       conference_date: data.conference_date || null,
     };
 
+    // Store procurement officer details before clearing
+    const procurementOfficer = {
+      name: data.procurement_officer_name,
+      email: data.procurement_officer_email,
+      phone: data.procurement_officer_phone,
+    };
+
     // Clear government fields if type is private
     if (data.opportunity_type === 'private') {
       delete opportunityData.issuing_organization;
@@ -69,6 +79,28 @@ const CreateOpportunityDialog = ({ open, onOpenChange }: CreateOpportunityDialog
 
     createOpportunity.mutate(opportunityData, {
       onSuccess: (newOpportunity) => {
+        // If procurement officer details exist, create contact and link it
+        if (data.opportunity_type === 'government' && procurementOfficer.name) {
+          createContact.mutate(
+            {
+              full_name: procurementOfficer.name,
+              email: procurementOfficer.email || null,
+              phone: procurementOfficer.phone || null,
+              title: 'Procurement Officer',
+              contact_type: 'government',
+            },
+            {
+              onSuccess: (newContact) => {
+                linkContact.mutate({
+                  opportunity_id: newOpportunity.id,
+                  contact_id: newContact.id,
+                  relationship_type: 'procurement_officer',
+                });
+              },
+            }
+          );
+        }
+        
         reset();
         onOpenChange(false);
         navigate(`/opportunities/${newOpportunity.id}`);
