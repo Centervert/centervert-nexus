@@ -20,6 +20,7 @@ import ManagedServiceDetail from "./pages/ManagedServiceDetail";
 import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
 import Profile from "./pages/Profile";
+import DevProjects from "./pages/DevProjects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -129,6 +130,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <OpportunityDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dev-projects"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <DevProjects />
                   </ProtectedRoute>
                 }
               />
