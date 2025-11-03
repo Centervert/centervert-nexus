@@ -225,15 +225,15 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
       </div>
 
       <Dialog open={!!viewingFile} onOpenChange={handleCloseViewer}>
-        <DialogContent className="max-w-6xl h-[90vh]">
-          <DialogHeader>
+        <DialogContent className="max-w-6xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 py-4 border-b shrink-0">
             <DialogTitle>{viewingFile?.name}</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 min-h-0 h-full">
+          <div className="flex-1 min-h-0">
             {viewingFile && (
               <iframe
                 src={viewingFile.blobUrl || `https://docs.google.com/viewer?url=${encodeURIComponent(viewingFile.url)}&embedded=true`}
-                className="w-full h-full rounded border"
+                className="w-full h-full"
                 title={viewingFile.name}
               />
             )}
