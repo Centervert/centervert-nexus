@@ -129,6 +129,9 @@ const OpportunityContacts = ({ opportunityId }: OpportunityContactsProps) => {
                     <a href={`tel:${oc.contact.phone}`} className="hover:underline">
                       {oc.contact.phone}
                     </a>
+                    {oc.contact.phone_extension && (
+                      <span className="text-xs">ext. {oc.contact.phone_extension}</span>
+                    )}
                   </div>
                 )}
               </div>

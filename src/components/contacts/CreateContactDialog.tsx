@@ -63,7 +63,14 @@ const CreateContactDialog = ({ open, onOpenChange, opportunityId }: CreateContac
 
             <div>
               <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" type="tel" {...register('phone')} />
+              <Input id="phone" type="tel" {...register('phone')} placeholder="(555) 555-5555" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone_extension">Phone Extension</Label>
+              <Input id="phone_extension" {...register('phone_extension')} placeholder="e.g., 1234" />
             </div>
           </div>
 

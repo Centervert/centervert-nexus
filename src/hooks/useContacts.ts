@@ -7,6 +7,7 @@ export interface Contact {
   full_name: string;
   email: string | null;
   phone: string | null;
+  phone_extension: string | null;
   title: string | null;
   organization: string | null;
   contact_type: string | null;

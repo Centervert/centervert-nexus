@@ -98,6 +98,7 @@ export type Database = {
           is_technical: boolean | null
           notes: string | null
           phone: string | null
+          phone_extension: string | null
           title: string | null
           updated_at: string | null
         }
@@ -112,6 +113,7 @@ export type Database = {
           is_technical?: boolean | null
           notes?: string | null
           phone?: string | null
+          phone_extension?: string | null
           title?: string | null
           updated_at?: string | null
         }
@@ -126,6 +128,7 @@ export type Database = {
           is_technical?: boolean | null
           notes?: string | null
           phone?: string | null
+          phone_extension?: string | null
           title?: string | null
           updated_at?: string | null
         }
@@ -315,6 +318,7 @@ export type Database = {
           notes: string | null
           organization: string | null
           phone: string | null
+          phone_extension: string | null
           title: string | null
           updated_at: string | null
         }
@@ -327,6 +331,7 @@ export type Database = {
           notes?: string | null
           organization?: string | null
           phone?: string | null
+          phone_extension?: string | null
           title?: string | null
           updated_at?: string | null
         }
@@ -339,6 +344,7 @@ export type Database = {
           notes?: string | null
           organization?: string | null
           phone?: string | null
+          phone_extension?: string | null
           title?: string | null
           updated_at?: string | null
         }
