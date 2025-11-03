@@ -145,7 +145,9 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
       return data as Quote | null;
     },
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 
   // Initialize edit form when quote loads
@@ -426,8 +428,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote status updated');
     },
     onError: () => {
@@ -446,8 +448,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('PO number added');
     },
     onError: () => {
@@ -483,8 +485,8 @@ export const TicketPricing = ({ ticketId }: TicketPricingProps) => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ticket-quote', ticketId] });
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: ['ticket-quote', ticketId] });
       toast.success('Quote updated successfully');
       setIsEditingQuote(false);
       setShowSaveDialog(false);
