@@ -350,6 +350,501 @@ export type Database = {
         }
         Relationships: []
       }
+      dev_builds: {
+        Row: {
+          branch: string | null
+          build_log_url: string | null
+          build_number: number
+          commit_hash: string | null
+          created_at: string | null
+          deployed_at: string | null
+          deployed_by: string | null
+          environment: Database["public"]["Enums"]["dev_build_environment"]
+          id: string
+          project_id: string
+          release_notes: string | null
+          status: Database["public"]["Enums"]["dev_build_status"]
+          version: string
+        }
+        Insert: {
+          branch?: string | null
+          build_log_url?: string | null
+          build_number: number
+          commit_hash?: string | null
+          created_at?: string | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment: Database["public"]["Enums"]["dev_build_environment"]
+          id?: string
+          project_id: string
+          release_notes?: string | null
+          status?: Database["public"]["Enums"]["dev_build_status"]
+          version: string
+        }
+        Update: {
+          branch?: string | null
+          build_log_url?: string | null
+          build_number?: number
+          commit_hash?: string | null
+          created_at?: string | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment?: Database["public"]["Enums"]["dev_build_environment"]
+          id?: string
+          project_id?: string
+          release_notes?: string | null
+          status?: Database["public"]["Enums"]["dev_build_status"]
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_builds_deployed_by_fkey"
+            columns: ["deployed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_builds_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_project_attachments: {
+        Row: {
+          created_at: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          project_id: string
+          task_id: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          project_id: string
+          task_id?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          project_id?: string
+          task_id?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_project_attachments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_project_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "dev_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_project_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_projects: {
+        Row: {
+          actual_hours: number | null
+          actual_launch_date: string | null
+          budget: number | null
+          client_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          estimated_hours: number | null
+          id: string
+          lead_developer_id: string | null
+          name: string
+          platform: string[] | null
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          production_url: string | null
+          project_manager_id: string | null
+          project_number: number
+          project_type: Database["public"]["Enums"]["dev_project_type"]
+          repository_url: string | null
+          staging_url: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["dev_project_status"]
+          target_launch_date: string | null
+          team_members: string[] | null
+          tech_stack: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_hours?: number | null
+          actual_launch_date?: string | null
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          lead_developer_id?: string | null
+          name: string
+          platform?: string[] | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          production_url?: string | null
+          project_manager_id?: string | null
+          project_number?: number
+          project_type: Database["public"]["Enums"]["dev_project_type"]
+          repository_url?: string | null
+          staging_url?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["dev_project_status"]
+          target_launch_date?: string | null
+          team_members?: string[] | null
+          tech_stack?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_hours?: number | null
+          actual_launch_date?: string | null
+          budget?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          estimated_hours?: number | null
+          id?: string
+          lead_developer_id?: string | null
+          name?: string
+          platform?: string[] | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          production_url?: string | null
+          project_manager_id?: string | null
+          project_number?: number
+          project_type?: Database["public"]["Enums"]["dev_project_type"]
+          repository_url?: string | null
+          staging_url?: string | null
+          start_date?: string | null
+          status?: Database["public"]["Enums"]["dev_project_status"]
+          target_launch_date?: string | null
+          team_members?: string[] | null
+          tech_stack?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_projects_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_projects_lead_developer_id_fkey"
+            columns: ["lead_developer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_projects_project_manager_id_fkey"
+            columns: ["project_manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_sprints: {
+        Row: {
+          completed_points: number | null
+          created_at: string | null
+          end_date: string
+          goal: string | null
+          id: string
+          name: string
+          project_id: string
+          sprint_number: number
+          start_date: string
+          status: Database["public"]["Enums"]["dev_sprint_status"]
+          updated_at: string | null
+          velocity_points: number | null
+        }
+        Insert: {
+          completed_points?: number | null
+          created_at?: string | null
+          end_date: string
+          goal?: string | null
+          id?: string
+          name: string
+          project_id: string
+          sprint_number: number
+          start_date: string
+          status?: Database["public"]["Enums"]["dev_sprint_status"]
+          updated_at?: string | null
+          velocity_points?: number | null
+        }
+        Update: {
+          completed_points?: number | null
+          created_at?: string | null
+          end_date?: string
+          goal?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          sprint_number?: number
+          start_date?: string
+          status?: Database["public"]["Enums"]["dev_sprint_status"]
+          updated_at?: string | null
+          velocity_points?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_sprints_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_task_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          mentions: string[] | null
+          task_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          mentions?: string[] | null
+          task_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          mentions?: string[] | null
+          task_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "dev_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_task_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_task_time_logs: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string | null
+          hours: number
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          hours: number
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          hours?: number
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_task_time_logs_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "dev_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_task_time_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dev_tasks: {
+        Row: {
+          acceptance_criteria: Json | null
+          actual_hours: number | null
+          assigned_to: string | null
+          blocked_reason: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          parent_task_id: string | null
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          project_id: string
+          reviewer_id: string | null
+          sprint_id: string | null
+          status: Database["public"]["Enums"]["dev_task_status"]
+          story_points: number | null
+          task_number: number
+          task_type: Database["public"]["Enums"]["dev_task_type"]
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          acceptance_criteria?: Json | null
+          actual_hours?: number | null
+          assigned_to?: string | null
+          blocked_reason?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          parent_task_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          project_id: string
+          reviewer_id?: string | null
+          sprint_id?: string | null
+          status?: Database["public"]["Enums"]["dev_task_status"]
+          story_points?: number | null
+          task_number?: number
+          task_type?: Database["public"]["Enums"]["dev_task_type"]
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          acceptance_criteria?: Json | null
+          actual_hours?: number | null
+          assigned_to?: string | null
+          blocked_reason?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          parent_task_id?: string | null
+          priority?: Database["public"]["Enums"]["ticket_priority"]
+          project_id?: string
+          reviewer_id?: string | null
+          sprint_id?: string | null
+          status?: Database["public"]["Enums"]["dev_task_status"]
+          story_points?: number | null
+          task_number?: number
+          task_type?: Database["public"]["Enums"]["dev_task_type"]
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dev_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "dev_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "dev_projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_tasks_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dev_tasks_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "dev_sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -1424,6 +1919,45 @@ export type Database = {
       app_role: "admin" | "agent" | "user"
       client_access_level: "admin" | "member" | "viewer"
       client_type: "direct" | "agency" | "agency_managed"
+      dev_build_environment: "development" | "staging" | "production"
+      dev_build_status:
+        | "building"
+        | "success"
+        | "failed"
+        | "deploying"
+        | "deployed"
+      dev_project_status:
+        | "planning"
+        | "in_development"
+        | "testing"
+        | "staging"
+        | "production"
+        | "maintenance"
+        | "archived"
+      dev_project_type:
+        | "mobile_app"
+        | "web_app"
+        | "desktop_app"
+        | "api"
+        | "integration"
+        | "other"
+      dev_sprint_status: "planned" | "active" | "completed" | "cancelled"
+      dev_task_status:
+        | "backlog"
+        | "todo"
+        | "in_progress"
+        | "in_review"
+        | "testing"
+        | "done"
+        | "blocked"
+      dev_task_type:
+        | "feature"
+        | "bug"
+        | "enhancement"
+        | "refactor"
+        | "documentation"
+        | "testing"
+        | "devops"
       opportunity_priority: "low" | "medium" | "high" | "critical"
       opportunity_status:
         | "lead"
@@ -1572,6 +2106,50 @@ export const Constants = {
       app_role: ["admin", "agent", "user"],
       client_access_level: ["admin", "member", "viewer"],
       client_type: ["direct", "agency", "agency_managed"],
+      dev_build_environment: ["development", "staging", "production"],
+      dev_build_status: [
+        "building",
+        "success",
+        "failed",
+        "deploying",
+        "deployed",
+      ],
+      dev_project_status: [
+        "planning",
+        "in_development",
+        "testing",
+        "staging",
+        "production",
+        "maintenance",
+        "archived",
+      ],
+      dev_project_type: [
+        "mobile_app",
+        "web_app",
+        "desktop_app",
+        "api",
+        "integration",
+        "other",
+      ],
+      dev_sprint_status: ["planned", "active", "completed", "cancelled"],
+      dev_task_status: [
+        "backlog",
+        "todo",
+        "in_progress",
+        "in_review",
+        "testing",
+        "done",
+        "blocked",
+      ],
+      dev_task_type: [
+        "feature",
+        "bug",
+        "enhancement",
+        "refactor",
+        "documentation",
+        "testing",
+        "devops",
+      ],
       opportunity_priority: ["low", "medium", "high", "critical"],
       opportunity_status: [
         "lead",
