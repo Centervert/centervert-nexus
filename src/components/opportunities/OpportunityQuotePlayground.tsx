@@ -113,8 +113,8 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
         <CardContent>
           <div className="space-y-4">
             {/* Add New Item Form */}
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-2 items-end">
-              <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+              <div className="md:col-span-3">
                 <label className="text-sm font-medium">Item</label>
                 <Input
                   placeholder="Item name"
@@ -123,7 +123,7 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   onKeyDown={(e) => e.key === 'Enter' && handleAddItem()}
                 />
               </div>
-              <div>
+              <div className="md:col-span-1">
                 <label className="text-sm font-medium">Qty</label>
                 <Input
                   type="number"
@@ -132,7 +132,7 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   onChange={(e) => setNewItem({ ...newItem, quantity: parseFloat(e.target.value) || 1 })}
                 />
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <label className="text-sm font-medium">Unit Price</label>
                 <Input
                   type="number"
@@ -142,7 +142,7 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   onChange={(e) => setNewItem({ ...newItem, unit_price: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-              <div>
+              <div className="md:col-span-2">
                 <label className="text-sm font-medium">Unit Cost</label>
                 <Input
                   type="number"
@@ -152,14 +152,14 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                   onChange={(e) => setNewItem({ ...newItem, unit_cost: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-              <div>
+              <div className="md:col-span-3">
                 <label className="text-sm font-medium">Type</label>
                 <div className="flex gap-1">
                   <Button
                     size="sm"
                     variant={newItem.item_type === 'one_time' ? 'default' : 'outline'}
                     onClick={() => setNewItem({ ...newItem, item_type: 'one_time' })}
-                    className="flex-1"
+                    className="flex-1 whitespace-nowrap"
                   >
                     One-time
                   </Button>
@@ -167,13 +167,13 @@ export const OpportunityQuotePlayground = ({ opportunityId }: OpportunityQuotePl
                     size="sm"
                     variant={newItem.item_type === 'monthly' ? 'default' : 'outline'}
                     onClick={() => setNewItem({ ...newItem, item_type: 'monthly' })}
-                    className="flex-1"
+                    className="flex-1 whitespace-nowrap"
                   >
                     Monthly
                   </Button>
                 </div>
               </div>
-              <Button onClick={handleAddItem} disabled={!newItem.item_name.trim()}>
+              <Button onClick={handleAddItem} disabled={!newItem.item_name.trim()} className="md:col-span-1">
                 <Plus className="h-4 w-4 mr-1" />
                 Add
               </Button>
