@@ -164,19 +164,19 @@ const OpportunityDetail = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
-            <TabsTrigger value="overview" className="touch-target">Overview</TabsTrigger>
-            <TabsTrigger value="quote" className="touch-target whitespace-nowrap">Quote</TabsTrigger>
-            <TabsTrigger value="contacts" className="touch-target">Contacts</TabsTrigger>
-            <TabsTrigger value="communication" className="touch-target relative whitespace-nowrap">
-              Comm
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="quote">Quote</TabsTrigger>
+            <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="communication" className="relative">
+              Communication
               {unreadCount > 0 && (
                 <Badge variant="destructive" className="ml-1 h-4 min-w-4 px-1 text-xs">
                   {unreadCount}
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="documents" className="touch-target">Docs</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
