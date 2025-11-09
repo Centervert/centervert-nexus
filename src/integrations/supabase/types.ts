@@ -1010,6 +1010,8 @@ export type Database = {
           submission_address: string | null
           submission_deadline: string | null
           submission_url: string | null
+          submitted_at: string | null
+          submitted_by: string | null
           title: string
           updated_at: string | null
         }
@@ -1040,6 +1042,8 @@ export type Database = {
           submission_address?: string | null
           submission_deadline?: string | null
           submission_url?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           title: string
           updated_at?: string | null
         }
@@ -1070,10 +1074,20 @@ export type Database = {
           submission_address?: string | null
           submission_deadline?: string | null
           submission_url?: string | null
+          submitted_at?: string | null
+          submitted_by?: string | null
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       opportunity_attachments: {
         Row: {

@@ -25,7 +25,6 @@ const Opportunities = () => {
   const filteredOpportunities = opportunities?.filter(opp => {
     const matchesSearch = 
       opp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      opp.opportunity_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.issuing_organization?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       opp.rfp_number?.toLowerCase().includes(searchQuery.toLowerCase());
     
@@ -57,16 +56,43 @@ const Opportunities = () => {
     }
   };
 
-  const getDeadlineUrgency = (deadline: string | null) => {
-    if (!deadline) return null;
+  const getDeadlineDisplay = (opp: any) => {
+    // If proposal submitted, check if they made the deadline
+    if (opp.status === 'proposal_submitted' && opp.submitted_at) {
+      if (opp.submission_deadline) {
+        const submitted = new Date(opp.submitted_at);
+        const deadline = new Date(opp.submission_deadline);
+        
+        if (submitted <= deadline) {
+          return { text: 'Made', color: 'text-green-600 font-semibold' };
+        } else {
+          return { 
+            text: new Date(opp.submitted_at).toLocaleDateString(), 
+            color: 'text-red-500' 
+          };
+        }
+      }
+      // If no deadline but submitted, show submitted date
+      return { 
+        text: new Date(opp.submitted_at).toLocaleDateString(), 
+        color: 'text-muted-foreground' 
+      };
+    }
+    
+    // Otherwise show deadline urgency
+    if (!opp.submission_deadline) return null;
     const now = new Date();
-    const deadlineDate = new Date(deadline);
+    const deadlineDate = new Date(opp.submission_deadline);
     const daysUntil = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
     if (daysUntil < 0) return { color: 'text-red-500 font-bold', text: 'Overdue' };
     if (daysUntil <= 7) return { color: 'text-orange-500 font-semibold', text: `${daysUntil}d` };
     if (daysUntil <= 30) return { color: 'text-yellow-600', text: `${daysUntil}d` };
     return { color: 'text-muted-foreground', text: `${daysUntil}d` };
+  };
+
+  const getDeadlineHeader = (hasSubmittedOpportunities: boolean) => {
+    return hasSubmittedOpportunities ? 'Submitted/Deadline' : 'Deadline';
   };
 
   return (
@@ -183,39 +209,37 @@ const Opportunities = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Opportunity #</TableHead>
                     <TableHead>Title</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Assigned To</TableHead>
-                    <TableHead>Deadline</TableHead>
+                    <TableHead>{getDeadlineHeader(filteredOpportunities?.some(o => o.status === 'proposal_submitted') || false)}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         Loading opportunities...
                       </TableCell>
                     </TableRow>
                   ) : filteredOpportunities?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         No opportunities found
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredOpportunities?.map((opp) => {
-                      const deadlineInfo = getDeadlineUrgency(opp.submission_deadline);
+                      const deadlineInfo = getDeadlineDisplay(opp);
                       return (
                         <TableRow
                           key={opp.id}
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => navigate(`/opportunities/${opp.id}`)}
                         >
-                          <TableCell className="font-mono text-sm">{opp.opportunity_number}</TableCell>
                           <TableCell className="font-medium">{opp.title}</TableCell>
                           <TableCell>
                             <Badge className={opp.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
@@ -263,7 +287,7 @@ const Opportunities = () => {
                 </div>
               ) : (
                 filteredOpportunities?.map((opp) => {
-                  const deadlineInfo = getDeadlineUrgency(opp.submission_deadline);
+                  const deadlineInfo = getDeadlineDisplay(opp);
                   return (
                     <Card
                       key={opp.id}
@@ -272,8 +296,7 @@ const Opportunities = () => {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium line-clamp-2 mb-1">{opp.title}</h3>
-                          <p className="text-xs text-muted-foreground font-mono">{opp.opportunity_number}</p>
+                          <h3 className="font-medium line-clamp-2">{opp.title}</h3>
                         </div>
                         <Badge className={opp.opportunity_type === 'government' ? 'bg-blue-500' : 'bg-green-500'}>
                           {opp.opportunity_type === 'government' ? 'Gov' : 'Private'}
@@ -297,7 +320,9 @@ const Opportunities = () => {
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground">Deadline</p>
+                          <p className="text-xs text-muted-foreground">
+                            {opp.status === 'proposal_submitted' ? 'Submitted' : 'Deadline'}
+                          </p>
                           <p className={`font-medium ${deadlineInfo?.color || ''}`}>
                             {deadlineInfo?.text || '-'}
                           </p>
