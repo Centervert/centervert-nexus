@@ -1,6 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { z } from 'zod';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import Sidebar from '@/components/Sidebar';
@@ -9,6 +12,8 @@ import { ArrowLeft, Code, Loader2, ExternalLink, FileText, Users, Calendar } fro
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { DevProjectOverview } from '@/components/development/DevProjectOverview';
 import { DevProjectTasks } from '@/components/development/DevProjectTasks';
 import { DevProjectSprints } from '@/components/development/DevProjectSprints';
@@ -19,6 +24,9 @@ import { DevProjectFiles } from '@/components/development/DevProjectFiles';
 const DevProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState<Record<string, boolean>>({});
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['dev-project', id],
@@ -54,6 +62,68 @@ const DevProjectDetail = () => {
 
   const getProjectTypeLabel = (type: string) => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  const updateProject = async (field: string, value: any) => {
+    try {
+      // Validate input based on field
+      if (field === 'name') {
+        const nameSchema = z.string().trim().min(1, "Name is required").max(200, "Name must be less than 200 characters");
+        const result = nameSchema.safeParse(value);
+        if (!result.success) {
+          toast({
+            title: "Validation error",
+            description: result.error.errors[0].message,
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (field === 'description') {
+        const descSchema = z.string().max(2000, "Description must be less than 2000 characters");
+        const result = descSchema.safeParse(value);
+        if (!result.success) {
+          toast({
+            title: "Validation error",
+            description: result.error.errors[0].message,
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (field === 'repository_url' || field === 'production_url') {
+        if (value) {
+          const urlSchema = z.string().url("Invalid URL");
+          const result = urlSchema.safeParse(value);
+          if (!result.success) {
+            toast({
+              title: "Validation error",
+              description: result.error.errors[0].message,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+      }
+
+      const { error } = await supabase
+        .from('dev_projects')
+        .update({ [field]: value, updated_at: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['dev-project', id] });
+      toast({
+        title: "Project updated",
+        description: "Changes saved successfully",
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update project",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -103,95 +173,125 @@ const DevProjectDetail = () => {
 
             {/* Project Header */}
             <div className="border-t bg-muted/30">
-              <div className="px-6 py-6">
-                <div className="flex items-start justify-between gap-6">
-                  {/* Left: Project Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Code className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-                      <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
-                      <span className="text-sm text-muted-foreground">#{project.project_number}</span>
-                    </div>
-                    
-                    <p className="text-muted-foreground mb-4 max-w-3xl">
-                      {project.description || 'No description provided'}
-                    </p>
+              <div className="px-6 py-6 space-y-4">
+                {/* Project Name */}
+                <div className="flex items-center gap-3">
+                  <Code className="h-6 w-6 text-muted-foreground flex-shrink-0" />
+                  <Input
+                    defaultValue={project.name}
+                    className="text-3xl font-semibold tracking-tight border-0 shadow-none focus-visible:ring-0 px-2 -mx-2 h-auto py-1"
+                    onBlur={(e) => {
+                      if (e.target.value !== project.name && e.target.value.trim()) {
+                        updateProject('name', e.target.value.trim());
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground">#{project.project_number}</span>
+                  <Badge className={getStatusColor(project.status)} variant="secondary">
+                    {project.status.replace(/_/g, ' ')}
+                  </Badge>
+                </div>
 
-                    <div className="flex flex-wrap items-center gap-6 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Type:</span>
-                        <span className="font-medium">{getProjectTypeLabel(project.project_type)}</span>
-                      </div>
-                      
-                      {project.start_date ? (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Started:</span>
-                          <span className="font-medium">{new Date(project.start_date).toLocaleDateString()}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Start Date: <span className="font-medium">Not set</span></span>
-                        </div>
-                      )}
-                      
-                      {project.target_launch_date && (
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Target:</span>
-                          <span className="font-medium">{new Date(project.target_launch_date).toLocaleDateString()}</span>
-                        </div>
-                      )}
+                {/* Description */}
+                <Textarea
+                  defaultValue={project.description || ''}
+                  placeholder="Add project description..."
+                  className="text-muted-foreground resize-none border-0 shadow-none focus-visible:ring-0 px-2 -mx-2 min-h-[60px]"
+                  onBlur={(e) => {
+                    if (e.target.value !== project.description) {
+                      updateProject('description', e.target.value.trim());
+                    }
+                  }}
+                />
 
-                      {(project.project_manager || project.lead_developer || project.client) && (
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <div className="flex items-center gap-2">
-                            {project.project_manager && (
-                              <span className="text-muted-foreground">PM: <span className="font-medium text-foreground">{project.project_manager.full_name}</span></span>
-                            )}
-                            {project.lead_developer && (
-                              <>
-                                {project.project_manager && <span className="text-muted-foreground">•</span>}
-                                <span className="text-muted-foreground">Lead: <span className="font-medium text-foreground">{project.lead_developer.full_name}</span></span>
-                              </>
-                            )}
-                            {project.client && (
-                              <>
-                                {(project.project_manager || project.lead_developer) && <span className="text-muted-foreground">•</span>}
-                                <span className="text-muted-foreground">Client: <span className="font-medium text-foreground">{project.client.name}</span></span>
-                              </>
-                            )}
-                          </div>
-                        </div>
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                  {/* Start Date */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Start Date
+                    </label>
+                    <Input
+                      type="date"
+                      defaultValue={project.start_date?.split('T')[0] || ''}
+                      className="h-8 text-sm"
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          updateProject('start_date', new Date(e.target.value).toISOString());
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Target Launch Date */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Target Launch
+                    </label>
+                    <Input
+                      type="date"
+                      defaultValue={project.target_launch_date?.split('T')[0] || ''}
+                      className="h-8 text-sm"
+                      onBlur={(e) => {
+                        if (e.target.value) {
+                          updateProject('target_launch_date', new Date(e.target.value).toISOString());
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Repository URL */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Code className="h-3 w-3" />
+                      Repository URL
+                    </label>
+                    <div className="flex gap-1">
+                      <Input
+                        type="url"
+                        placeholder="https://github.com/..."
+                        defaultValue={project.repository_url || ''}
+                        className="h-8 text-sm"
+                        onBlur={(e) => {
+                          if (e.target.value !== project.repository_url) {
+                            updateProject('repository_url', e.target.value.trim() || null);
+                          }
+                        }}
+                      />
+                      {project.repository_url && (
+                        <Button variant="outline" size="sm" className="h-8 px-2" asChild>
+                          <a href={project.repository_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
                       )}
                     </div>
                   </div>
 
-                  {/* Right: Status & Quick Links */}
-                  <div className="flex items-start gap-3">
-                    <Badge className={getStatusColor(project.status)} variant="secondary">
-                      {project.status.replace(/_/g, ' ')}
-                    </Badge>
-                    
-                    <div className="flex items-center gap-2">
-                      {project.repository_url && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={project.repository_url} target="_blank" rel="noopener noreferrer">
-                            <Code className="h-4 w-4 mr-2" />
-                            Repository
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                          </a>
-                        </Button>
-                      )}
-                      
-                      {(project.staging_url || project.production_url) && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={project.production_url || project.staging_url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            View Live
+                  {/* Production URL */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <ExternalLink className="h-3 w-3" />
+                      Live URL
+                    </label>
+                    <div className="flex gap-1">
+                      <Input
+                        type="url"
+                        placeholder="https://..."
+                        defaultValue={project.production_url || ''}
+                        className="h-8 text-sm"
+                        onBlur={(e) => {
+                          if (e.target.value !== project.production_url) {
+                            updateProject('production_url', e.target.value.trim() || null);
+                          }
+                        }}
+                      />
+                      {project.production_url && (
+                        <Button variant="outline" size="sm" className="h-8 px-2" asChild>
+                          <a href={project.production_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3" />
                           </a>
                         </Button>
                       )}
