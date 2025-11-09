@@ -33,6 +33,7 @@ const EditOpportunityDialog = ({ open, onOpenChange, opportunity }: EditOpportun
       issue_date: opportunity.issue_date || '',
       questions_deadline: opportunity.questions_deadline?.split('T')[0] || '',
       submission_deadline: opportunity.submission_deadline?.split('T')[0] || '',
+      submitted_at: opportunity.submitted_at ? new Date(opportunity.submitted_at).toISOString().slice(0, 16) : '',
       award_date: opportunity.award_date || '',
       notes: opportunity.notes || '',
       rfp_number: opportunity.rfp_number || '',
@@ -67,6 +68,7 @@ const EditOpportunityDialog = ({ open, onOpenChange, opportunity }: EditOpportun
       issue_date: data.issue_date || null,
       questions_deadline: data.questions_deadline || null,
       submission_deadline: data.submission_deadline || null,
+      submitted_at: data.submitted_at || null,
       award_date: data.award_date || null,
       conference_date: data.conference_date || null,
     };
@@ -222,6 +224,10 @@ const EditOpportunityDialog = ({ open, onOpenChange, opportunity }: EditOpportun
                 <div>
                   <Label htmlFor="submission_address">Submission Address</Label>
                   <Textarea id="submission_address" {...register('submission_address')} rows={2} />
+                </div>
+                <div>
+                  <Label htmlFor="submitted_at">Submitted Date</Label>
+                  <Input id="submitted_at" type="datetime-local" {...register('submitted_at')} />
                 </div>
               </div>
 
