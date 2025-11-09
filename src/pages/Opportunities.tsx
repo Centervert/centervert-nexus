@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useOpportunities, useOpportunityStats } from '@/hooks/useOpportunities';
 import CreateOpportunityDialog from '@/components/opportunities/CreateOpportunityDialog';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 
 const Opportunities = () => {
   const navigate = useNavigate();
@@ -67,14 +67,14 @@ const Opportunities = () => {
           return { text: 'Submitted', color: 'text-green-600 font-semibold' };
         } else {
           return { 
-            text: new Date(opp.submitted_at).toLocaleDateString(), 
+            text: format(new Date(opp.submitted_at), 'MMM d, yyyy h:mm a'), 
             color: 'text-red-500' 
           };
         }
       }
       // If no deadline but submitted, show submitted date
       return { 
-        text: new Date(opp.submitted_at).toLocaleDateString(), 
+        text: format(new Date(opp.submitted_at), 'MMM d, yyyy h:mm a'), 
         color: 'text-muted-foreground' 
       };
     }
@@ -86,9 +86,9 @@ const Opportunities = () => {
     const daysUntil = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
     if (daysUntil < 0) return { color: 'text-red-500 font-bold', text: 'Overdue' };
-    if (daysUntil <= 7) return { color: 'text-orange-500 font-semibold', text: `${daysUntil}d` };
-    if (daysUntil <= 30) return { color: 'text-yellow-600', text: `${daysUntil}d` };
-    return { color: 'text-muted-foreground', text: `${daysUntil}d` };
+    if (daysUntil <= 7) return { color: 'text-orange-500 font-semibold', text: `${daysUntil}d - ${format(deadlineDate, 'h:mm a')}` };
+    if (daysUntil <= 30) return { color: 'text-yellow-600', text: `${daysUntil}d - ${format(deadlineDate, 'h:mm a')}` };
+    return { color: 'text-muted-foreground', text: format(deadlineDate, 'MMM d, h:mm a') };
   };
 
   const getDeadlineHeader = (hasSubmittedOpportunities: boolean) => {
