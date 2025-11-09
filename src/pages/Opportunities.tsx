@@ -64,7 +64,7 @@ const Opportunities = () => {
         const deadline = new Date(opp.submission_deadline);
         
         if (submitted <= deadline) {
-          return { text: 'Made', color: 'text-green-600 font-semibold' };
+          return { text: 'Submitted', color: 'text-green-600 font-semibold' };
         } else {
           return { 
             text: new Date(opp.submitted_at).toLocaleDateString(), 
