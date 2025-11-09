@@ -27,6 +27,8 @@ export interface Opportunity {
   issue_date: string | null;
   questions_deadline: string | null;
   submission_deadline: string | null;
+  submitted_at: string | null;
+  submitted_by: string | null;
   award_date: string | null;
   notes: string | null;
   created_at: string;
@@ -36,6 +38,10 @@ export interface Opportunity {
     email: string;
   };
   creator?: {
+    full_name: string | null;
+    email: string;
+  };
+  submitted_by_user?: {
     full_name: string | null;
     email: string;
   };
@@ -53,7 +59,11 @@ export const useOpportunities = () => {
       if (error) throw error;
       
       // Fetch user details separately
-      const userIds = [...new Set([...data.map(d => d.assigned_to), ...data.map(d => d.created_by)].filter(Boolean))];
+      const userIds = [...new Set([
+        ...data.map(d => d.assigned_to), 
+        ...data.map(d => d.created_by),
+        ...data.map(d => d.submitted_by)
+      ].filter(Boolean))];
       const { data: users } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -65,6 +75,7 @@ export const useOpportunities = () => {
         ...opp,
         assigned_user: opp.assigned_to ? usersMap.get(opp.assigned_to) : undefined,
         creator: usersMap.get(opp.created_by),
+        submitted_by_user: opp.submitted_by ? usersMap.get(opp.submitted_by) : undefined,
       })) as Opportunity[];
     },
   });
@@ -83,7 +94,7 @@ export const useOpportunity = (id: string) => {
       if (error) throw error;
 
       // Fetch user details
-      const userIds = [data.assigned_to, data.created_by].filter(Boolean);
+      const userIds = [data.assigned_to, data.created_by, data.submitted_by].filter(Boolean);
       const { data: users } = await supabase
         .from('profiles')
         .select('id, full_name, email')
@@ -95,6 +106,7 @@ export const useOpportunity = (id: string) => {
         ...data,
         assigned_user: data.assigned_to ? usersMap.get(data.assigned_to) : undefined,
         creator: usersMap.get(data.created_by),
+        submitted_by_user: data.submitted_by ? usersMap.get(data.submitted_by) : undefined,
       } as Opportunity;
     },
     enabled: !!id,

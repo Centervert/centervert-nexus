@@ -159,6 +159,12 @@ const OpportunityDetail = () => {
                 <p className="font-semibold text-sm">{format(new Date(opportunity.submission_deadline), 'MMM d, yyyy')}</p>
               </div>
             )}
+            {opportunity.submitted_at && (
+              <div>
+                <p className="text-xs text-muted-foreground">Submitted</p>
+                <p className="font-semibold text-sm">{format(new Date(opportunity.submitted_at), 'MMM d, yyyy')}</p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -203,6 +209,21 @@ const OpportunityDetail = () => {
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground">Submission Deadline</p>
                       <p className="font-medium">{format(new Date(opportunity.submission_deadline), 'MMM d, yyyy h:mm a')}</p>
+                    </div>
+                  )}
+                  {opportunity.submitted_at && (
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">
+                        Submitted Date
+                        {opportunity.submission_deadline && 
+                          new Date(opportunity.submitted_at) <= new Date(opportunity.submission_deadline) && (
+                          <span className="text-green-600 font-semibold ml-2">(Made Deadline)</span>
+                        )}
+                      </p>
+                      <p className="font-medium">{format(new Date(opportunity.submitted_at), 'MMM d, yyyy h:mm a')}</p>
+                      {opportunity.submitted_by_user?.full_name && (
+                        <p className="text-xs text-muted-foreground">by {opportunity.submitted_by_user.full_name}</p>
+                      )}
                     </div>
                   )}
                   {opportunity.award_date && (
