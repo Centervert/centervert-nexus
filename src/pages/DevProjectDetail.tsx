@@ -107,22 +107,33 @@ const DevProjectDetail = () => {
                 <div className="flex items-start justify-between gap-6">
                   {/* Left: Project Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       <Code className="h-6 w-6 text-muted-foreground flex-shrink-0" />
                       <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
                       <span className="text-sm text-muted-foreground">#{project.project_number}</span>
                     </div>
                     
-                    {project.description && (
-                      <p className="text-muted-foreground mb-4 max-w-3xl">{project.description}</p>
-                    )}
+                    <p className="text-muted-foreground mb-4 max-w-3xl">
+                      {project.description || 'No description provided'}
+                    </p>
 
                     <div className="flex flex-wrap items-center gap-6 text-sm">
-                      {project.start_date && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Type:</span>
+                        <span className="font-medium">{getProjectTypeLabel(project.project_type)}</span>
+                      </div>
+                      
+                      {project.start_date ? (
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <span className="text-muted-foreground">Started:</span>
                           <span className="font-medium">{new Date(project.start_date).toLocaleDateString()}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Start Date: <span className="font-medium">Not set</span></span>
                         </div>
                       )}
                       
