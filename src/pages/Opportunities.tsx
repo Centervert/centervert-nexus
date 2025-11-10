@@ -86,8 +86,8 @@ const Opportunities = () => {
     const daysUntil = Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     
     if (daysUntil < 0) return { color: 'text-red-500 font-bold', text: 'Overdue' };
-    if (daysUntil <= 7) return { color: 'text-orange-500 font-semibold', text: `${daysUntil}d - ${format(deadlineDate, 'h:mm a')}` };
-    if (daysUntil <= 30) return { color: 'text-yellow-600', text: `${daysUntil}d - ${format(deadlineDate, 'h:mm a')}` };
+    if (daysUntil <= 7) return { color: 'text-orange-500 font-semibold', text: format(deadlineDate, 'MMM d, h:mm a') };
+    if (daysUntil <= 30) return { color: 'text-yellow-600', text: format(deadlineDate, 'MMM d, h:mm a') };
     return { color: 'text-muted-foreground', text: format(deadlineDate, 'MMM d, h:mm a') };
   };
 
