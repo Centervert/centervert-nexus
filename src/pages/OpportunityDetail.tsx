@@ -17,6 +17,7 @@ import OpportunityContacts from '@/components/opportunities/OpportunityContacts'
 import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
 import { OpportunityQuotePlayground } from '@/components/opportunities/OpportunityQuotePlayground';
 import { useOpportunityUnreadCount } from '@/hooks/useUnreadMessages';
+import { useOpportunityQuoteItems } from '@/hooks/useOpportunityQuoteItems';
 
 const OpportunityDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,6 +28,7 @@ const OpportunityDetail = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const { data: unreadCount = 0 } = useOpportunityUnreadCount(id!);
+  const { data: quoteItems = [] } = useOpportunityQuoteItems(id!);
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -87,6 +89,21 @@ const OpportunityDetail = () => {
       default: return 'bg-gray-500 text-white';
     }
   };
+
+  const calculateMRRProfit = () => {
+    let totalMRRProfit = 0;
+    quoteItems.forEach((item) => {
+      if (item.item_type === 'monthly') {
+        const revenue = item.quantity * item.unit_price;
+        const cost = item.quantity * item.unit_cost;
+        const profit = revenue - cost;
+        totalMRRProfit += profit;
+      }
+    });
+    return totalMRRProfit;
+  };
+
+  const mrrProfit = calculateMRRProfit();
 
   return (
     <SidebarProvider>
@@ -159,9 +176,9 @@ const OpportunityDetail = () => {
               </Badge>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Estimated Value</p>
+              <p className="text-xs text-muted-foreground">MRR Profit</p>
               <p className="font-semibold text-sm">
-                {opportunity.estimated_value ? `$${opportunity.estimated_value.toLocaleString()}` : 'Not set'}
+                {mrrProfit > 0 ? `$${mrrProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'Not set'}
               </p>
             </div>
             <div>
