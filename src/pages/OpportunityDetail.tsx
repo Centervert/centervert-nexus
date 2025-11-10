@@ -54,8 +54,8 @@ const OpportunityDetail = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-gray-500';
-      case 'qualified': return 'bg-yellow-500';
-      case 'proposal_submitted': return 'bg-orange-500';
+      case 'working_on_rfp': return 'bg-yellow-500';
+      case 'submitted': return 'bg-orange-500';
       case 'awarded': return 'bg-green-500';
       case 'lost': return 'bg-red-500';
       case 'on_hold': return 'bg-purple-500';
@@ -109,8 +109,8 @@ const OpportunityDetail = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
+                  <SelectItem value="working_on_rfp">Working on RFP</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
                   <SelectItem value="awarded">Awarded</SelectItem>
                   <SelectItem value="lost">Lost</SelectItem>
                   <SelectItem value="on_hold">On Hold</SelectItem>

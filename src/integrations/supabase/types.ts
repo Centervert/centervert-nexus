@@ -1975,8 +1975,8 @@ export type Database = {
       opportunity_priority: "low" | "medium" | "high" | "critical"
       opportunity_status:
         | "lead"
-        | "qualified"
-        | "proposal_submitted"
+        | "working_on_rfp"
+        | "submitted"
         | "awarded"
         | "lost"
         | "on_hold"
@@ -2167,8 +2167,8 @@ export const Constants = {
       opportunity_priority: ["low", "medium", "high", "critical"],
       opportunity_status: [
         "lead",
-        "qualified",
-        "proposal_submitted",
+        "working_on_rfp",
+        "submitted",
         "awarded",
         "lost",
         "on_hold",

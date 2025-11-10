@@ -201,8 +201,8 @@ const CreateOpportunityDialog = ({ open, onOpenChange }: CreateOpportunityDialog
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="qualified">Qualified</SelectItem>
-                  <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
+                  <SelectItem value="working_on_rfp">Working on RFP</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
                   <SelectItem value="awarded">Awarded</SelectItem>
                   <SelectItem value="lost">Lost</SelectItem>
                   <SelectItem value="on_hold">On Hold</SelectItem>

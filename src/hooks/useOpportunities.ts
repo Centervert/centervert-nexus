@@ -8,7 +8,7 @@ export interface Opportunity {
   title: string;
   description: string | null;
   opportunity_type: 'private' | 'government';
-  status: 'lead' | 'qualified' | 'proposal_submitted' | 'awarded' | 'lost' | 'on_hold';
+  status: 'lead' | 'working_on_rfp' | 'submitted' | 'awarded' | 'lost' | 'on_hold';
   priority: 'low' | 'medium' | 'high' | 'critical';
   estimated_value: number | null;
   assigned_to: string | null;
@@ -203,7 +203,7 @@ export const useOpportunityStats = () => {
       const stats = {
         total: data.length,
         pipelineValue: data.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
-        activeLeads: data.filter(opp => opp.status === 'lead' || opp.status === 'qualified').length,
+        activeLeads: data.filter(opp => opp.status === 'lead' || opp.status === 'working_on_rfp').length,
         upcomingDeadlines: data.filter(opp => {
           if (!opp.submission_deadline) return false;
           const deadline = new Date(opp.submission_deadline);

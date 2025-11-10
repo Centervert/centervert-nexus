@@ -37,8 +37,8 @@ const Opportunities = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-gray-500';
-      case 'qualified': return 'bg-yellow-500';
-      case 'proposal_submitted': return 'bg-orange-500';
+      case 'working_on_rfp': return 'bg-yellow-500';
+      case 'submitted': return 'bg-orange-500';
       case 'awarded': return 'bg-green-500';
       case 'lost': return 'bg-red-500';
       case 'on_hold': return 'bg-purple-500';
@@ -58,7 +58,7 @@ const Opportunities = () => {
 
   const getDeadlineDisplay = (opp: any) => {
     // If proposal submitted, check if they made the deadline
-    if (opp.status === 'proposal_submitted' && opp.submitted_at) {
+    if (opp.status === 'submitted' && opp.submitted_at) {
       if (opp.submission_deadline) {
         const submitted = new Date(opp.submitted_at);
         const deadline = new Date(opp.submission_deadline);
@@ -184,8 +184,8 @@ const Opportunities = () => {
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="lead">Lead</SelectItem>
-                    <SelectItem value="qualified">Qualified</SelectItem>
-                    <SelectItem value="proposal_submitted">Proposal Submitted</SelectItem>
+                    <SelectItem value="working_on_rfp">Working on RFP</SelectItem>
+                    <SelectItem value="submitted">Submitted</SelectItem>
                     <SelectItem value="awarded">Awarded</SelectItem>
                     <SelectItem value="lost">Lost</SelectItem>
                     <SelectItem value="on_hold">On Hold</SelectItem>
@@ -215,7 +215,7 @@ const Opportunities = () => {
                     <TableHead>Priority</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Assigned To</TableHead>
-                    <TableHead>{getDeadlineHeader(filteredOpportunities?.some(o => o.status === 'proposal_submitted') || false)}</TableHead>
+                    <TableHead>{getDeadlineHeader(filteredOpportunities?.some(o => o.status === 'submitted') || false)}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -321,7 +321,7 @@ const Opportunities = () => {
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground">
-                            {opp.status === 'proposal_submitted' ? 'Submitted' : 'Deadline'}
+                            {opp.status === 'submitted' ? 'Submitted' : 'Deadline'}
                           </p>
                           <p className={`font-medium ${deadlineInfo?.color || ''}`}>
                             {deadlineInfo?.text || '-'}
