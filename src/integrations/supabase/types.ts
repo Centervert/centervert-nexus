@@ -1092,34 +1092,34 @@ export type Database = {
       opportunity_attachments: {
         Row: {
           created_at: string | null
+          document_type: string
           file_name: string
           file_size: number | null
           file_type: string | null
           file_url: string
           id: string
-          is_final_deliverable: boolean
           opportunity_id: string
           uploaded_by: string
         }
         Insert: {
           created_at?: string | null
+          document_type?: string
           file_name: string
           file_size?: number | null
           file_type?: string | null
           file_url: string
           id?: string
-          is_final_deliverable?: boolean
           opportunity_id: string
           uploaded_by: string
         }
         Update: {
           created_at?: string | null
+          document_type?: string
           file_name?: string
           file_size?: number | null
           file_type?: string | null
           file_url?: string
           id?: string
-          is_final_deliverable?: boolean
           opportunity_id?: string
           uploaded_by?: string
         }
