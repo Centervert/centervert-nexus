@@ -1175,6 +1175,47 @@ export type Database = {
           },
         ]
       }
+      opportunity_document_links: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          opportunity_id: string
+          title: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          opportunity_id: string
+          title: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          opportunity_id?: string
+          title?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_document_links_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_message_reactions: {
         Row: {
           created_at: string

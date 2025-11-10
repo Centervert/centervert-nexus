@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import OpportunityMessages from '@/components/opportunities/OpportunityMessages';
 import OpportunityAttachments from '@/components/opportunities/OpportunityAttachments';
 import OpportunityContacts from '@/components/opportunities/OpportunityContacts';
+import OpportunityWorkingLinks from '@/components/opportunities/OpportunityWorkingLinks';
 import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
 import { OpportunityQuotePlayground } from '@/components/opportunities/OpportunityQuotePlayground';
 import { useOpportunityUnreadCount } from '@/hooks/useUnreadMessages';
@@ -386,7 +387,8 @@ const OpportunityDetail = () => {
             <OpportunityMessages opportunityId={id!} />
           </TabsContent>
 
-          <TabsContent value="documents">
+          <TabsContent value="documents" className="space-y-6">
+            <OpportunityWorkingLinks opportunityId={id!} />
             <OpportunityAttachments opportunityId={id!} />
           </TabsContent>
         </Tabs>
