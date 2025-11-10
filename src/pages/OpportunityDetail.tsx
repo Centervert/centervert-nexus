@@ -54,7 +54,11 @@ const OpportunityDetail = () => {
   const formatStatusText = (status: string) => {
     return status
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map(word => {
+        // Keep RFP in all caps
+        if (word.toLowerCase() === 'rfp') return 'RFP';
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      })
       .join(' ');
   };
 
