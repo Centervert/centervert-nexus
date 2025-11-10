@@ -45,6 +45,10 @@ const Opportunities = () => {
       .join(' ');
   };
 
+  const formatPriorityText = (priority: string) => {
+    return priority.charAt(0).toUpperCase() + priority.slice(1);
+  };
+
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-gray-500';
@@ -264,7 +268,7 @@ const Opportunities = () => {
                           </TableCell>
                           <TableCell>
                             <Badge className={getPriorityBadgeColor(opp.priority)}>
-                              {opp.priority}
+                              {formatPriorityText(opp.priority)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -319,7 +323,7 @@ const Opportunities = () => {
                           {formatStatusText(opp.status)}
                         </Badge>
                         <Badge className={getPriorityBadgeColor(opp.priority)}>
-                          {opp.priority}
+                          {formatPriorityText(opp.priority)}
                         </Badge>
                       </div>
 
