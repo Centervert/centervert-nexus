@@ -32,7 +32,7 @@ const EditOpportunityDialog = ({ open, onOpenChange, opportunity }: EditOpportun
       assigned_to: opportunity.assigned_to || '',
       issue_date: opportunity.issue_date || '',
       questions_deadline: opportunity.questions_deadline?.split('T')[0] || '',
-      submission_deadline: opportunity.submission_deadline?.split('T')[0] || '',
+      submission_deadline: opportunity.submission_deadline ? new Date(opportunity.submission_deadline).toISOString().slice(0, 16) : '',
       submitted_at: opportunity.submitted_at ? new Date(opportunity.submitted_at).toISOString().slice(0, 16) : '',
       award_date: opportunity.award_date || '',
       notes: opportunity.notes || '',
@@ -189,7 +189,7 @@ const EditOpportunityDialog = ({ open, onOpenChange, opportunity }: EditOpportun
                 </div>
                 <div>
                   <Label htmlFor="submission_deadline">Submission Deadline</Label>
-                  <Input id="submission_deadline" type="date" {...register('submission_deadline')} />
+                  <Input id="submission_deadline" type="datetime-local" {...register('submission_deadline')} />
                 </div>
                 <div>
                   <Label htmlFor="award_date">Award Date</Label>
