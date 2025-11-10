@@ -138,11 +138,11 @@ const Opportunities = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
+              <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
                 <Target className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Opportunities</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-muted-foreground truncate">Total Opportunities</p>
                 <p className="text-2xl font-bold">{stats?.total || 0}</p>
               </div>
             </div>
@@ -153,29 +153,29 @@ const Opportunities = () => {
                 <DollarSign className="h-5 w-5 text-green-500" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm text-muted-foreground">Pipeline Value</p>
+                <p className="text-sm text-muted-foreground truncate">Pipeline Value</p>
                 <p className="text-2xl font-bold truncate">${(stats?.pipelineValue || 0).toLocaleString()}</p>
               </div>
             </div>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
+              <div className="p-2 bg-blue-500/10 rounded-lg flex-shrink-0">
                 <TrendingUp className="h-5 w-5 text-blue-500" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active Leads</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-muted-foreground truncate">Active Leads</p>
                 <p className="text-2xl font-bold">{stats?.activeLeads || 0}</p>
               </div>
             </div>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-500/10 rounded-lg">
+              <div className="p-2 bg-orange-500/10 rounded-lg flex-shrink-0">
                 <Clock className="h-5 w-5 text-orange-500" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Upcoming Deadlines</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-muted-foreground truncate">Upcoming Deadlines</p>
                 <p className="text-2xl font-bold">{stats?.upcomingDeadlines || 0}</p>
               </div>
             </div>
