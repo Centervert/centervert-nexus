@@ -228,7 +228,6 @@ const Opportunities = () => {
                     <TableHead>Type</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
-                    <TableHead>Value</TableHead>
                     <TableHead>Assigned To</TableHead>
                     <TableHead>{getDeadlineHeader(filteredOpportunities?.some(o => o.status === 'submitted') || false)}</TableHead>
                   </TableRow>
@@ -236,13 +235,13 @@ const Opportunities = () => {
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         Loading opportunities...
                       </TableCell>
                     </TableRow>
                   ) : filteredOpportunities?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         No opportunities found
                       </TableCell>
                     </TableRow>
@@ -270,9 +269,6 @@ const Opportunities = () => {
                             <Badge className={getPriorityBadgeColor(opp.priority)}>
                               {formatPriorityText(opp.priority)}
                             </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {opp.estimated_value ? `$${opp.estimated_value.toLocaleString()}` : '-'}
                           </TableCell>
                           <TableCell>{opp.assigned_user?.full_name || 'Unassigned'}</TableCell>
                           <TableCell>
@@ -329,12 +325,6 @@ const Opportunities = () => {
 
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
-                          <p className="text-xs text-muted-foreground">Value</p>
-                          <p className="font-medium">
-                            {opp.estimated_value ? `$${opp.estimated_value.toLocaleString()}` : '-'}
-                          </p>
-                        </div>
-                        <div>
                           <p className="text-xs text-muted-foreground">
                             {opp.status === 'submitted' ? 'Submitted' : 'Deadline'}
                           </p>
@@ -342,7 +332,7 @@ const Opportunities = () => {
                             {deadlineInfo?.text || '-'}
                           </p>
                         </div>
-                        <div className="col-span-2">
+                        <div>
                           <p className="text-xs text-muted-foreground">Assigned To</p>
                           <p className="font-medium">{opp.assigned_user?.full_name || 'Unassigned'}</p>
                         </div>
