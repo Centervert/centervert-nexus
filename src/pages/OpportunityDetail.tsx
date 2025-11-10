@@ -51,6 +51,13 @@ const OpportunityDetail = () => {
     });
   };
 
+  const formatStatusText = (status: string) => {
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-gray-500';
@@ -134,7 +141,7 @@ const OpportunityDetail = () => {
             <div>
               <p className="text-xs text-muted-foreground">Status</p>
               <Badge className={getStatusBadgeColor(opportunity.status)}>
-                {opportunity.status.replace('_', ' ')}
+                {formatStatusText(opportunity.status)}
               </Badge>
             </div>
             <div>

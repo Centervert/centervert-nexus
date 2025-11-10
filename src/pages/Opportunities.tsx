@@ -34,6 +34,13 @@ const Opportunities = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
+  const formatStatusText = (status: string) => {
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'lead': return 'bg-gray-500';
@@ -248,7 +255,7 @@ const Opportunities = () => {
                           </TableCell>
                           <TableCell>
                             <Badge className={getStatusBadgeColor(opp.status)}>
-                              {opp.status.replace('_', ' ')}
+                              {formatStatusText(opp.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -305,7 +312,7 @@ const Opportunities = () => {
                       
                       <div className="flex flex-wrap gap-2">
                         <Badge className={getStatusBadgeColor(opp.status)} variant="secondary">
-                          {opp.status.replace('_', ' ')}
+                          {formatStatusText(opp.status)}
                         </Badge>
                         <Badge className={getPriorityBadgeColor(opp.priority)}>
                           {opp.priority}
