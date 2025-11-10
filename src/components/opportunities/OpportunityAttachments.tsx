@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FileText, Download, Trash2, Upload, Eye } from 'lucide-react';
+import { FileText, Download, Trash2, Upload, Eye, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -30,6 +30,23 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
+    },
+  });
+
+  const toggleFinalDeliverable = useMutation({
+    mutationFn: async ({ id, isFinalDeliverable }: { id: string; isFinalDeliverable: boolean }) => {
+      const { error } = await supabase
+        .from('opportunity_attachments')
+        .update({ is_final_deliverable: !isFinalDeliverable })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['opportunity-attachments', opportunityId] });
+      toast.success('Updated successfully');
+    },
+    onError: () => {
+      toast.error('Failed to update file');
     },
   });
 
@@ -143,85 +160,166 @@ const OpportunityAttachments = ({ opportunityId }: OpportunityAttachmentsProps) 
     setViewingFile(null);
   };
 
-  return (
-    <Card className="p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold text-lg">Documents</h3>
-          <p className="text-sm text-muted-foreground">Upload RFPs, proposals, and supporting documents</p>
-        </div>
-        <div>
-          <Input
-            type="file"
-            id="file-upload"
-            className="hidden"
-            onChange={handleFileUpload}
-            disabled={uploading}
-            accept=".pdf,.doc,.docx,.xls,.xlsx"
-          />
-          <Button asChild disabled={uploading}>
-            <label htmlFor="file-upload" className="cursor-pointer">
-              <Upload className="h-4 w-4 mr-2" />
-              {uploading ? 'Uploading...' : 'Upload File'}
-            </label>
-          </Button>
-        </div>
-      </div>
+  const finalDeliverables = attachments?.filter(a => a.is_final_deliverable) || [];
+  const regularAttachments = attachments?.filter(a => !a.is_final_deliverable) || [];
 
-      <div className="space-y-2">
-        {isLoading ? (
-          <p className="text-center text-muted-foreground">Loading files...</p>
-        ) : attachments?.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">No documents uploaded yet</p>
-        ) : (
-          attachments?.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
-            >
-              <div className="flex items-center gap-3 flex-1">
-                <FileText className="h-8 w-8 text-muted-foreground" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{attachment.file_name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatFileSize(attachment.file_size || 0)} • {format(new Date(attachment.created_at), 'MMM d, yyyy')}
-                  </p>
+  return (
+    <Card className="p-6 space-y-6">
+      {/* Final Deliverables Section */}
+      {finalDeliverables.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-lg">Final Deliverables</h3>
+            <p className="text-sm text-muted-foreground">Documents marked as final deliverables</p>
+          </div>
+          <div className="space-y-2">
+            {finalDeliverables.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between p-3 border rounded-lg bg-primary/5 hover:bg-primary/10"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{attachment.file_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatFileSize(attachment.file_size || 0)} • {format(new Date(attachment.created_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleFinalDeliverable.mutate({ id: attachment.id, isFinalDeliverable: attachment.is_final_deliverable })}
+                    title="Remove from final deliverables"
+                  >
+                    <Star className="h-4 w-4 fill-primary text-primary" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleViewFile(attachment.file_name, attachment.file_url, attachment.file_type)}
+                    title="View document"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = attachment.file_url;
+                      link.download = attachment.file_name;
+                      link.click();
+                    }}
+                    title="Download document"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteAttachment.mutate({ id: attachment.id, fileUrl: attachment.file_url })}
+                    title="Delete document"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleViewFile(attachment.file_name, attachment.file_url, attachment.file_type)}
-                  title="View document"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const link = document.createElement('a');
-                    link.href = attachment.file_url;
-                    link.download = attachment.file_name;
-                    link.click();
-                  }}
-                  title="Download document"
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => deleteAttachment.mutate({ id: attachment.id, fileUrl: attachment.file_url })}
-                  title="Delete document"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Regular Documents Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-semibold text-lg">Documents</h3>
+            <p className="text-sm text-muted-foreground">Upload RFPs, proposals, and supporting documents</p>
+          </div>
+          <div>
+            <Input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleFileUpload}
+              disabled={uploading}
+              accept=".pdf,.doc,.docx,.xls,.xlsx"
+            />
+            <Button asChild disabled={uploading}>
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <Upload className="h-4 w-4 mr-2" />
+                {uploading ? 'Uploading...' : 'Upload File'}
+              </label>
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {isLoading ? (
+            <p className="text-center text-muted-foreground">Loading files...</p>
+          ) : regularAttachments.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No documents uploaded yet</p>
+          ) : (
+            regularAttachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <FileText className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium truncate">{attachment.file_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatFileSize(attachment.file_size || 0)} • {format(new Date(attachment.created_at), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleFinalDeliverable.mutate({ id: attachment.id, isFinalDeliverable: attachment.is_final_deliverable })}
+                    title="Add to final deliverables"
+                  >
+                    <Star className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleViewFile(attachment.file_name, attachment.file_url, attachment.file_type)}
+                    title="View document"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = attachment.file_url;
+                      link.download = attachment.file_name;
+                      link.click();
+                    }}
+                    title="Download document"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteAttachment.mutate({ id: attachment.id, fileUrl: attachment.file_url })}
+                    title="Delete document"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       <Dialog open={!!viewingFile} onOpenChange={handleCloseViewer}>

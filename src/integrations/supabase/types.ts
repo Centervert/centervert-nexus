@@ -1097,6 +1097,7 @@ export type Database = {
           file_type: string | null
           file_url: string
           id: string
+          is_final_deliverable: boolean
           opportunity_id: string
           uploaded_by: string
         }
@@ -1107,6 +1108,7 @@ export type Database = {
           file_type?: string | null
           file_url: string
           id?: string
+          is_final_deliverable?: boolean
           opportunity_id: string
           uploaded_by: string
         }
@@ -1117,6 +1119,7 @@ export type Database = {
           file_type?: string | null
           file_url?: string
           id?: string
+          is_final_deliverable?: boolean
           opportunity_id?: string
           uploaded_by?: string
         }
