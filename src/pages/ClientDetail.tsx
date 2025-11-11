@@ -87,7 +87,7 @@ const ClientDetail = () => {
 
         <main className="flex-1 overflow-y-auto">
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger />
             <Button variant="ghost" size="sm" onClick={() => navigate('/clients')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Clients

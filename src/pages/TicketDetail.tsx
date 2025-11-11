@@ -543,7 +543,7 @@ const TicketDetail = () => {
           <Sidebar />
           <main className="flex-1 overflow-y-auto">
             <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-              <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger />
               <Skeleton className="h-6 w-32" />
             </div>
             <div className="p-4 md:p-8 space-y-6">
@@ -563,7 +563,7 @@ const TicketDetail = () => {
           <Sidebar />
           <main className="flex-1 overflow-y-auto">
             <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-              <SidebarTrigger className="md:hidden" />
+              <SidebarTrigger />
             </div>
             <div className="p-4 md:p-8">
               <p className="text-center text-muted-foreground">Ticket not found</p>
@@ -587,7 +587,7 @@ const TicketDetail = () => {
           <div ref={topRef} className="h-0" />
           
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger />
             <Button
               variant="ghost"
               size="sm"

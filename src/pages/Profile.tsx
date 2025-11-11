@@ -97,7 +97,7 @@ const Profile = () => {
 
         <main className="flex-1 overflow-y-auto">
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger />
             <div className="flex items-center gap-2">
               <User className="h-5 w-5" />
               <h1 className="text-lg font-semibold">Profile</h1>

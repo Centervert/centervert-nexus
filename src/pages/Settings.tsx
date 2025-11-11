@@ -53,7 +53,7 @@ const Settings = () => {
 
         <main className="flex-1 overflow-y-auto">
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger />
             <h1 className="text-lg font-semibold">Settings</h1>
           </div>
 

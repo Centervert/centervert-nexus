@@ -586,7 +586,7 @@ const Dashboard = () => {
         <main className="flex-1 overflow-y-auto">
           {/* Top Bar */}
           <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger className="md:hidden" />
+            <SidebarTrigger />
             <div className="flex items-center gap-2.5 rounded-full bg-emerald-50 px-5 py-2.5">
               <div className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
               <span className="text-sm font-medium text-emerald-700">All Systems Operational</span>
