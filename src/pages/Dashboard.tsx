@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('open');
   const [expandedTickets, setExpandedTickets] = useState<string[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
   const { data: userRole } = useUserRole();
 
   // Set default sort to due_date for admins
@@ -262,6 +263,14 @@ const Dashboard = () => {
       prev.includes(ticketId) 
         ? prev.filter(id => id !== ticketId)
         : [...prev, ticketId]
+    );
+  };
+
+  const toggleGroupExpansion = (groupName: string) => {
+    setExpandedGroups(prev => 
+      prev.includes(groupName) 
+        ? prev.filter(name => name !== groupName)
+        : [...prev, groupName]
     );
   };
 
@@ -1021,14 +1030,29 @@ const Dashboard = () => {
 
                     return Object.entries(groupedTickets)
                       .sort(([a], [b]) => a.localeCompare(b))
-                      .map(([groupName, clientTickets]) => (
-                        <div key={groupName}>
-                          <div className="bg-muted/70 px-6 py-2 font-semibold text-sm border-b border-border">
-                            {groupName}
-                          </div>
-                          {clientTickets.map(ticket => renderTicketRow(ticket))}
-                        </div>
-                      ));
+                      .map(([groupName, clientTickets]) => {
+                        const isGroupExpanded = !expandedGroups.includes(groupName);
+                        return (
+                          <Collapsible key={groupName} open={isGroupExpanded} onOpenChange={() => toggleGroupExpansion(groupName)}>
+                            <CollapsibleTrigger className="w-full">
+                              <div className="bg-muted/70 px-6 py-2 font-semibold text-sm border-b border-border flex items-center gap-2 hover:bg-muted cursor-pointer">
+                                {isGroupExpanded ? (
+                                  <ChevronDown className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4 text-primary" />
+                                )}
+                                <span>{groupName}</span>
+                                <Badge variant="outline" className="ml-2 text-xs">
+                                  {clientTickets.length}
+                                </Badge>
+                              </div>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              {clientTickets.map(ticket => renderTicketRow(ticket))}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      });
                   })()
                 ) : (
                   // Original flat list for non-admins
