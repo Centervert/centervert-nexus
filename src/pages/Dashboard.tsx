@@ -340,12 +340,12 @@ const Dashboard = () => {
       <Collapsible key={ticket.id} open={isExpanded} onOpenChange={() => hasChildren && toggleTicketExpansion(ticket.id)}>
         <div
           className={cn(
-            "p-4 hover:bg-muted/50 cursor-pointer lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] lg:gap-4 lg:px-6 lg:py-4",
+            "p-4 hover:bg-muted/50 cursor-pointer xl:grid xl:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] xl:gap-4 xl:px-6 xl:py-4",
             isChild && "bg-muted/30 ml-8 border-l-2 border-primary/30"
           )}
         >
           {/* Mobile Layout */}
-          <div className="lg:hidden space-y-3">
+          <div className="xl:hidden space-y-3">
             <div className="flex items-start justify-between gap-2" onClick={() => navigate(`/tickets/${ticket.id}`)}>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -439,7 +439,7 @@ const Dashboard = () => {
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex lg:items-center lg:gap-3">
+          <div className="hidden xl:flex xl:items-center xl:gap-3">
             <input 
               type="checkbox" 
               className="rounded border-border w-4 h-4 shrink-0" 
@@ -461,7 +461,7 @@ const Dashboard = () => {
               <div className="w-4" />
             )}
           </div>
-          <div className="hidden lg:flex lg:flex-col lg:justify-center lg:min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:flex-col xl:justify-center xl:min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <div className="font-medium leading-tight truncate">{ticket.title}</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
               <span>{parseInt(ticket.ticket_number?.toString() || '0')}</span>
@@ -475,7 +475,7 @@ const Dashboard = () => {
               </span>
             </div>
           </div>
-          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:flex-col xl:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {ticket.client?.managing_agency?.name && ticket.client.client_type === 'agency_managed' ? (
               <div className="flex flex-wrap items-center gap-x-1">
                 <span className="truncate max-w-[120px]">{ticket.client.managing_agency.name}</span>
@@ -506,12 +506,12 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-          <div className="hidden lg:flex lg:flex-col lg:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:flex-col xl:justify-center text-sm min-w-0" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             <span className="truncate text-xs text-muted-foreground">
               {ticket.assigned_profile?.full_name || 'Unassigned'}
             </span>
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:items-center xl:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {(ticket.status === 'resolved' || ticket.status === 'pending_acknowledgment') && quoteStatus.needsPO ? (
               <Badge className={cn('rounded-md px-3 py-1.5 font-medium w-full justify-center text-xs whitespace-nowrap', quoteStatus.className)}>
                 {quoteStatus.label}
@@ -523,7 +523,7 @@ const Dashboard = () => {
               </Badge>
             )}
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:items-center xl:justify-center" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {userRole?.isAdmin ? (
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -559,7 +559,7 @@ const Dashboard = () => {
               </Badge>
             )}
           </div>
-          <div className="hidden lg:flex lg:items-center lg:justify-end text-sm" onClick={() => navigate(`/tickets/${ticket.id}`)}>
+          <div className="hidden xl:flex xl:items-center xl:justify-end text-sm" onClick={() => navigate(`/tickets/${ticket.id}`)}>
             {ticket.due_date 
               ? new Date(ticket.due_date).toLocaleDateString('en-US', {
                   month: 'short',
@@ -977,7 +977,7 @@ const Dashboard = () => {
           {/* Tickets Table */}
           <div className="rounded-lg border border-border bg-card overflow-hidden">
             {/* Desktop Header */}
-            <div className="hidden lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <div className="hidden xl:grid xl:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] gap-4 border-b border-border bg-muted/50 px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               <div className="flex items-center">
                 <input 
                   type="checkbox" 
@@ -996,17 +996,17 @@ const Dashboard = () => {
             <div className="divide-y divide-border">
               {ticketsLoading ? (
                  Array.from({ length: 5 }).map((_, i) => (
-                   <div key={i} className="p-4 lg:grid lg:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] lg:gap-4 lg:px-6 lg:py-4">
-                     <Skeleton className="h-4 w-4 mb-3 lg:mb-0" />
-                     <div className="space-y-2 mb-3 lg:mb-0">
+                   <div key={i} className="p-4 xl:grid xl:grid-cols-[56px_minmax(200px,2fr)_minmax(180px,1.5fr)_minmax(120px,1fr)_minmax(140px,1fr)_minmax(140px,1fr)_100px] xl:gap-4 xl:px-6 xl:py-4">
+                     <Skeleton className="h-4 w-4 mb-3 xl:mb-0" />
+                     <div className="space-y-2 mb-3 xl:mb-0">
                        <Skeleton className="h-4 w-3/4" />
                        <Skeleton className="h-3 w-1/2" />
                      </div>
-                     <Skeleton className="h-4 w-1/2 mb-3 lg:mb-0" />
-                     <Skeleton className="h-4 w-1/3 mb-3 lg:mb-0" />
-                     <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
-                     <Skeleton className="h-6 w-24 mb-3 lg:mb-0" />
-                     <Skeleton className="h-8 w-full lg:w-16" />
+                     <Skeleton className="h-4 w-1/2 mb-3 xl:mb-0" />
+                     <Skeleton className="h-4 w-1/3 mb-3 xl:mb-0" />
+                     <Skeleton className="h-6 w-24 mb-3 xl:mb-0" />
+                     <Skeleton className="h-6 w-24 mb-3 xl:mb-0" />
+                     <Skeleton className="h-8 w-full xl:w-16" />
                    </div>
                  ))
               ) : tickets && tickets.length > 0 ? (
