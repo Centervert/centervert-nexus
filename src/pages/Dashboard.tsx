@@ -81,6 +81,7 @@ const Dashboard = () => {
     { value: 'awaiting_response' as const, label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
     { value: 'pending_acknowledgment' as const, label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
     { value: 'awaiting_payment' as const, label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+    { value: 'on_hold' as const, label: 'On Hold', className: 'bg-gray-500 text-white' },
     { value: 'resolved' as const, label: 'Complete', className: 'bg-green-100 text-green-800' },
     { value: 'closed' as const, label: 'Completed', className: 'bg-green-600 text-white' },
   ];
@@ -212,6 +213,7 @@ const Dashboard = () => {
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
       pending_acknowledgment: { label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
       awaiting_payment: { label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+      on_hold: { label: 'On Hold', className: 'bg-gray-500 text-white' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
       closed: { label: 'Completed', className: 'bg-green-600 text-white' },
     };
