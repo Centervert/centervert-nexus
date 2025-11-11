@@ -294,6 +294,7 @@ const TicketDetail = () => {
       awaiting_response: { label: 'Awaiting Your Response', className: 'bg-yellow-500 text-white' },
       pending_acknowledgment: { label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
       awaiting_payment: { label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+      on_hold: { label: 'On Hold', className: 'bg-orange-500 text-white' },
       closed: { label: 'Completed', className: 'bg-green-600 text-white' },
       resolved: { label: 'Complete', className: 'bg-green-100 text-green-800' },
     };
@@ -311,7 +312,7 @@ const TicketDetail = () => {
   };
 
   const statusOptions: Array<{
-    value: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'closed';
+    value: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'on_hold' | 'closed';
     label: string;
     className: string;
   }> = [
@@ -321,11 +322,12 @@ const TicketDetail = () => {
     { value: 'resolved', label: 'Complete', className: 'bg-green-100 text-green-800' },
     { value: 'pending_acknowledgment', label: 'Pending Your Review', className: 'bg-amber-500 text-white' },
     { value: 'awaiting_payment', label: 'Awaiting Payment', className: 'bg-purple-500 text-white' },
+    { value: 'on_hold', label: 'On Hold', className: 'bg-orange-500 text-white' },
     { value: 'closed', label: 'Completed', className: 'bg-green-600 text-white' },
   ];
 
   const updateStatusMutation = useMutation({
-    mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'closed') => {
+    mutationFn: async (newStatus: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'on_hold' | 'closed') => {
       // Get current user profile
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');

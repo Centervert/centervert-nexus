@@ -5,7 +5,7 @@ export interface Ticket {
   id: string;
   title: string;
   description: string;
-  status: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'closed';
+  status: 'open' | 'in_progress' | 'awaiting_response' | 'resolved' | 'pending_acknowledgment' | 'awaiting_payment' | 'on_hold' | 'closed';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   category_id: string | null;
   created_by: string;
