@@ -189,7 +189,7 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
                       )}
                     </Button>
                     <p className="text-xs opacity-70">
-                      {format(new Date(message.created_at), 'h:mm a')}
+                      {format(new Date(message.created_at), "MMM d 'at' h:mm a")}
                     </p>
                   </div>
                 </div>
