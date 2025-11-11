@@ -17,6 +17,7 @@ import OpportunityContacts from '@/components/opportunities/OpportunityContacts'
 import OpportunityWorkingLinks from '@/components/opportunities/OpportunityWorkingLinks';
 import EditOpportunityDialog from '@/components/opportunities/EditOpportunityDialog';
 import { OpportunityQuotePlayground } from '@/components/opportunities/OpportunityQuotePlayground';
+import { OpportunityTasksSessions } from '@/components/opportunities/OpportunityTasksSessions';
 import { useOpportunityUnreadCount } from '@/hooks/useUnreadMessages';
 import { useOpportunityQuoteItems } from '@/hooks/useOpportunityQuoteItems';
 
@@ -207,6 +208,7 @@ const OpportunityDetail = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="quote">Quote</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks/Sessions</TabsTrigger>
             <TabsTrigger value="communication" className="relative">
               Communication
               {unreadCount > 0 && (
@@ -381,6 +383,10 @@ const OpportunityDetail = () => {
 
           <TabsContent value="contacts">
             <OpportunityContacts opportunityId={id!} />
+          </TabsContent>
+
+          <TabsContent value="tasks">
+            <OpportunityTasksSessions opportunityId={id!} />
           </TabsContent>
 
           <TabsContent value="communication">
