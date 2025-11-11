@@ -295,7 +295,9 @@ const Dashboard = () => {
     
     const checkTicket = (t: Ticket, qs: ReturnType<typeof getQuoteStatus>) => {
       if (activeTab === 'open') {
-        return !['resolved', 'closed'].includes(t.status);
+        return !['resolved', 'closed', 'awaiting_payment'].includes(t.status);
+      } else if (activeTab === 'awaiting_payment') {
+        return t.status === 'awaiting_payment';
       } else if (activeTab === 'complete') {
         return ['resolved', 'closed'].includes(t.status);
       } else if (activeTab === 'po-needed') {
@@ -324,7 +326,9 @@ const Dashboard = () => {
     const childTickets = allChildTickets.filter(child => {
       const childQuoteStatus = getQuoteStatus(child);
       if (activeTab === 'open') {
-        return !['resolved', 'closed'].includes(child.status);
+        return !['resolved', 'closed', 'awaiting_payment'].includes(child.status);
+      } else if (activeTab === 'awaiting_payment') {
+        return child.status === 'awaiting_payment';
       } else if (activeTab === 'complete') {
         return ['resolved', 'closed'].includes(child.status);
       } else if (activeTab === 'po-needed') {
@@ -738,8 +742,9 @@ const Dashboard = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mb-4">
-            <TabsList className="grid w-full grid-cols-4 max-w-md">
+            <TabsList className="grid w-full grid-cols-5 max-w-2xl">
               <TabsTrigger value="open">Open</TabsTrigger>
+              <TabsTrigger value="awaiting_payment">Awaiting Payment</TabsTrigger>
               <TabsTrigger value="complete">Complete</TabsTrigger>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="po-needed">PO Needed</TabsTrigger>
