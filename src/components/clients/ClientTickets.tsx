@@ -11,6 +11,13 @@ interface ClientTicketsProps {
 export const ClientTickets = ({ clientId }: ClientTicketsProps) => {
   const navigate = useNavigate();
 
+  const normalizeStatus = (status: string) => {
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const { data: tickets, isLoading } = useQuery({
     queryKey: ['client-tickets', clientId],
     queryFn: async () => {
@@ -45,7 +52,7 @@ export const ClientTickets = ({ clientId }: ClientTicketsProps) => {
                   <p className="font-medium truncate">{parseInt(ticket.ticket_number?.toString() || '0')} - {ticket.title}</p>
                   <p className="text-sm text-muted-foreground line-clamp-2">{ticket.description}</p>
                 </div>
-                <Badge className="self-start sm:self-center shrink-0">{ticket.status}</Badge>
+                <Badge className="self-start sm:self-center shrink-0">{normalizeStatus(ticket.status)}</Badge>
               </div>
             ))}
           </div>

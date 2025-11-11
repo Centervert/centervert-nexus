@@ -94,6 +94,13 @@ export default function ManagedServiceDetail() {
     }
   };
 
+  const normalizeStatus = (status: string) => {
+    return status
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -113,7 +120,7 @@ export default function ManagedServiceDetail() {
               <h1 className="text-2xl md:text-3xl font-bold mb-2">{service.service_name}</h1>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className={getStatusColor(service.status)}>
-                  {service.status}
+                  {normalizeStatus(service.status)}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
                   {service.service_type.replace('_', ' ')}
