@@ -10,6 +10,7 @@ import { useUserRole } from '@/hooks/useUserRole';
 import { MessageReactions } from '@/components/messages/MessageReactions';
 import { MentionTextarea } from '@/components/messages/MentionTextarea';
 import { useMarkTicketMessagesRead } from '@/hooks/useUnreadMessages';
+import { parseLinksAndMentions } from '@/lib/utils';
 
 interface Message {
   id: string;
@@ -238,14 +239,29 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
       <p key={idx} className={idx < paragraphs.length - 1 ? 'mb-3' : ''}>
         {para.split('\n').map((line, lineIdx, arr) => {
           // Split line by @mentions
-          const parts = line.split(/(@[\w\s]+)/g);
+          const mentionParts = line.split(/(@[\w\s]+)/g);
           return (
             <span key={lineIdx}>
-              {parts.map((part, partIdx) => 
+              {mentionParts.map((part, partIdx) => 
                 part.startsWith('@') ? (
                   <strong key={partIdx} className="font-semibold">{part}</strong>
                 ) : (
-                  part
+                  parseLinksAndMentions(part).map((linkPart, linkIndex) => {
+                    if (linkPart.type === 'link') {
+                      return (
+                        <a
+                          key={`${partIdx}-${linkIndex}`}
+                          href={linkPart.content}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline hover:no-underline"
+                        >
+                          {linkPart.content}
+                        </a>
+                      );
+                    }
+                    return <span key={`${partIdx}-${linkIndex}`}>{linkPart.content}</span>;
+                  })
                 )
               )}
               {lineIdx < arr.length - 1 && <br />}

@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { MentionTextarea } from '@/components/messages/MentionTextarea';
 import { MessageReactions } from '@/components/messages/MessageReactions';
 import { useMarkOpportunityMessagesRead } from '@/hooks/useUnreadMessages';
+import { parseLinksAndMentions } from '@/lib/utils';
 
 interface OpportunityMessagesProps {
   opportunityId: string;
@@ -140,13 +141,30 @@ const OpportunityMessages = ({ opportunityId }: OpportunityMessagesProps) => {
   };
 
   const renderMessageContent = (content: string) => {
-    // Replace @mentions with bold text
-    const parts = content.split(/(@[\w\s]+)/g);
-    return parts.map((part, index) => {
+    // Split by @mentions first
+    const mentionParts = content.split(/(@[\w\s]+)/g);
+    return mentionParts.map((part, index) => {
       if (part.startsWith('@')) {
         return <strong key={index} className="font-semibold">{part}</strong>;
       }
-      return part;
+      // Then linkify URLs in non-mention parts
+      const linkParts = parseLinksAndMentions(part);
+      return linkParts.map((linkPart, linkIndex) => {
+        if (linkPart.type === 'link') {
+          return (
+            <a
+              key={`${index}-${linkIndex}`}
+              href={linkPart.content}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline hover:no-underline"
+            >
+              {linkPart.content}
+            </a>
+          );
+        }
+        return <span key={`${index}-${linkIndex}`}>{linkPart.content}</span>;
+      });
     });
   };
 
