@@ -2,18 +2,38 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+export interface PhoneNumber {
+  number: string;
+  type: 'Mobile' | 'Work' | 'Home' | 'Fax';
+}
+
 export interface Contact {
   id: string;
+  first_name: string;
+  last_name: string;
   full_name: string;
   email: string | null;
   phone: string | null;
   phone_extension: string | null;
+  phone_numbers: PhoneNumber[] | any;
   title: string | null;
   organization: string | null;
   contact_type: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  address: string | null;
+  contact_source: string | null;
+  last_contact_date: string | null;
+  linkedin_url: string | null;
+  tags: string[] | any;
+  preferred_contact_method: string | null;
+  timezone: string | null;
+  birthday: string | null;
+  status: string;
+  lead_score: number | null;
+  client_id: string | null;
 }
 
 export interface OpportunityContact {
@@ -176,6 +196,29 @@ export const useUnlinkContact = () => {
     onError: (error) => {
       toast.error('Failed to unlink contact');
       console.error('Error unlinking contact:', error);
+    },
+  });
+};
+
+export const useDeleteContact = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('contacts')
+        .update({ status: 'inactive' })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      toast.success('Contact deleted successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to delete contact');
+      console.error('Error deleting contact:', error);
     },
   });
 };

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, LogOut, RefreshCw, Settings, User, Briefcase, Code } from 'lucide-react';
+import { Ticket, LogOut, RefreshCw, Settings, User, Briefcase, Code, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -59,6 +59,7 @@ const Sidebar = () => {
     { name: 'Managed Services', href: '/managed-services', icon: RefreshCw },
     ...(userRole?.isAdmin ? [
       { name: 'Sales & Opportunities', href: '/opportunities', icon: Briefcase },
+      { name: 'Contacts', href: '/contacts', icon: Users },
       { name: 'Development', href: '/dev-projects', icon: Code }
     ] : []),
   ];
