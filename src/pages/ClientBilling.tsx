@@ -154,8 +154,19 @@ const ClientBilling = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">Excellent</div>
-              <p className="text-xs text-muted-foreground mt-1">
+              <div className="flex items-end justify-between mb-3">
+                <div className="text-3xl font-bold text-green-600">Excellent</div>
+                <div className="flex items-end gap-1 h-12">
+                  {[8, 10, 7, 12, 9, 11, 10, 12, 11, 10, 12, 11].map((height, i) => (
+                    <div
+                      key={i}
+                      className="w-1 bg-green-500 rounded-sm"
+                      style={{ height: `${height * 4}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
                 Consistently pay on time
               </p>
             </CardContent>
@@ -176,18 +187,18 @@ const ClientBilling = () => {
           </div>
         </div>
 
-        {/* Invoice Table */}
-        <Card>
+        {/* Invoice Table - Desktop */}
+        <Card className="hidden md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Invoice No.</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="border-b">
+                  <TableHead className="pl-6">Invoice No.</TableHead>
+                  <TableHead className="px-6">Status</TableHead>
+                  <TableHead className="px-6">Due Date</TableHead>
+                  <TableHead className="px-6">Description</TableHead>
+                  <TableHead className="px-6 text-right">Amount</TableHead>
+                  <TableHead className="pr-6 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -199,10 +210,10 @@ const ClientBilling = () => {
                   </TableRow>
                 ) : (
                   filteredInvoices.map((invoice) => (
-                    <TableRow key={invoice.id}>
-                      <TableCell className="font-medium">{invoice.id}</TableCell>
-                      <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                      <TableCell>
+                    <TableRow key={invoice.id} className="border-b last:border-b-0">
+                      <TableCell className="font-medium pl-6">{invoice.id}</TableCell>
+                      <TableCell className="px-6">{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell className="px-6">
                         <div className="flex flex-col">
                           <span>{formatDate(invoice.dueDate)}</span>
                           {invoice.status === "open" && new Date(invoice.dueDate) > new Date() && (
@@ -212,13 +223,13 @@ const ClientBilling = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">
+                      <TableCell className="px-6 max-w-xs truncate">
                         {invoice.description}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="px-6 text-right font-medium">
                         {formatCurrency(invoice.amount)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="pr-6 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -249,6 +260,68 @@ const ClientBilling = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Invoice Cards - Mobile */}
+        <div className="md:hidden space-y-4">
+          {filteredInvoices.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No invoices found
+              </CardContent>
+            </Card>
+          ) : (
+            filteredInvoices.map((invoice) => (
+              <Card key={invoice.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="font-semibold text-lg">{invoice.id}</div>
+                      <div className="text-sm text-muted-foreground mt-1">
+                        {formatDate(invoice.dueDate)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      {getStatusBadge(invoice.status)}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Invoice
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Download className="h-4 w-4 mr-2" />
+                            Download PDF
+                          </DropdownMenuItem>
+                          {invoice.status === "open" && (
+                            <DropdownMenuItem className="text-primary">
+                              Pay Now
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                  
+                  <div className="text-sm text-muted-foreground mb-2">
+                    {invoice.description}
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-3 border-t">
+                    <span className="text-sm text-muted-foreground">Amount</span>
+                    <span className="text-lg font-semibold">
+                      {formatCurrency(invoice.amount)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
