@@ -154,19 +154,8 @@ const ClientBilling = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-end justify-between mb-3">
-                <div className="text-3xl font-bold text-green-600">Excellent</div>
-                <div className="flex items-end gap-1 h-12">
-                  {[8, 10, 7, 12, 9, 11, 10, 12, 11, 10, 12, 11].map((height, i) => (
-                    <div
-                      key={i}
-                      className="w-1 bg-green-500 rounded-sm"
-                      style={{ height: `${height * 4}px` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-3xl font-bold text-green-600">Excellent</div>
+              <p className="text-xs text-muted-foreground mt-1">
                 Consistently pay on time
               </p>
             </CardContent>
