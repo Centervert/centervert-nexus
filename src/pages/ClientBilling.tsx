@@ -51,7 +51,7 @@ const mockInvoices = [
 
 const ClientBilling = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortColumn, setSortColumn] = useState<"status" | "dueDate" | null>(null);
+  const [sortColumn, setSortColumn] = useState<"status" | "dueDate" | null>("dueDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Calculate summary statistics
