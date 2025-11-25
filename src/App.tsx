@@ -26,6 +26,7 @@ import DevProjectDetail from "./pages/DevProjectDetail";
 import NotFound from "./pages/NotFound";
 import ClientPortal from "./pages/ClientPortal";
 import ClientPortalLayout from "./components/client-portal/ClientPortalLayout";
+import ClientBilling from "./pages/ClientBilling";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,16 @@ const App = () => {
                   <ProtectedRoute>
                     <ClientPortalLayout>
                       <ClientPortal />
+                    </ClientPortalLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/client-portal/billing"
+                element={
+                  <ProtectedRoute>
+                    <ClientPortalLayout>
+                      <ClientBilling />
                     </ClientPortalLayout>
                   </ProtectedRoute>
                 }
