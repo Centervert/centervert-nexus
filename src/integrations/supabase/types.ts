@@ -195,6 +195,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          auto_payment_enabled: boolean | null
           billing_address: string | null
           client_type: Database["public"]["Enums"]["client_type"]
           created_at: string | null
@@ -217,6 +218,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          auto_payment_enabled?: boolean | null
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          auto_payment_enabled?: boolean | null
           billing_address?: string | null
           client_type?: Database["public"]["Enums"]["client_type"]
           created_at?: string | null
