@@ -310,45 +310,98 @@ export type Database = {
       }
       contacts: {
         Row: {
+          address: string | null
+          birthday: string | null
+          client_id: string | null
+          contact_source: string | null
           contact_type: string | null
           created_at: string | null
+          created_by: string | null
           email: string | null
+          first_name: string | null
           full_name: string
           id: string
+          last_contact_date: string | null
+          last_name: string | null
+          lead_score: number | null
+          linkedin_url: string | null
           notes: string | null
           organization: string | null
           phone: string | null
           phone_extension: string | null
+          phone_numbers: Json | null
+          preferred_contact_method: string | null
+          status: string | null
+          tags: string[] | null
+          timezone: string | null
           title: string | null
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
+          birthday?: string | null
+          client_id?: string | null
+          contact_source?: string | null
           contact_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
+          first_name?: string | null
           full_name: string
           id?: string
+          last_contact_date?: string | null
+          last_name?: string | null
+          lead_score?: number | null
+          linkedin_url?: string | null
           notes?: string | null
           organization?: string | null
           phone?: string | null
           phone_extension?: string | null
+          phone_numbers?: Json | null
+          preferred_contact_method?: string | null
+          status?: string | null
+          tags?: string[] | null
+          timezone?: string | null
           title?: string | null
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
+          birthday?: string | null
+          client_id?: string | null
+          contact_source?: string | null
           contact_type?: string | null
           created_at?: string | null
+          created_by?: string | null
           email?: string | null
+          first_name?: string | null
           full_name?: string
           id?: string
+          last_contact_date?: string | null
+          last_name?: string | null
+          lead_score?: number | null
+          linkedin_url?: string | null
           notes?: string | null
           organization?: string | null
           phone?: string | null
           phone_extension?: string | null
+          phone_numbers?: Json | null
+          preferred_contact_method?: string | null
+          status?: string | null
+          tags?: string[] | null
+          timezone?: string | null
           title?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contacts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dev_builds: {
         Row: {
