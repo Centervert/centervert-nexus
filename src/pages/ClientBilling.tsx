@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Download, Eye, MoreVertical } from "lucide-react";
+import { Search, Download, Eye, MoreVertical, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +51,8 @@ const mockInvoices = [
 
 const ClientBilling = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortColumn, setSortColumn] = useState<"status" | "dueDate" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Calculate summary statistics
   const openInvoices = mockInvoices.filter(inv => inv.status === "open");
@@ -65,10 +67,47 @@ const ClientBilling = () => {
   const paidAmount = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
 
   // Filter invoices based on search
-  const filteredInvoices = mockInvoices.filter(invoice =>
+  let filteredInvoices = mockInvoices.filter(invoice =>
     invoice.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
     invoice.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Sort invoices
+  if (sortColumn) {
+    filteredInvoices = [...filteredInvoices].sort((a, b) => {
+      if (sortColumn === "status") {
+        const statusOrder = { paid: 0, open: 1, overdue: 2 };
+        const aStatus = a.status as keyof typeof statusOrder;
+        const bStatus = b.status as keyof typeof statusOrder;
+        return sortDirection === "asc" 
+          ? statusOrder[aStatus] - statusOrder[bStatus]
+          : statusOrder[bStatus] - statusOrder[aStatus];
+      } else if (sortColumn === "dueDate") {
+        const aDate = new Date(a.dueDate).getTime();
+        const bDate = new Date(b.dueDate).getTime();
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
+      }
+      return 0;
+    });
+  }
+
+  const handleSort = (column: "status" | "dueDate") => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (column: "status" | "dueDate") => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-4 w-4 ml-1" />;
+    }
+    return sortDirection === "asc" 
+      ? <ArrowUp className="h-4 w-4 ml-1" />
+      : <ArrowDown className="h-4 w-4 ml-1" />;
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -183,8 +222,24 @@ const ClientBilling = () => {
               <TableHeader>
                 <TableRow className="border-b">
                   <TableHead className="pl-6 border-r">Invoice No.</TableHead>
-                  <TableHead className="px-6 border-r">Status</TableHead>
-                  <TableHead className="px-6 border-r">Due Date</TableHead>
+                  <TableHead className="px-6 border-r">
+                    <button 
+                      onClick={() => handleSort("status")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      Status
+                      {getSortIcon("status")}
+                    </button>
+                  </TableHead>
+                  <TableHead className="px-6 border-r">
+                    <button 
+                      onClick={() => handleSort("dueDate")}
+                      className="flex items-center hover:text-foreground transition-colors"
+                    >
+                      Due Date
+                      {getSortIcon("dueDate")}
+                    </button>
+                  </TableHead>
                   <TableHead className="px-6 border-r">Description</TableHead>
                   <TableHead className="px-6 text-right border-r">Amount</TableHead>
                   <TableHead className="pr-6 text-right">Actions</TableHead>
