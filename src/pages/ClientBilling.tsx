@@ -193,11 +193,11 @@ const ClientBilling = () => {
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="pl-6">Invoice No.</TableHead>
-                  <TableHead className="px-6">Status</TableHead>
-                  <TableHead className="px-6">Due Date</TableHead>
-                  <TableHead className="px-6">Description</TableHead>
-                  <TableHead className="px-6 text-right">Amount</TableHead>
+                  <TableHead className="pl-6 border-r">Invoice No.</TableHead>
+                  <TableHead className="px-6 border-r">Status</TableHead>
+                  <TableHead className="px-6 border-r">Due Date</TableHead>
+                  <TableHead className="px-6 border-r">Description</TableHead>
+                  <TableHead className="px-6 text-right border-r">Amount</TableHead>
                   <TableHead className="pr-6 text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -211,9 +211,9 @@ const ClientBilling = () => {
                 ) : (
                   filteredInvoices.map((invoice) => (
                     <TableRow key={invoice.id} className="border-b last:border-b-0">
-                      <TableCell className="font-medium pl-6">{invoice.id}</TableCell>
-                      <TableCell className="px-6">{getStatusBadge(invoice.status)}</TableCell>
-                      <TableCell className="px-6">
+                      <TableCell className="font-medium pl-6 border-r">{invoice.id}</TableCell>
+                      <TableCell className="px-6 border-r">{getStatusBadge(invoice.status)}</TableCell>
+                      <TableCell className="px-6 border-r">
                         <div className="flex flex-col">
                           <span>{formatDate(invoice.dueDate)}</span>
                           {invoice.status === "open" && new Date(invoice.dueDate) > new Date() && (
@@ -223,10 +223,10 @@ const ClientBilling = () => {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="px-6 max-w-xs truncate">
+                      <TableCell className="px-6 max-w-xs truncate border-r">
                         {invoice.description}
                       </TableCell>
-                      <TableCell className="px-6 text-right font-medium">
+                      <TableCell className="px-6 text-right font-medium border-r">
                         {formatCurrency(invoice.amount)}
                       </TableCell>
                       <TableCell className="pr-6 text-right">
