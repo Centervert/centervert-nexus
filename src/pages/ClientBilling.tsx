@@ -1,10 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -13,17 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Download, Eye, MoreVertical, ArrowUpDown, ArrowUp, ArrowDown, CreditCard } from "lucide-react";
+import { Search, Download, Eye, MoreVertical, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/contexts/AuthContext";
-import { useClientAutoPayment } from "@/hooks/useClientAutoPayment";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 // Mock data - replace with actual data from your backend
 const mockInvoices = [
@@ -59,31 +53,9 @@ const mockInvoices = [
 ];
 
 const ClientBilling = () => {
-  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [clientId, setClientId] = useState<string | undefined>();
-  const { autoPaymentEnabled, updateAutoPayment, isUpdating } = useClientAutoPayment(clientId);
   const [sortColumn, setSortColumn] = useState<"status" | "dueDate" | null>("dueDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
-  // Get client ID from user profile
-  useEffect(() => {
-    const getClientId = async () => {
-      if (!user?.id) return;
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('client_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (data?.client_id) {
-        setClientId(data.client_id);
-      }
-    };
-    
-    getClientId();
-  }, [user?.id]);
 
   // Calculate summary statistics
   const openInvoices = mockInvoices.filter(inv => inv.status === "open");
@@ -131,31 +103,6 @@ const ClientBilling = () => {
     }
   };
 
-  const handleManagePaymentMethods = async () => {
-    if (!clientId) {
-      toast.error('Client information not found');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-customer-portal-session', {
-        body: {
-          client_id: clientId,
-          return_url: window.location.href,
-        },
-      });
-
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error creating portal session:', error);
-      toast.error('Failed to open payment management portal');
-    }
-  };
-
   const getSortIcon = (column: "status" | "dueDate") => {
     if (sortColumn !== column) {
       return <ArrowUpDown className="h-4 w-4 ml-1" />;
@@ -197,50 +144,6 @@ const ClientBilling = () => {
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-foreground mb-8">Billing</h1>
-
-        {/* Payment Settings Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Payment Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="auto-payment" className="text-base font-medium">
-                  Automatic Payments
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {autoPaymentEnabled 
-                    ? "Invoices will be automatically charged on their due dates" 
-                    : "You'll need to manually pay each invoice when ready"}
-                </p>
-              </div>
-              <Switch
-                id="auto-payment"
-                checked={autoPaymentEnabled}
-                onCheckedChange={updateAutoPayment}
-                disabled={isUpdating}
-              />
-            </div>
-            
-            <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
-                onClick={handleManagePaymentMethods}
-                className="w-full sm:w-auto"
-              >
-                <CreditCard className="mr-2 h-4 w-4" />
-                Manage Payment Methods
-              </Button>
-              <p className="text-sm text-muted-foreground mt-2">
-                Add or update credit cards and bank accounts
-              </p>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
