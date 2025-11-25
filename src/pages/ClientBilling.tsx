@@ -25,6 +25,7 @@ const mockInvoices = [
     id: "INV-0003",
     status: "open",
     dueDate: "2025-12-15",
+    project: "Website Redesign",
     description: "Monthly Development Services - December 2025",
     amount: 2500.00,
     issueDate: "2025-11-24",
@@ -33,6 +34,7 @@ const mockInvoices = [
     id: "INV-0002",
     status: "paid",
     dueDate: "2025-11-15",
+    project: "Mobile App Development",
     description: "Monthly Development Services - November 2025",
     amount: 2500.00,
     issueDate: "2025-10-24",
@@ -42,6 +44,7 @@ const mockInvoices = [
     id: "INV-0001",
     status: "paid",
     dueDate: "2025-10-15",
+    project: "E-commerce Platform",
     description: "Monthly Development Services - October 2025",
     amount: 2500.00,
     issueDate: "2025-09-24",
@@ -240,7 +243,7 @@ const ClientBilling = () => {
                       {getSortIcon("dueDate")}
                     </button>
                   </TableHead>
-                  <TableHead className="px-6 border-r">Description</TableHead>
+                  <TableHead className="px-6 border-r">Project</TableHead>
                   <TableHead className="px-6 text-right border-r">Amount</TableHead>
                   <TableHead className="pr-6 text-right">Actions</TableHead>
                 </TableRow>
@@ -268,7 +271,7 @@ const ClientBilling = () => {
                         </div>
                       </TableCell>
                       <TableCell className="px-6 max-w-xs truncate border-r">
-                        {invoice.description}
+                        {invoice.project}
                       </TableCell>
                       <TableCell className="px-6 text-right font-medium border-r">
                         {formatCurrency(invoice.amount)}
@@ -352,7 +355,7 @@ const ClientBilling = () => {
                   </div>
                   
                   <div className="text-sm text-muted-foreground mb-2">
-                    {invoice.description}
+                    {invoice.project}
                   </div>
                   
                   <div className="flex justify-between items-center pt-3 border-t">
