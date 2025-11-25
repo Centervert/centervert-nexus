@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, LogOut } from 'lucide-react';
+import { Home, LogOut, Receipt } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import { 
@@ -37,6 +37,7 @@ const ClientPortalSidebar = () => {
 
   const navigation = [
     { name: 'Dashboard', href: '/client-portal', icon: Home },
+    { name: 'Billing', href: '/client-portal/billing', icon: Receipt },
   ];
 
   return (
