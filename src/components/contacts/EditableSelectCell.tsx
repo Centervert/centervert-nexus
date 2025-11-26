@@ -71,9 +71,8 @@ export function EditableSelectCell({
           renderValue ? (
             renderValue(selectedOption)
           ) : (
-            <Badge
-              variant="outline"
-              className="cursor-pointer hover:bg-accent"
+            <span
+              className="text-sm text-foreground cursor-pointer hover:underline"
               onClick={(e) => {
                 e.stopPropagation();
                 if (onValueClick && value) {
@@ -82,7 +81,7 @@ export function EditableSelectCell({
               }}
             >
               {selectedOption.name}
-            </Badge>
+            </span>
           )
         ) : (
           <span className="text-sm text-muted-foreground">{placeholder}</span>
