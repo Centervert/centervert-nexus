@@ -229,7 +229,9 @@ const UnifiedSidebar = () => {
           onClick={toggleSidebar}
           className="w-full h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
-          <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+          <div className="border-2 border-sidebar-foreground rounded p-0.5">
+            <ChevronLeft className={`h-4 w-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+          </div>
         </Button>
       </SidebarFooter>
     </Sidebar>
