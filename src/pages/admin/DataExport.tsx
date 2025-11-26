@@ -23,7 +23,26 @@ export default function DataExport() {
         `);
 
       if (error) throw error;
-      generateCSV(tickets || [], 'tickets_backup');
+      
+      // Flatten ticket data to include quote fields directly
+      const flattened = tickets?.map(ticket => {
+        const latestQuote = ticket.ticket_quotes?.[0];
+        return {
+          ...ticket,
+          quote_amount: latestQuote?.amount,
+          quote_status: latestQuote?.status,
+          quote_po_number: latestQuote?.po_number,
+          quote_payment_status: latestQuote?.payment_status,
+          quote_approved_at: latestQuote?.approved_at,
+          quote_paid_at: latestQuote?.paid_at,
+          ticket_quotes: JSON.stringify(ticket.ticket_quotes),
+          ticket_messages: JSON.stringify(ticket.ticket_messages),
+          ticket_links: JSON.stringify(ticket.ticket_links),
+          ticket_milestones: JSON.stringify(ticket.ticket_milestones),
+        };
+      });
+      
+      generateCSV(flattened || [], 'tickets_backup');
       toast.success('Tickets exported successfully');
     } catch (error) {
       console.error('Error exporting tickets:', error);
