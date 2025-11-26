@@ -39,7 +39,7 @@ const contactSchema = z.object({
   email: z.string().email("Invalid email").max(255),
   phone: z.string().max(50).optional().or(z.literal("")),
   title: z.string().max(100).optional().or(z.literal("")),
-  company_id: z.string().uuid("Please select a company"),
+  company_id: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
   is_primary: z.boolean().default(false),
 });
@@ -104,7 +104,7 @@ export function ContactDialog({ open, onOpenChange, contact }: ContactDialogProp
           email: values.email,
           phone: values.phone || null,
           title: values.title || null,
-          company_id: values.company_id,
+          company_id: values.company_id || null,
           notes: values.notes || null,
           is_primary: values.is_primary,
         }])
@@ -134,7 +134,7 @@ export function ContactDialog({ open, onOpenChange, contact }: ContactDialogProp
           email: values.email,
           phone: values.phone || null,
           title: values.title || null,
-          company_id: values.company_id,
+          company_id: values.company_id || null,
           notes: values.notes || null,
           is_primary: values.is_primary,
         })
@@ -214,11 +214,11 @@ export function ContactDialog({ open, onOpenChange, contact }: ContactDialogProp
               name="company_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Company *</FormLabel>
+                  <FormLabel>Company</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a company" />
+                        <SelectValue placeholder="Select a company (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
