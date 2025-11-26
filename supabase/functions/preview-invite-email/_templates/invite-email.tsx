@@ -35,28 +35,26 @@ export const InviteEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>You&apos;ve been invited to join Centervert</Preview>
+      <Preview>You have been invited to join Centervert</Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* Logo/Header */}
           <Section style={logoSection}>
             <Text style={logoText}>CENTERVERT</Text>
           </Section>
 
-          {/* Main Content */}
           <Section style={content}>
-            <Heading style={h1}>You&apos;re Invited!</Heading>
+            <Heading style={h1}>You are Invited!</Heading>
             
             <Text style={text}>
               {inviterName} has invited you to join Centervert as a {roleDisplay}.
             </Text>
 
             <Text style={text}>
-              As a {roleDisplay}, you&apos;ll have {roleDescription}.
+              As a {roleDisplay}, you will have {roleDescription}.
             </Text>
 
             <Section style={buttonContainer}>
-              <Link style={button} href={inviteUrl}>
+              <Link href={inviteUrl} style={button}>
                 Accept Invitation
               </Link>
             </Section>
@@ -71,16 +69,15 @@ export const InviteEmail = ({
 
           <Hr style={hr} />
 
-          {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
               This invitation expires in {expiryDays} days.
             </Text>
             <Text style={footerText}>
-              If you didn&apos;t expect this invitation, you can safely ignore this email.
+              If you did not expect this invitation, you can safely ignore this email.
             </Text>
             <Text style={footerTextSmall}>
-              © {new Date().getFullYear()} Centervert. All rights reserved.
+              Copyright {new Date().getFullYear()} Centervert. All rights reserved.
             </Text>
           </Section>
         </Container>
@@ -91,11 +88,9 @@ export const InviteEmail = ({
 
 export default InviteEmail;
 
-// Styles
 const main = {
   backgroundColor: '#f6f9fc',
-  fontFamily:
-    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif',
+  fontFamily: '-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Ubuntu,sans-serif',
 };
 
 const container = {
