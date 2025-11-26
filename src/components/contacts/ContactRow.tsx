@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Trash2, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { EditableCell } from "./EditableCell";
 import { EditableSelectCell } from "./EditableSelectCell";
@@ -29,9 +29,11 @@ interface Contact {
 interface ContactRowProps {
   contact: Contact;
   onDelete: (id: string) => void;
+  isSelected?: boolean;
+  onSelectChange?: (id: string, selected: boolean) => void;
 }
 
-export function ContactRow({ contact, onDelete }: ContactRowProps) {
+export function ContactRow({ contact, onDelete, isSelected = false, onSelectChange }: ContactRowProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -95,7 +97,13 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
   };
 
   return (
-    <TableRow>
+    <TableRow className={isSelected ? "bg-muted/50" : ""}>
+      <TableCell className="w-12">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => onSelectChange?.(contact.id, checked === true)}
+        />
+      </TableCell>
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar className="h-8 w-8">
@@ -146,15 +154,6 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
           onSave={(value) => updateField("title", value)}
           placeholder="--"
         />
-      </TableCell>
-      <TableCell className="text-right">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onDelete(contact.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
       </TableCell>
     </TableRow>
   );
