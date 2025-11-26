@@ -220,20 +220,21 @@ const UnifiedSidebar = () => {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-      </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-foreground/10 p-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleSidebar}
-          className="w-full h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        >
-          <div className="border-2 border-sidebar-foreground rounded p-0.5">
-            <ChevronLeft className={`h-4 w-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
-          </div>
-        </Button>
-      </SidebarFooter>
+        {/* Collapse Button at Bottom */}
+        <div className="mt-auto p-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="w-8 h-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mx-auto"
+          >
+            <div className="border border-sidebar-foreground rounded-sm p-0.5">
+              <ChevronLeft className={`h-3 w-3 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+            </div>
+          </Button>
+        </div>
+      </SidebarContent>
     </Sidebar>
   );
 };
