@@ -174,7 +174,7 @@ const UnifiedSidebar = () => {
                         ${isActive ? 'rotate-6' : ''}
                       `} />
                       {!isCollapsed && (
-                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                        <span className="transition-all duration-200">
                           {item.name}
                         </span>
                       )}
@@ -223,7 +223,7 @@ const UnifiedSidebar = () => {
                         `} />
                         {!isCollapsed && (
                           <>
-                            <span className="transition-all duration-200 group-hover:translate-x-1">
+                            <span className="transition-all duration-200">
                               CRM
                             </span>
                             <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-300 ease-in-out group-data-[state=open]/collapsible:rotate-90" />
@@ -277,7 +277,7 @@ const UnifiedSidebar = () => {
                                     hover:scale-125
                                     ${isActive ? 'rotate-12' : ''}
                                   `} />
-                                  <span className="transition-all duration-200 group-hover/sub:font-medium">
+                                  <span className="transition-all duration-200">
                                     {item.name}
                                   </span>
                                   {ripples[`CRM-${item.name}`] && (
@@ -333,7 +333,7 @@ const UnifiedSidebar = () => {
                         ${isActive ? 'rotate-6' : ''}
                       `} />
                       {!isCollapsed && (
-                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                        <span className="transition-all duration-200">
                           {item.name}
                         </span>
                       )}
@@ -384,7 +384,7 @@ const UnifiedSidebar = () => {
                         ${isActive ? 'rotate-6' : ''}
                       `} />
                       {!isCollapsed && (
-                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                        <span className="transition-all duration-200">
                           {item.name}
                         </span>
                       )}
@@ -431,7 +431,7 @@ const UnifiedSidebar = () => {
                       ${location.pathname === '/settings' ? 'rotate-90' : ''}
                     `} />
                     {!isCollapsed && (
-                      <span className="transition-all duration-200 group-hover:translate-x-1">
+                      <span className="transition-all duration-200">
                         Settings
                       </span>
                     )}
