@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import ClientPortal from "./pages/ClientPortal";
 import ClientPortalLayout from "./components/client-portal/ClientPortalLayout";
 import ClientBilling from "./pages/ClientBilling";
+import DataExport from "./pages/admin/DataExport";
 
 const queryClient = new QueryClient();
 
@@ -187,6 +188,14 @@ const App = () => {
                     <ClientPortalLayout>
                       <ClientBilling />
                     </ClientPortalLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/export"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <DataExport />
                   </ProtectedRoute>
                 }
               />
