@@ -8,6 +8,9 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Companies from "./pages/Companies";
+import Contacts from "./pages/Contacts";
+import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -38,7 +41,7 @@ const App = () => {
                 path="/companies"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <Companies />
                   </ProtectedRoute>
                 }
               />
@@ -46,7 +49,7 @@ const App = () => {
                 path="/contacts"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <Contacts />
                   </ProtectedRoute>
                 }
               />
@@ -54,7 +57,7 @@ const App = () => {
                 path="/billing"
                 element={
                   <ProtectedRoute>
-                    <Dashboard />
+                    <Billing />
                   </ProtectedRoute>
                 }
               />
