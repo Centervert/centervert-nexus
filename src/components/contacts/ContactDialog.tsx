@@ -60,9 +60,10 @@ interface ContactDialogProps {
     notes: string | null;
     is_primary: boolean | null;
   };
+  defaultCompanyId?: string;
 }
 
-export function ContactDialog({ open, onOpenChange, contact }: ContactDialogProps) {
+export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }: ContactDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -88,7 +89,7 @@ export function ContactDialog({ open, onOpenChange, contact }: ContactDialogProp
       email: contact?.email || "",
       phone: contact?.phone || "",
       title: contact?.title || "",
-      company_id: contact?.company_id || "",
+      company_id: contact?.company_id || defaultCompanyId || "",
       notes: contact?.notes || "",
       is_primary: contact?.is_primary ?? false,
     },
