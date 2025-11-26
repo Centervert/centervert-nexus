@@ -27,12 +27,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const contactSchema = z.object({
   first_name: z.string().min(1, "First name is required").max(100),
@@ -42,7 +49,6 @@ const contactSchema = z.object({
   title: z.string().max(100).optional().or(z.literal("")),
   company_id: z.string().uuid().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
-  is_primary: z.boolean().default(false),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
@@ -68,6 +74,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companyOpen, setCompanyOpen] = useState(false);
 
   const { data: companies } = useQuery({
     queryKey: ["companies-list"],
@@ -92,7 +99,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
       title: "",
       company_id: "",
       notes: "",
-      is_primary: false,
     },
   });
 
@@ -107,7 +113,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
         title: contact?.title || "",
         company_id: contact?.company_id || defaultCompanyId || "",
         notes: contact?.notes || "",
-        is_primary: contact?.is_primary ?? false,
       });
     }
   }, [contact, open, defaultCompanyId, form]);
@@ -127,7 +132,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,
-          is_primary: values.is_primary,
           created_by: user.id,
         }])
         .select()
@@ -158,7 +162,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,
-          is_primary: values.is_primary,
         })
         .eq("id", contact!.id)
         .select()
@@ -235,22 +238,53 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
               control={form.control}
               name="company_id"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Company</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a company (optional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {companies?.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Popover open={companyOpen} onOpenChange={setCompanyOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-full justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? companies?.find((company) => company.id === field.value)?.name
+                            : "Select a company (optional)"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search company..." />
+                        <CommandEmpty>No company found.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          {companies?.map((company) => (
+                            <CommandItem
+                              key={company.id}
+                              value={company.name}
+                              onSelect={() => {
+                                form.setValue("company_id", company.id);
+                                setCompanyOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  company.id === field.value ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {company.name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                   <FormMessage />
                 </FormItem>
               )}
@@ -310,24 +344,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                     <Textarea placeholder="Additional notes..." {...field} />
                   </FormControl>
                   <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="is_primary"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Primary Contact</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Mark as the main contact for this company
-                    </div>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
                 </FormItem>
               )}
             />
