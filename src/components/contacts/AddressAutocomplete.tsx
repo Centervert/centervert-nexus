@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AddressAutocompleteProps {
   value: string;
@@ -29,9 +30,6 @@ export function AddressAutocomplete({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  // Get Mapbox token from environment
-  const mapboxToken = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
-
   useEffect(() => {
     setInputValue(value || "");
   }, [value]);
@@ -48,21 +46,21 @@ export function AddressAutocomplete({
   }, []);
 
   const fetchSuggestions = async (query: string) => {
-    if (!query || query.length < 3 || !mapboxToken) {
+    if (!query || query.length < 3) {
       setSuggestions([]);
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-          query
-        )}.json?access_token=${mapboxToken}&country=US&types=address,place&limit=5`
-      );
-      const data = await response.json();
-      setSuggestions(data.features || []);
-      setIsOpen(true);
+      const { data, error } = await supabase.functions.invoke('mapbox-geocode', {
+        body: { query }
+      });
+
+      if (error) throw error;
+      
+      setSuggestions(data?.features || []);
+      setIsOpen(data?.features?.length > 0);
     } catch (error) {
       console.error("Error fetching address suggestions:", error);
       setSuggestions([]);
@@ -97,22 +95,6 @@ export function AddressAutocomplete({
     // Update parent with current value on blur
     onChange(inputValue);
   };
-
-  if (!mapboxToken) {
-    // Fallback to regular input if no token
-    return (
-      <Input
-        type="text"
-        value={inputValue}
-        onChange={(e) => {
-          setInputValue(e.target.value);
-          onChange(e.target.value);
-        }}
-        placeholder={placeholder}
-        className={className}
-      />
-    );
-  }
 
   return (
     <div ref={wrapperRef} className="relative w-full">
