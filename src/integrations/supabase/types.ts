@@ -124,10 +124,102 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          address: string | null
+          billcom_customer_id: string | null
+          billing_email: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          billcom_customer_id?: string | null
+          billing_email?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          billcom_customer_id?: string | null
+          billing_email?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          email: string
+          first_name: string
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          notes: string | null
+          phone: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          email: string
+          first_name: string
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
-          client_id: string | null
+          company_id: string | null
           created_at: string | null
           email: string
           expires_at: string
@@ -139,7 +231,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
-          client_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           email: string
           expires_at: string
@@ -151,7 +243,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
-          client_id?: string | null
+          company_id?: string | null
           created_at?: string | null
           email?: string
           expires_at?: string
@@ -166,8 +258,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          client_id: string | null
           company: string | null
+          company_id: string | null
           created_at: string | null
           email: string
           full_name: string | null
@@ -179,8 +271,8 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          client_id?: string | null
           company?: string | null
+          company_id?: string | null
           created_at?: string | null
           email: string
           full_name?: string | null
@@ -192,8 +284,8 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          client_id?: string | null
           company?: string | null
+          company_id?: string | null
           created_at?: string | null
           email?: string
           full_name?: string | null
@@ -444,7 +536,7 @@ export type Database = {
           approved_by: string | null
           billing_cycles: number | null
           billing_interval: string | null
-          client_id: string | null
+          company_id: string | null
           created_at: string
           decline_reason: string | null
           deliverables: string[] | null
@@ -471,7 +563,7 @@ export type Database = {
           approved_by?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
-          client_id?: string | null
+          company_id?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
@@ -498,7 +590,7 @@ export type Database = {
           approved_by?: string | null
           billing_cycles?: number | null
           billing_interval?: string | null
-          client_id?: string | null
+          company_id?: string | null
           created_at?: string
           decline_reason?: string | null
           deliverables?: string[] | null
@@ -549,8 +641,8 @@ export type Database = {
           assigned_to: string | null
           budget: number | null
           category_id: string | null
-          client_id: string | null
           closed_at: string | null
+          company_id: string | null
           created_at: string | null
           created_by: string
           description: string
@@ -574,8 +666,8 @@ export type Database = {
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
-          client_id?: string | null
           closed_at?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by: string
           description: string
@@ -599,8 +691,8 @@ export type Database = {
           assigned_to?: string | null
           budget?: number | null
           category_id?: string | null
-          client_id?: string | null
           closed_at?: string | null
+          company_id?: string | null
           created_at?: string | null
           created_by?: string
           description?: string
