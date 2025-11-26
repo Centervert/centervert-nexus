@@ -10,12 +10,14 @@ import {
   UserSquare2,
   ChevronRight,
   Search,
+  ChevronLeft,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
@@ -24,10 +26,12 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 const UnifiedSidebar = () => {
   const location = useLocation();
@@ -213,6 +217,18 @@ const UnifiedSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-foreground/10 p-2">
+        <SidebarTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-full h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          >
+            <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+          </Button>
+        </SidebarTrigger>
+      </SidebarFooter>
     </Sidebar>
   );
 };
