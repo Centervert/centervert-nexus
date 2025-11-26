@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -28,7 +26,6 @@ export function EditableSelectCell({
   onValueClick,
 }: EditableSelectCellProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const selectedOption = options.find((opt) => opt.id === value);
 
@@ -39,13 +36,6 @@ export function EditableSelectCell({
       onSave(newValue);
     }
     setIsEditing(false);
-  };
-
-  const handleCellClick = () => {
-    // If empty, start editing immediately on cell click
-    if (!value) {
-      setIsEditing(true);
-    }
   };
 
   if (isEditing) {
@@ -73,10 +63,8 @@ export function EditableSelectCell({
 
   return (
     <div
-      className="group relative flex items-center gap-2 min-h-[32px] cursor-pointer"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleCellClick}
+      className="flex items-center gap-2 min-h-[32px] cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2"
+      onClick={() => setIsEditing(true)}
     >
       <div className="flex-1">
         {selectedOption ? (
@@ -100,19 +88,6 @@ export function EditableSelectCell({
           <span className="text-sm text-muted-foreground">{placeholder}</span>
         )}
       </div>
-      {value && isHovered && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-        >
-          <Pencil className="h-3 w-3" />
-        </Button>
-      )}
     </div>
   );
 }

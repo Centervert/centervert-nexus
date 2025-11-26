@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface EditableCellProps {
   value: string | null;
@@ -22,7 +20,6 @@ export function EditableCell({
 }: EditableCellProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || "");
-  const [isHovered, setIsHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -50,13 +47,6 @@ export function EditableCell({
     }
   };
 
-  const handleCellClick = () => {
-    // If empty, start editing immediately on cell click
-    if (!value) {
-      setIsEditing(true);
-    }
-  };
-
   if (isEditing) {
     return (
       <div className="flex items-center gap-2">
@@ -75,27 +65,12 @@ export function EditableCell({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 min-h-[32px] cursor-pointer ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleCellClick}
+      className={`flex items-center gap-2 min-h-[32px] cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2 ${className}`}
+      onClick={() => setIsEditing(true)}
     >
       <span className="text-sm text-muted-foreground flex-1">
         {displayValue || value || placeholder}
       </span>
-      {value && isHovered && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsEditing(true);
-          }}
-        >
-          <Pencil className="h-3 w-3" />
-        </Button>
-      )}
     </div>
   );
 }
