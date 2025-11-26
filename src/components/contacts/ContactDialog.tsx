@@ -48,6 +48,7 @@ const contactSchema = z.object({
   phone: z.string().max(50).optional().or(z.literal("")),
   title: z.string().max(100).optional().or(z.literal("")),
   company_id: z.string().uuid().optional().or(z.literal("")),
+  address: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
 });
 
@@ -65,6 +66,7 @@ interface ContactDialogProps {
     title: string | null;
     company_id: string | null;
     notes: string | null;
+    address: string | null;
     is_primary: boolean | null;
   };
   defaultCompanyId?: string;
@@ -99,6 +101,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
       title: "",
       company_id: "",
       notes: "",
+      address: "",
     },
   });
 
@@ -113,6 +116,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
         title: contact?.title || "",
         company_id: contact?.company_id || defaultCompanyId || "",
         notes: contact?.notes || "",
+        address: contact?.address || "",
       });
     }
   }, [contact, open, defaultCompanyId, form]);
@@ -132,6 +136,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,
+          address: values.address || null,
           created_by: user.id,
         }])
         .select()
@@ -162,6 +167,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,
+          address: values.address || null,
         })
         .eq("id", contact!.id)
         .select()
@@ -333,6 +339,20 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="123 Main St, City, State 12345" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

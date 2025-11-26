@@ -34,6 +34,7 @@ interface Contact {
   title: string | null;
   company_id: string | null;
   notes: string | null;
+  address: string | null;
   is_primary: boolean | null;
 }
 
