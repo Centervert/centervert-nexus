@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Users, CreditCard, Building2, Settings as SettingsIcon } from 'lucide-react';
+import { ArrowLeft, User, Settings as SettingsIcon } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -25,11 +25,8 @@ const SettingsSidebar = () => {
     { name: 'Profile', href: '/profile', icon: User, description: 'Personal information' },
   ];
 
-  const adminNavigation = userRole?.isAdmin ? [
-    { name: 'User Management', href: '/settings/users', icon: Users, description: 'Manage users and invitations' },
-    { name: 'Client Management', href: '/clients', icon: Building2, description: 'Manage clients' },
-    { name: 'Payment Settings', href: '/settings/payments', icon: CreditCard, description: 'Configure payment options' },
-  ] : [];
+  // No additional admin settings for now
+  const adminNavigation: any[] = [];
 
   return (
     <SidebarUI collapsible="offcanvas" className="border-r border-sidebar-border">
@@ -79,36 +76,6 @@ const SettingsSidebar = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Admin Settings */}
-        {userRole?.isAdmin && adminNavigation.length > 0 && (
-          <>
-            <Separator className="my-2" />
-            <SidebarGroup>
-              <SidebarGroupLabel className="flex items-center gap-2 text-xs uppercase">
-                <Building2 className="h-4 w-4" />
-                Organization Settings
-              </SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {adminNavigation.map((item) => {
-                    const isActive = location.pathname === item.href || 
-                                    (item.href === '/clients' && location.pathname.startsWith('/clients'));
-                    return (
-                      <SidebarMenuItem key={item.name}>
-                        <SidebarMenuButton asChild isActive={isActive}>
-                          <Link to={item.href}>
-                            <item.icon className="h-5 w-5" />
-                            <span>{item.name}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          </>
-        )}
       </SidebarContent>
     </SidebarUI>
   );
