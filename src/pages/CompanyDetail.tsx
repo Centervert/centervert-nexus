@@ -1,16 +1,31 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
-import { CompanyContacts } from "@/components/companies/CompanyContacts";
-import { CompanyInfoCard } from "@/components/companies/CompanyInfoCard";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Mail, Phone, Globe, Building2, ExternalLink } from "lucide-react";
+import { EditableCell } from "@/components/contacts/EditableCell";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
+import { toast } from "sonner";
+
+interface Contact {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string | null;
+  title: string | null;
+  is_primary: boolean | null;
+}
 
 function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["company", id],
@@ -24,6 +39,51 @@ function CompanyDetail() {
       return data;
     },
   });
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: ["company-contacts", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contacts")
+        .select("id, first_name, last_name, email, phone, title, is_primary")
+        .eq("company_id", id)
+        .order("is_primary", { ascending: false })
+        .order("first_name", { ascending: true });
+      if (error) throw error;
+      return data as Contact[];
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async (updates: Partial<typeof company>) => {
+      const { error } = await supabase
+        .from("companies")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company", id] });
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Company updated");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to update company");
+      console.error(error);
+    },
+  });
+
+  const handleFieldUpdate = (field: string, value: string) => {
+    if (field === "phone") {
+      updateMutation.mutate({ [field]: normalizePhoneNumber(value) || null });
+    } else {
+      updateMutation.mutate({ [field]: value || null });
+    }
+  };
+
+  const handleStatusToggle = (checked: boolean) => {
+    updateMutation.mutate({ is_active: checked });
+  };
 
   if (isLoading) {
     return (
@@ -50,8 +110,9 @@ function CompanyDetail() {
 
   return (
     <UnifiedLayout>
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center gap-4">
+      <div className="container mx-auto p-6">
+        {/* Header with back button */}
+        <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
             size="icon"
@@ -59,21 +120,209 @@ function CompanyDetail() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">
-                {company.name}
-              </h1>
-              <Badge variant={company.is_active ? "default" : "secondary"}>
-                {company.is_active ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-          </div>
+          <h1 className="text-2xl font-semibold">Companies</h1>
         </div>
 
-        <CompanyInfoCard company={company} />
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Company details */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="p-6">
+              {/* Company header with logo placeholder and name */}
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Building2 className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-2xl font-bold mb-2">{company.name}</h2>
+                  {company.website && (
+                    <a
+                      href={company.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                    >
+                      {company.website.replace(/^https?:\/\//, '')}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </div>
+              </div>
 
-        <CompanyContacts companyId={id!} companyName={company.name} />
+              <Separator className="my-6" />
+
+              {/* Key information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Key information</h3>
+                <div className="grid gap-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Status</div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={company.is_active ?? true}
+                        onCheckedChange={handleStatusToggle}
+                      />
+                      <span className="text-sm">
+                        {company.is_active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Contact information */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Contact information</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      Billing Email
+                    </div>
+                    <EditableCell
+                      value={company.billing_email}
+                      onSave={(value) => handleFieldUpdate("billing_email", value)}
+                      placeholder="billing@company.com"
+                      type="email"
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      Phone
+                    </div>
+                    <EditableCell
+                      value={company.phone}
+                      onSave={(value) => handleFieldUpdate("phone", value)}
+                      placeholder="(555) 123-4567"
+                      type="tel"
+                      displayValue={company.phone ? formatPhoneNumber(company.phone) : undefined}
+                    />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Globe className="h-3 w-3" />
+                      Website
+                    </div>
+                    <EditableCell
+                      value={company.website}
+                      onSave={(value) => handleFieldUpdate("website", value)}
+                      placeholder="https://example.com"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Company profile */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Company profile</h3>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Address</div>
+                    <EditableCell
+                      value={company.address}
+                      onSave={(value) => handleFieldUpdate("address", value)}
+                      placeholder="123 Main St, City, State 12345"
+                      type="text"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Notes */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Notes</h3>
+                <EditableCell
+                  value={company.notes}
+                  onSave={(value) => handleFieldUpdate("notes", value)}
+                  placeholder="Add notes about this company..."
+                  type="text"
+                />
+              </div>
+            </Card>
+          </div>
+
+          {/* Right column - Contacts */}
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">
+                  Contacts {contacts.length > 0 && `(${contacts.length})`}
+                </h3>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={() => navigate(`/contacts?company=${id}`)}
+                >
+                  + Add
+                </Button>
+              </div>
+              
+              {contacts.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  No contacts yet
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {contacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      className="pb-4 border-b last:border-0 last:pb-0 cursor-pointer hover:bg-muted/50 -mx-2 px-2 rounded"
+                      onClick={() => navigate(`/contacts/${contact.id}`)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-primary">
+                            {contact.first_name[0]}{contact.last_name[0]}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm flex items-center gap-2">
+                            {contact.first_name} {contact.last_name}
+                            {contact.is_primary && (
+                              <Badge variant="secondary" className="text-xs">
+                                Primary
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {contact.email}
+                          </div>
+                          {contact.phone && (
+                            <div className="text-xs text-muted-foreground">
+                              {formatPhoneNumber(contact.phone)}
+                            </div>
+                          )}
+                          {contact.title && (
+                            <div className="text-xs text-muted-foreground mt-1">
+                              {contact.title}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => navigate(`/contacts?company=${id}`)}
+                  >
+                    View all associated Contacts →
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
       </div>
     </UnifiedLayout>
   );
