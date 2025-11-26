@@ -244,24 +244,6 @@ const ContactDetail = () => {
                         />
                       </div>
                     </div>
-                          onSave={(value) => updateMutation.mutate({ field: "company_id", value })}
-                          options={companies || []}
-                          placeholder="No company"
-                          renderValue={(option) => {
-                            if (!option || !contact.companies) return <span className="text-muted-foreground">No company</span>;
-                            return (
-                              <button
-                                onClick={() => navigate(`/companies/${contact.companies.id}`)}
-                                className="text-primary hover:underline text-left"
-                              >
-                                {contact.companies.name}
-                              </button>
-                            );
-                          }}
-                          onValueClick={(id) => navigate(`/companies/${id}`)}
-                        />
-                      </div>
-                    </div>
 
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Job Title</div>
