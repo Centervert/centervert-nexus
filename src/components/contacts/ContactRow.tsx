@@ -7,6 +7,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -43,6 +44,23 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editedContact, setEditedContact] = useState(contact);
+
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      "bg-blue-500",
+      "bg-green-500",
+      "bg-purple-500",
+      "bg-orange-500",
+      "bg-pink-500",
+      "bg-teal-500",
+    ];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
 
   const { data: companies } = useQuery({
     queryKey: ["companies-list"],
@@ -208,14 +226,31 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
   return (
     <TableRow>
       <TableCell>
-        <div className="flex items-center gap-2">
-          <span className="font-medium">
-            {contact.first_name} {contact.last_name}
-          </span>
-          {contact.is_primary && (
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-          )}
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className={`${getAvatarColor(contact.first_name)} text-white text-xs`}>
+              {getInitials(contact.first_name, contact.last_name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-primary hover:underline cursor-pointer">
+              {contact.first_name} {contact.last_name}
+            </span>
+            {contact.is_primary && (
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            )}
+          </div>
         </div>
+      </TableCell>
+      <TableCell>
+        <span className="text-sm text-muted-foreground">{contact.email}</span>
+      </TableCell>
+      <TableCell>
+        {contact.phone ? (
+          <span className="text-sm text-muted-foreground">{formatPhoneNumber(contact.phone)}</span>
+        ) : (
+          <span className="text-sm text-muted-foreground">--</span>
+        )}
       </TableCell>
       <TableCell>
         {contact.companies && contact.company_id ? (
@@ -227,25 +262,11 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
             {contact.companies.name}
           </Badge>
         ) : (
-          <span className="text-muted-foreground text-sm">No company</span>
+          <span className="text-muted-foreground text-sm">--</span>
         )}
       </TableCell>
       <TableCell>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-sm">
-            <Mail className="h-3 w-3 text-muted-foreground" />
-            <span className="text-muted-foreground">{contact.email}</span>
-          </div>
-          {contact.phone && (
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">{formatPhoneNumber(contact.phone)}</span>
-            </div>
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <span className="text-sm text-muted-foreground">{contact.title || "—"}</span>
+        <span className="text-sm text-muted-foreground">{contact.title || "--"}</span>
       </TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
