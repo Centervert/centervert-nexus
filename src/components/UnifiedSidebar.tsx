@@ -225,6 +225,29 @@ const UnifiedSidebar = () => {
                 );
               })()}
 
+              {/* Users */}
+              {navigation[2] && (() => {
+                const item = navigation[2];
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      isActive={location.pathname === item.href}
+                      onClick={() => navigate(item.href)}
+                      className={`
+                        text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        ${isCollapsed ? 'justify-center' : ''}
+                      `}
+                      tooltip={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {!isCollapsed && <span>{item.name}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })()}
+
               {/* Settings */}
               {isAdmin && (
                 <SidebarMenuItem>
