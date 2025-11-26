@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard,
-  Ticket,
   Building2,
   Users,
   Receipt,
@@ -56,12 +55,6 @@ const UnifiedSidebar = () => {
       name: 'Dashboard',
       href: '/dashboard',
       icon: LayoutDashboard,
-      show: true,
-    },
-    {
-      name: 'Tickets',
-      href: '/tickets',
-      icon: Ticket,
       show: true,
     },
     {

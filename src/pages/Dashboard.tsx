@@ -1,17 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, Receipt, AlertCircle } from "lucide-react";
+import { Building2, Users, Receipt } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import UnifiedLayout from "@/components/UnifiedLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useTicketStats } from "@/hooks/useTickets";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const { data: userRole } = useUserRole();
-  const { data: stats } = useTicketStats();
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -43,7 +41,6 @@ const Dashboard = () => {
   };
 
   const firstName = profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || 'there';
-  const openTickets = stats?.open || 0;
 
   return (
     <UnifiedLayout>
@@ -84,18 +81,6 @@ const Dashboard = () => {
               </Card>
             </>
           )}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                {isClient ? 'My Tickets' : 'Open Tickets'}
-              </CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{openTickets}</div>
-              <p className="text-xs text-muted-foreground">Requires attention</p>
-            </CardContent>
-          </Card>
           {isClient && (
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

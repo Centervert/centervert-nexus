@@ -8,7 +8,6 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import TicketDetail from "./pages/TicketDetail";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -32,14 +31,6 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/tickets/:id"
-                element={
-                  <ProtectedRoute>
-                    <TicketDetail />
                   </ProtectedRoute>
                 }
               />
