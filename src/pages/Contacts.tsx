@@ -12,7 +12,8 @@ import { generateCSV } from "@/lib/exportUtils";
 
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewFilter, setViewFilter] = useState("all");
+  const [scope, setScope] = useState("all"); // all or my
+  const [viewFilter, setViewFilter] = useState("all"); // all, withCompany, withoutCompany
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { data: contacts } = useQuery({
@@ -90,34 +91,47 @@ const Contacts = () => {
           </div>
         </div>
 
-        <Tabs value={viewFilter} onValueChange={setViewFilter} className="w-full">
+        <Tabs value={scope} onValueChange={setScope} className="w-full">
           <TabsList className="bg-transparent border-b rounded-none h-auto p-0 w-full justify-start">
             <TabsTrigger
               value="all"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              All contacts
+              All Contacts
             </TabsTrigger>
             <TabsTrigger
-              value="withCompany"
+              value="my"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              With company
-            </TabsTrigger>
-            <TabsTrigger
-              value="withoutCompany"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Without company
-            </TabsTrigger>
-            <TabsTrigger
-              value="primary"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            >
-              Primary contacts
+              My Contacts
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-sm font-medium text-muted-foreground">Filters:</span>
+          <Button
+            variant={viewFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("all")}
+          >
+            All
+          </Button>
+          <Button
+            variant={viewFilter === "withCompany" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("withCompany")}
+          >
+            With Company
+          </Button>
+          <Button
+            variant={viewFilter === "withoutCompany" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewFilter("withoutCompany")}
+          >
+            Without Company
+          </Button>
+        </div>
 
         <div className="relative w-[300px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -129,7 +143,7 @@ const Contacts = () => {
           />
         </div>
 
-        <ContactsTable searchQuery={searchQuery} viewFilter={viewFilter} />
+        <ContactsTable searchQuery={searchQuery} viewFilter={viewFilter} scope={scope} />
 
         <ContactDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
       </div>
