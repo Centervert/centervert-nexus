@@ -253,10 +253,9 @@ const UnifiedSidebar = () => {
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
-                                className="opacity-0 animate-fade-in"
+                                className="animate-fade-in"
                                 style={{ 
                                   animationDelay: `${index * 75}ms`,
-                                  animationFillMode: 'forwards'
                                 }}
                               >
                                 <SidebarMenuSubButton
