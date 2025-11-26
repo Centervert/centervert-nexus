@@ -48,7 +48,7 @@ const contactSchema = z.object({
   email: z.string().email("Invalid email").max(255),
   phone: z.string().max(50).optional().or(z.literal("")),
   title: z.string().max(100).optional().or(z.literal("")),
-  company_id: z.string().uuid().optional().or(z.literal("")),
+  organization_id: z.string().uuid().optional().or(z.literal("")),
   address: z.string().optional().or(z.literal("")),
   notes: z.string().optional().or(z.literal("")),
 });
@@ -65,7 +65,7 @@ interface ContactDialogProps {
     email: string;
     phone: string | null;
     title: string | null;
-    company_id: string | null;
+    organization_id: string | null;
     notes: string | null;
     address: string | null;
     is_primary: boolean | null;
@@ -100,7 +100,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
       email: "",
       phone: "",
       title: "",
-      company_id: "",
+      organization_id: "",
       notes: "",
       address: "",
     },
@@ -115,7 +115,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
         email: contact?.email || "",
         phone: contact?.phone || "",
         title: contact?.title || "",
-        company_id: contact?.company_id || defaultCompanyId || "",
+        organization_id: contact?.organization_id || defaultCompanyId || "",
         notes: contact?.notes || "",
         address: contact?.address || "",
       });
@@ -135,7 +135,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           email: values.email,
           phone: normalizePhoneNumber(values.phone) || null,
           title: values.title || null,
-          company_id: values.company_id || null,
+          organization_id: values.organization_id || null,
           notes: values.notes || null,
           address: values.address || null,
           created_by: user.id,
@@ -166,7 +166,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           email: values.email,
           phone: normalizePhoneNumber(values.phone) || null,
           title: values.title || null,
-          company_id: values.company_id || null,
+          organization_id: values.organization_id || null,
           notes: values.notes || null,
           address: values.address || null,
         })
@@ -257,7 +257,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
 
             <FormField
               control={form.control}
-              name="company_id"
+              name="organization_id"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Company</FormLabel>
@@ -289,7 +289,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                               key={company.id}
                               value={company.name}
                               onSelect={() => {
-                                form.setValue("company_id", company.id);
+                                form.setValue("organization_id", company.id);
                                 setCompanyOpen(false);
                               }}
                             >
