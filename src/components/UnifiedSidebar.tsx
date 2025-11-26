@@ -135,27 +135,30 @@ const UnifiedSidebar = () => {
         <SidebarGroup className="px-2 py-2">
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => {
-                const isActive = location.pathname === item.href;
+              {/* Dashboard */}
+              {navigation[0] && (() => {
+                const item = navigation[0];
+                const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      isActive={isActive}
+                      isActive={location.pathname === item.href}
                       onClick={() => navigate(item.href)}
                       className={`
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
                         ${isCollapsed ? 'justify-center' : ''}
                       `}
                       tooltip={isCollapsed ? item.name : undefined}
                     >
-                      <item.icon className="h-5 w-5" />
+                      <Icon className="h-5 w-5" />
                       {!isCollapsed && <span>{item.name}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
-              })}
+              })()}
 
+              {/* CRM */}
               {(isAdmin || isAgent) && (
                 <Collapsible open={crmOpen} onOpenChange={setCrmOpen} className="group/collapsible">
                   <SidebarMenuItem>
@@ -208,6 +211,30 @@ const UnifiedSidebar = () => {
                 </Collapsible>
               )}
 
+              {/* Billing */}
+              {navigation[1] && (() => {
+                const item = navigation[1];
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.name}>
+                    <SidebarMenuButton
+                      isActive={location.pathname === item.href}
+                      onClick={() => navigate(item.href)}
+                      className={`
+                        text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        ${isCollapsed ? 'justify-center' : ''}
+                      `}
+                      tooltip={isCollapsed ? item.name : undefined}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {!isCollapsed && <span>{item.name}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })()}
+
+              {/* Settings */}
               {(isAdmin || isAgent) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
