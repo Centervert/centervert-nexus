@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Companies from "./pages/Companies";
+import CompanyDetail from "./pages/CompanyDetail";
 import Contacts from "./pages/Contacts";
 import Billing from "./pages/Billing";
 import Settings from "./pages/Settings";
@@ -42,6 +43,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <Companies />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/companies/:id"
+                element={
+                  <ProtectedRoute>
+                    <CompanyDetail />
                   </ProtectedRoute>
                 }
               />

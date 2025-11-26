@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -48,6 +49,7 @@ interface ContactsTableProps {
 
 export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
@@ -144,8 +146,14 @@ export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps
                   </div>
                 </TableCell>
                 <TableCell>
-                  {contact.companies ? (
-                    <Badge variant="outline">{contact.companies.name}</Badge>
+                  {contact.companies && contact.company_id ? (
+                    <Badge 
+                      variant="outline" 
+                      className="cursor-pointer hover:bg-accent"
+                      onClick={() => navigate(`/companies/${contact.company_id}`)}
+                    >
+                      {contact.companies.name}
+                    </Badge>
                   ) : (
                     <span className="text-muted-foreground text-sm">No company</span>
                   )}

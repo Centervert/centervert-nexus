@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -35,6 +36,7 @@ interface Company {
   address: string | null;
   notes: string | null;
   is_active: boolean | null;
+  contacts?: Array<{ count: number }>;
 }
 
 interface CompaniesTableProps {
@@ -44,6 +46,7 @@ interface CompaniesTableProps {
 
 export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
@@ -53,7 +56,10 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
     queryFn: async () => {
       let query = supabase
         .from("companies")
-        .select("*")
+        .select(`
+          *,
+          contacts:contacts(count)
+        `)
         .order("name", { ascending: true });
 
       if (searchQuery) {
@@ -123,8 +129,21 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
           </TableHeader>
           <TableBody>
             {companies.map((company) => (
-              <TableRow key={company.id}>
-                <TableCell className="font-medium">{company.name}</TableCell>
+              <TableRow 
+                key={company.id}
+                className="cursor-pointer"
+                onClick={() => navigate(`/companies/${company.id}`)}
+              >
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    {company.name}
+                    {company.contacts?.[0]?.count > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {company.contacts[0].count} {company.contacts[0].count === 1 ? 'contact' : 'contacts'}
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="space-y-1">
                     {company.billing_email && (
@@ -148,6 +167,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-sm text-primary hover:underline"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <Globe className="h-3 w-3" />
                       Visit
@@ -164,14 +184,20 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setEditingCompany(company)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingCompany(company);
+                      }}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setDeletingCompanyId(company.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingCompanyId(company.id);
+                      }}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
