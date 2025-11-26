@@ -7,13 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { normalizePhoneNumber } from "@/lib/phoneUtils";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -200,17 +200,17 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{contact ? "Edit Contact" : "Add New Contact"}</DialogTitle>
-          <DialogDescription>
-            {contact ? "Update contact information" : "Create a new contact in your CRM"}
-          </DialogDescription>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>{contact ? "Edit Contact" : "Create Contact"}</SheetTitle>
+          <SheetDescription>
+            {contact ? "Update contact information" : "Start by entering the contact's name, email, or both."}
+          </SheetDescription>
+        </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -240,6 +240,20 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="john.doe@company.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
@@ -292,20 +306,6 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email *</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="john.doe@company.com" {...field} />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -373,17 +373,17 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
               )}
             />
 
-            <DialogFooter>
+            <SheetFooter className="gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Saving..." : contact ? "Update" : "Create"}
               </Button>
-            </DialogFooter>
+            </SheetFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
