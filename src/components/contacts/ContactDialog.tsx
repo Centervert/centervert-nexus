@@ -83,7 +83,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
     queryKey: ["companies-list"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies")
+        .from("organizations")
         .select("id, name")
         .eq("is_active", true)
         .order("name");

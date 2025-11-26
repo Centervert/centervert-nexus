@@ -14,7 +14,112 @@ export type Database = {
   }
   public: {
     Tables: {
-      companies: {
+      contacts: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          created_by: string | null
+          email: string
+          first_name: string
+          id: string
+          is_primary: boolean | null
+          last_name: string
+          notes: string | null
+          organization_id: string | null
+          phone: string | null
+          show_in_all_contacts: boolean
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          first_name: string
+          id?: string
+          is_primary?: boolean | null
+          last_name: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          show_in_all_contacts?: boolean
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          first_name?: string
+          id?: string
+          is_primary?: boolean | null
+          last_name?: string
+          notes?: string | null
+          organization_id?: string | null
+          phone?: string | null
+          show_in_all_contacts?: boolean
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      organizations: {
         Row: {
           address: string | null
           billcom_customer_id: string | null
@@ -59,148 +164,43 @@ export type Database = {
         }
         Relationships: []
       }
-      contacts: {
-        Row: {
-          address: string | null
-          company_id: string | null
-          created_at: string | null
-          created_by: string | null
-          email: string
-          first_name: string
-          id: string
-          is_primary: boolean | null
-          last_name: string
-          notes: string | null
-          phone: string | null
-          show_in_all_contacts: boolean
-          title: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          address?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          email: string
-          first_name: string
-          id?: string
-          is_primary?: boolean | null
-          last_name: string
-          notes?: string | null
-          phone?: string | null
-          show_in_all_contacts?: boolean
-          title?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          address?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          email?: string
-          first_name?: string
-          id?: string
-          is_primary?: boolean | null
-          last_name?: string
-          notes?: string | null
-          phone?: string | null
-          show_in_all_contacts?: boolean
-          title?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "contacts_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contacts_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      invitations: {
-        Row: {
-          accepted_at: string | null
-          company_id: string | null
-          created_at: string | null
-          email: string
-          expires_at: string
-          id: string
-          invited_by: string | null
-          role: Database["public"]["Enums"]["app_role"]
-          status: string
-          token: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          email: string
-          expires_at: string
-          id?: string
-          invited_by?: string | null
-          role?: Database["public"]["Enums"]["app_role"]
-          status?: string
-          token: string
-        }
-        Update: {
-          accepted_at?: string | null
-          company_id?: string | null
-          created_at?: string | null
-          email?: string
-          expires_at?: string
-          id?: string
-          invited_by?: string | null
-          role?: Database["public"]["Enums"]["app_role"]
-          status?: string
-          token?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
           company: string | null
-          company_id: string | null
           created_at: string | null
           email: string
           full_name: string | null
           id: string
           is_active: boolean | null
           notification_preferences: Json | null
+          organization_id: string | null
           phone: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           company?: string | null
-          company_id?: string | null
           created_at?: string | null
           email: string
           full_name?: string | null
           id: string
           is_active?: boolean | null
           notification_preferences?: Json | null
+          organization_id?: string | null
           phone?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           company?: string | null
-          company_id?: string | null
           created_at?: string | null
           email?: string
           full_name?: string | null
           id?: string
           is_active?: boolean | null
           notification_preferences?: Json | null
+          organization_id?: string | null
           phone?: string | null
           updated_at?: string | null
         }

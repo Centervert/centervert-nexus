@@ -38,7 +38,7 @@ export function CompanyInfoCard({ company }: CompanyInfoCardProps) {
   const updateMutation = useMutation({
     mutationFn: async (values: typeof editedCompany) => {
       const { error } = await supabase
-        .from("companies")
+        .from("organizations")
         .update({
           billing_email: values.billing_email || null,
           phone: normalizePhoneNumber(values.phone) || null,

@@ -58,8 +58,8 @@ export function ContactRow({ contact, onDelete, isSelected = false, onSelectChan
   const { data: companies } = useQuery({
     queryKey: ["companies-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
+      const { data, error} = await supabase
+        .from("organizations")
         .select("id, name")
         .eq("is_active", true)
         .order("name");
