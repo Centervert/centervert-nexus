@@ -5,32 +5,15 @@ import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Download, Search, FileText } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { ContactsTable } from "@/components/contacts/ContactsTable";
 import { ContactDialog } from "@/components/contacts/ContactDialog";
-import { generateCSV } from "@/lib/exportUtils";
 
 const Contacts = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [scope, setScope] = useState("all"); // all or my
   const [viewFilter, setViewFilter] = useState("all"); // all, withCompany, withoutCompany
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const { data: contacts } = useQuery({
-    queryKey: ["contacts-export"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contacts")
-        .select(`
-          *,
-          companies (
-            name
-          )
-        `);
-      if (error) throw error;
-      return data;
-    },
-  });
 
   const { data: companies } = useQuery({
     queryKey: ["companies-filter"],
@@ -46,25 +29,10 @@ const Contacts = () => {
   });
 
   const contactCounts = {
-    all: contacts?.length || 0,
-    withCompany: contacts?.filter((c) => c.companies).length || 0,
-    withoutCompany: contacts?.filter((c) => !c.companies).length || 0,
-    primary: contacts?.filter((c) => c.is_primary).length || 0,
-  };
-
-  const handleExport = () => {
-    if (contacts) {
-      const exportData = contacts.map((contact) => ({
-        first_name: contact.first_name,
-        last_name: contact.last_name,
-        email: contact.email,
-        phone: contact.phone,
-        title: contact.title,
-        company: contact.companies?.name || "",
-        is_primary: contact.is_primary,
-      }));
-      generateCSV(exportData, "contacts");
-    }
+    all: 0,
+    withCompany: 0,
+    withoutCompany: 0,
+    primary: 0,
   };
 
   return (
@@ -73,22 +41,12 @@ const Contacts = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
-            <p className="text-sm text-muted-foreground">{contactCounts.all} records</p>
+            <p className="text-sm text-muted-foreground">Contact records</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button variant="outline" size="sm">
-              <FileText className="h-4 w-4 mr-2" />
-              Edit columns
-            </Button>
-            <Button size="sm" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create contact
-            </Button>
-          </div>
+          <Button size="sm" onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create contact
+          </Button>
         </div>
 
         <Tabs value={scope} onValueChange={setScope} className="w-full">
