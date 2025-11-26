@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { AddressAutocomplete } from "../contacts/AddressAutocomplete";
 
 const companySchema = z.object({
   name: z.string().min(1, "Company name is required").max(200),
@@ -220,7 +221,11 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="123 Main St, City, State 12345" {...field} />
+                    <AddressAutocomplete
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="123 Main St, City, State 12345"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
