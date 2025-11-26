@@ -40,6 +40,7 @@ const UnifiedSidebar = () => {
   const { data: userRole } = useUserRole();
   const [crmOpen, setCrmOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [ripples, setRipples] = useState<{ [key: string]: { x: number; y: number; id: number } | null }>({});
   const { state, toggleSidebar } = useSidebar();
 
   const isCollapsed = state === 'collapsed';
@@ -47,6 +48,20 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname.startsWith('/companies/') || location.pathname.startsWith('/contacts/');
+
+  // Ripple effect handler
+  const handleRipple = (event: React.MouseEvent, key: string) => {
+    const button = event.currentTarget as HTMLElement;
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    
+    setRipples(prev => ({ ...prev, [key]: { x, y, id: Date.now() } }));
+    
+    setTimeout(() => {
+      setRipples(prev => ({ ...prev, [key]: null }));
+    }, 600);
+  };
 
   // Navigation items based on role
   const navigation = [
@@ -133,20 +148,48 @@ const UnifiedSidebar = () => {
               {navigation[0] && (() => {
                 const item = navigation[0];
                 const Icon = item.icon;
+                const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      isActive={location.pathname === item.href}
-                      onClick={() => navigate(item.href)}
+                      isActive={isActive}
+                      onClick={(e) => {
+                        handleRipple(e, item.name);
+                        navigate(item.href);
+                      }}
                       className={`
+                        relative overflow-hidden
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        transition-all duration-300 ease-in-out
+                        hover:shadow-lg hover:scale-[1.02]
+                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
                         ${isCollapsed ? 'justify-center' : ''}
+                        group
                       `}
                       tooltip={isCollapsed ? item.name : undefined}
                     >
-                      <Icon className="h-5 w-5" />
-                      {!isCollapsed && <span>{item.name}</span>}
+                      <Icon className={`
+                        h-5 w-5 transition-all duration-300
+                        group-hover:scale-110 group-hover:rotate-6
+                        ${isActive ? 'scale-110' : ''}
+                      `} />
+                      {!isCollapsed && (
+                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                          {item.name}
+                        </span>
+                      )}
+                      {ripples[item.name] && (
+                        <span
+                          className="absolute rounded-full bg-white/30 animate-ping"
+                          style={{
+                            left: ripples[item.name]!.x,
+                            top: ripples[item.name]!.y,
+                            width: '20px',
+                            height: '20px',
+                            transform: 'translate(-50%, -50%)',
+                          }}
+                        />
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -159,19 +202,44 @@ const UnifiedSidebar = () => {
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
                         isActive={isCrmActive}
+                        onClick={(e) => {
+                          handleRipple(e, 'CRM');
+                        }}
                         className={`
+                          relative overflow-hidden
                           text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                          ${isCrmActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                          transition-all duration-300 ease-in-out
+                          hover:shadow-lg hover:scale-[1.02]
+                          ${isCrmActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
                           ${isCollapsed ? 'justify-center' : ''}
+                          group
                         `}
                         tooltip={isCollapsed ? 'CRM' : undefined}
                       >
-                        <UserSquare2 className="h-5 w-5 transition-transform duration-200 group-data-[state=open]/collapsible:scale-110" />
+                        <UserSquare2 className={`
+                          h-5 w-5 transition-all duration-300
+                          group-hover:scale-110 group-data-[state=open]/collapsible:rotate-12
+                          ${isCrmActive ? 'scale-110' : ''}
+                        `} />
                         {!isCollapsed && (
                           <>
-                            <span>CRM</span>
+                            <span className="transition-all duration-200 group-hover:translate-x-1">
+                              CRM
+                            </span>
                             <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-300 ease-in-out group-data-[state=open]/collapsible:rotate-90" />
                           </>
+                        )}
+                        {ripples['CRM'] && (
+                          <span
+                            className="absolute rounded-full bg-white/30 animate-ping"
+                            style={{
+                              left: ripples['CRM']!.x,
+                              top: ripples['CRM']!.y,
+                              width: '20px',
+                              height: '20px',
+                              transform: 'translate(-50%, -50%)',
+                            }}
+                          />
                         )}
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
@@ -190,15 +258,38 @@ const UnifiedSidebar = () => {
                               >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
-                                  onClick={() => navigate(item.href)}
+                                  onClick={(e) => {
+                                    handleRipple(e, `CRM-${item.name}`);
+                                    navigate(item.href);
+                                  }}
                                   className={`
+                                    relative overflow-hidden
                                     text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
-                                    transition-all duration-200 hover:translate-x-1
-                                    ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground' : ''}
+                                    transition-all duration-200 hover:translate-x-2 hover:shadow-md
+                                    ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
+                                    group/sub
                                   `}
                                 >
-                                  <item.icon className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
-                                  <span>{item.name}</span>
+                                  <item.icon className={`
+                                    h-4 w-4 transition-all duration-200
+                                    group-hover/sub:scale-125 group-hover/sub:rotate-12
+                                    ${isActive ? 'scale-110' : ''}
+                                  `} />
+                                  <span className="transition-all duration-200 group-hover/sub:font-medium">
+                                    {item.name}
+                                  </span>
+                                  {ripples[`CRM-${item.name}`] && (
+                                    <span
+                                      className="absolute rounded-full bg-white/30 animate-ping"
+                                      style={{
+                                        left: ripples[`CRM-${item.name}`]!.x,
+                                        top: ripples[`CRM-${item.name}`]!.y,
+                                        width: '15px',
+                                        height: '15px',
+                                        transform: 'translate(-50%, -50%)',
+                                      }}
+                                    />
+                                  )}
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
                             );
@@ -214,20 +305,48 @@ const UnifiedSidebar = () => {
               {navigation[1] && (() => {
                 const item = navigation[1];
                 const Icon = item.icon;
+                const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      isActive={location.pathname === item.href}
-                      onClick={() => navigate(item.href)}
+                      isActive={isActive}
+                      onClick={(e) => {
+                        handleRipple(e, item.name);
+                        navigate(item.href);
+                      }}
                       className={`
+                        relative overflow-hidden
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        transition-all duration-300 ease-in-out
+                        hover:shadow-lg hover:scale-[1.02]
+                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
                         ${isCollapsed ? 'justify-center' : ''}
+                        group
                       `}
                       tooltip={isCollapsed ? item.name : undefined}
                     >
-                      <Icon className="h-5 w-5" />
-                      {!isCollapsed && <span>{item.name}</span>}
+                      <Icon className={`
+                        h-5 w-5 transition-all duration-300
+                        group-hover:scale-110 group-hover:rotate-6
+                        ${isActive ? 'scale-110' : ''}
+                      `} />
+                      {!isCollapsed && (
+                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                          {item.name}
+                        </span>
+                      )}
+                      {ripples[item.name] && (
+                        <span
+                          className="absolute rounded-full bg-white/30 animate-ping"
+                          style={{
+                            left: ripples[item.name]!.x,
+                            top: ripples[item.name]!.y,
+                            width: '20px',
+                            height: '20px',
+                            transform: 'translate(-50%, -50%)',
+                          }}
+                        />
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -237,20 +356,48 @@ const UnifiedSidebar = () => {
               {navigation[2] && (() => {
                 const item = navigation[2];
                 const Icon = item.icon;
+                const isActive = location.pathname === item.href;
                 return (
                   <SidebarMenuItem key={item.name}>
                     <SidebarMenuButton
-                      isActive={location.pathname === item.href}
-                      onClick={() => navigate(item.href)}
+                      isActive={isActive}
+                      onClick={(e) => {
+                        handleRipple(e, item.name);
+                        navigate(item.href);
+                      }}
                       className={`
+                        relative overflow-hidden
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        ${location.pathname === item.href ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        transition-all duration-300 ease-in-out
+                        hover:shadow-lg hover:scale-[1.02]
+                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
                         ${isCollapsed ? 'justify-center' : ''}
+                        group
                       `}
                       tooltip={isCollapsed ? item.name : undefined}
                     >
-                      <Icon className="h-5 w-5" />
-                      {!isCollapsed && <span>{item.name}</span>}
+                      <Icon className={`
+                        h-5 w-5 transition-all duration-300
+                        group-hover:scale-110 group-hover:rotate-6
+                        ${isActive ? 'scale-110' : ''}
+                      `} />
+                      {!isCollapsed && (
+                        <span className="transition-all duration-200 group-hover:translate-x-1">
+                          {item.name}
+                        </span>
+                      )}
+                      {ripples[item.name] && (
+                        <span
+                          className="absolute rounded-full bg-white/30 animate-ping"
+                          style={{
+                            left: ripples[item.name]!.x,
+                            top: ripples[item.name]!.y,
+                            width: '20px',
+                            height: '20px',
+                            transform: 'translate(-50%, -50%)',
+                          }}
+                        />
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -261,16 +408,43 @@ const UnifiedSidebar = () => {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={location.pathname === '/settings'}
-                    onClick={() => navigate('/settings')}
+                    onClick={(e) => {
+                      handleRipple(e, 'Settings');
+                      navigate('/settings');
+                    }}
                     className={`
+                      relative overflow-hidden
                       text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                      ${location.pathname === '/settings' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                      transition-all duration-300 ease-in-out
+                      hover:shadow-lg hover:scale-[1.02]
+                      ${location.pathname === '/settings' ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
                       ${isCollapsed ? 'justify-center' : ''}
+                      group
                     `}
                     tooltip={isCollapsed ? 'Settings' : undefined}
                   >
-                    <Settings className="h-5 w-5" />
-                    {!isCollapsed && <span>Settings</span>}
+                    <Settings className={`
+                      h-5 w-5 transition-all duration-300
+                      group-hover:scale-110 group-hover:rotate-90
+                      ${location.pathname === '/settings' ? 'scale-110 rotate-90' : ''}
+                    `} />
+                    {!isCollapsed && (
+                      <span className="transition-all duration-200 group-hover:translate-x-1">
+                        Settings
+                      </span>
+                    )}
+                    {ripples['Settings'] && (
+                      <span
+                        className="absolute rounded-full bg-white/30 animate-ping"
+                        style={{
+                          left: ripples['Settings']!.x,
+                          top: ripples['Settings']!.y,
+                          width: '20px',
+                          height: '20px',
+                          transform: 'translate(-50%, -50%)',
+                        }}
+                      />
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -284,10 +458,10 @@ const UnifiedSidebar = () => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="w-8 h-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            className="w-8 h-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all duration-300 hover:scale-110 group"
           >
-            <div className="border border-sidebar-foreground rounded-sm p-0.5">
-              <ChevronLeft className={`h-3 w-3 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+            <div className="border border-sidebar-foreground rounded-sm p-0.5 transition-all duration-300 group-hover:border-sidebar-accent-foreground group-hover:shadow-md">
+              <ChevronLeft className={`h-3 w-3 transition-all duration-500 ease-in-out ${isCollapsed ? 'rotate-180' : ''}`} />
             </div>
           </Button>
         </div>
