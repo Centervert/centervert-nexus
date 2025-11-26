@@ -42,8 +42,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Mail, X, RefreshCw, Loader2, Users, Shield } from 'lucide-react';
+import { UserPlus, Mail, X, RefreshCw, Loader2, Users, Shield, Eye } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { EmailPreviewDialog } from '@/components/EmailPreviewDialog';
 
 interface UserWithRoles {
   id: string;
@@ -67,6 +68,7 @@ interface Invitation {
 
 const UserManagement = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'admin' | 'agent'>('agent');
   const [userToToggle, setUserToToggle] = useState<{ id: string; name: string; currentStatus: boolean } | null>(null);
@@ -390,7 +392,14 @@ const UserManagement = () => {
                 </Select>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setPreviewDialogOpen(true)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Preview Email
+              </Button>
               <Button
                 onClick={handleSendInvite}
                 disabled={sendInviteMutation.isPending}
@@ -605,6 +614,14 @@ const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Email Preview Dialog */}
+      <EmailPreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        initialEmail={inviteEmail}
+        initialRole={inviteRole}
+      />
       </div>
     </UnifiedLayout>
   );
