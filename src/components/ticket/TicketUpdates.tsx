@@ -366,7 +366,6 @@ export const TicketUpdates = ({ ticketId }: TicketUpdatesProps) => {
                     <span className="text-[11px] text-muted-foreground">
                       {formatTime(message.created_at)}
                     </span>
-                    <MessageReactions messageId={message.id} messageType="ticket" />
                   </div>
                 </div>
               </div>
