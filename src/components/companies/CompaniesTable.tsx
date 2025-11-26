@@ -135,14 +135,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
                 onClick={() => navigate(`/companies/${company.id}`)}
               >
                 <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    {company.name}
-                    {company.contacts?.[0]?.count > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {company.contacts[0].count} {company.contacts[0].count === 1 ? 'contact' : 'contacts'}
-                      </Badge>
-                    )}
-                  </div>
+                  {company.name}
                 </TableCell>
                 <TableCell>
                   <div className="space-y-1">
