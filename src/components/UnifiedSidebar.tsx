@@ -1,8 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import {
   LayoutDashboard,
@@ -10,54 +7,39 @@ import {
   Users,
   Receipt,
   Settings,
-  LogOut,
   UserSquare2,
   ChevronRight,
+  Search,
 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 const UnifiedSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
   const { data: userRole } = useUserRole();
   const [crmOpen, setCrmOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { state } = useSidebar();
 
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, company, avatar_url')
-        .eq('id', user.id)
-        .single();
-      return data;
-    },
-    enabled: !!user,
-  });
-
+  const isCollapsed = state === 'collapsed';
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
-  const isClient = !isAdmin && !isAgent;
 
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname.startsWith('/companies/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname.startsWith('/companies/') || location.pathname.startsWith('/contacts/');
 
   // Navigation items based on role
   const navigation = [
@@ -88,20 +70,30 @@ const UnifiedSidebar = () => {
     },
   ];
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+    <Sidebar className="border-r border-sidebar-foreground/10" style={{ backgroundColor: '#9c5126' }}>
+      <SidebarContent className="bg-transparent">
+        {/* Search Bar */}
+        <div className="p-3 border-b border-sidebar-foreground/10">
+          {!isCollapsed ? (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
+              <Input
+                type="text"
+                placeholder="Search Portal"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-sidebar-foreground/10 border-sidebar-foreground/20 text-sidebar-foreground placeholder:text-sidebar-foreground/60 focus-visible:ring-sidebar-foreground/30"
+              />
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <Search className="h-5 w-5 text-sidebar-foreground/80" />
+            </div>
+          )}
+        </div>
+
+        <SidebarGroup className="px-2 py-2">
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => {
@@ -111,9 +103,15 @@ const UnifiedSidebar = () => {
                     <SidebarMenuButton
                       isActive={isActive}
                       onClick={() => navigate(item.href)}
+                      className={`
+                        text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                        ${isCollapsed ? 'justify-center' : ''}
+                      `}
+                      tooltip={isCollapsed ? item.name : undefined}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
+                      <item.icon className="h-5 w-5" />
+                      {!isCollapsed && <span>{item.name}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -123,97 +121,75 @@ const UnifiedSidebar = () => {
                 <Collapsible open={crmOpen} onOpenChange={setCrmOpen} className="group/collapsible">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton isActive={isCrmActive}>
-                        <UserSquare2 className="h-4 w-4" />
-                        <span>CRM</span>
-                        <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      <SidebarMenuButton
+                        isActive={isCrmActive}
+                        className={`
+                          text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                          ${isCrmActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                          ${isCollapsed ? 'justify-center' : ''}
+                        `}
+                        tooltip={isCollapsed ? 'CRM' : undefined}
+                      >
+                        <UserSquare2 className="h-5 w-5" />
+                        {!isCollapsed && (
+                          <>
+                            <span>CRM</span>
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          </>
+                        )}
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {crmItems.map((item) => {
-                          const isActive = location.pathname === item.href || 
-                            (item.href === '/companies' && location.pathname.startsWith('/companies/'));
-                          return (
-                            <SidebarMenuSubItem key={item.name}>
-                              <SidebarMenuSubButton
-                                isActive={isActive}
-                                onClick={() => navigate(item.href)}
-                              >
-                                <item.icon className="h-4 w-4" />
-                                <span>{item.name}</span>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
+                    {!isCollapsed && (
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {crmItems.map((item) => {
+                            const isActive = location.pathname === item.href || 
+                              (item.href === '/companies' && location.pathname.startsWith('/companies/')) ||
+                              (item.href === '/contacts' && location.pathname.startsWith('/contacts/'));
+                            return (
+                              <SidebarMenuSubItem key={item.name}>
+                                <SidebarMenuSubButton
+                                  isActive={isActive}
+                                  onClick={() => navigate(item.href)}
+                                  className={`
+                                    text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
+                                    ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground' : ''}
+                                  `}
+                                >
+                                  <item.icon className="h-4 w-4" />
+                                  <span>{item.name}</span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
                   </SidebarMenuItem>
                 </Collapsible>
               )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
-        {(isAdmin || isAgent) && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
+              {(isAdmin || isAgent) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={location.pathname === '/settings'}
                     onClick={() => navigate('/settings')}
+                    className={`
+                      text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                      ${location.pathname === '/settings' ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
+                      ${isCollapsed ? 'justify-center' : ''}
+                    `}
+                    tooltip={isCollapsed ? 'Settings' : undefined}
                   >
-                    <Settings className="h-4 w-4" />
-                    <span>Settings</span>
+                    <Settings className="h-5 w-5" />
+                    {!isCollapsed && <span>Settings</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+              )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
-
-      <SidebarFooter>
-        <div className="flex items-center gap-3 px-3 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback>
-              {profile?.full_name ? getInitials(profile.full_name) : 'U'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            {profile?.company && (
-              <p className="text-xs text-muted-foreground truncate">
-                {profile.company}
-              </p>
-            )}
-            <p className="text-sm font-medium truncate">
-              {profile?.full_name || user?.email}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2 px-3 pb-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => navigate('/profile')}
-          >
-            Profile
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={signOut}
-          >
-            <LogOut className="h-4 w-4 mr-1" />
-            Sign out
-          </Button>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   );
 };
