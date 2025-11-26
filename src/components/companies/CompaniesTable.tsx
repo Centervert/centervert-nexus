@@ -64,7 +64,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
   if (!companies || companies.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p>No companies found.</p>
+        <p>No organizations found.</p>
         <p className="text-sm mt-2">Try adjusting your search or filters.</p>
       </div>
     );
@@ -76,7 +76,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company Name</TableHead>
+              <TableHead>Organization Name</TableHead>
               <TableHead>Contact Info</TableHead>
               <TableHead>Website</TableHead>
               <TableHead>Status</TableHead>

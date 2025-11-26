@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -112,6 +112,29 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
       new_contact_phone: "",
     },
   });
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        organization_type: undefined,
+        name: "",
+        billing_email: "",
+        phone: "",
+        website: "",
+        address: "",
+        notes: "",
+        is_active: true,
+        contact_option: "create",
+        existing_contact_id: "",
+        new_contact_first_name: "",
+        new_contact_last_name: "",
+        new_contact_email: "",
+        new_contact_phone: "",
+      });
+      setContactOption("create");
+    }
+  }, [open, form]);
 
   const selectedType = form.watch("organization_type");
 
