@@ -84,9 +84,9 @@ const UnifiedSidebar = () => {
     >
       <SidebarContent className="bg-transparent">
         {/* Logo and Search Bar */}
-        <div className="border-b border-sidebar-foreground/10">
+        <div>
           {/* Logo */}
-          <div className="p-4 flex items-center justify-center">
+          <div className="p-4 flex items-center">
             <div className="relative overflow-hidden transition-all duration-300 ease-in-out" style={{ width: isCollapsed ? '40px' : '180px', height: '40px' }}>
               <img
                 src={logoIcon}
