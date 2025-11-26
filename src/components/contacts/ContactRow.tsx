@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Mail, Phone, Star, Check, X } from "lucide-react";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 
 interface Contact {
   id: string;
@@ -64,7 +65,7 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           title: values.title || null,
           company_id: values.company_id || null,
         })
@@ -238,7 +239,7 @@ export function ContactRow({ contact, onDelete }: ContactRowProps) {
           {contact.phone && (
             <div className="flex items-center gap-2 text-sm">
               <Phone className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">{contact.phone}</span>
+              <span className="text-muted-foreground">{formatPhoneNumber(contact.phone)}</span>
             </div>
           )}
         </div>
