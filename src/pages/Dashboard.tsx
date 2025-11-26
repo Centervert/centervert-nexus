@@ -29,7 +29,7 @@ const Dashboard = () => {
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       const [companiesRes, contactsRes] = await Promise.all([
-        supabase.from('companies').select('id', { count: 'exact', head: true }),
+        supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('contacts').select('id', { count: 'exact', head: true }),
       ]);
       return {

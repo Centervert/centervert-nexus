@@ -177,7 +177,7 @@ const ContactDetail = () => {
                         {contact.title}
                       </p>
                     )}
-                    {contact.companies && (
+                    {contact.organizations && (
                       <p className="text-sm text-muted-foreground">
                         at {contact.organizations?.name}
                       </p>
@@ -342,57 +342,57 @@ const ContactDetail = () => {
                     />
                   </div>
 
-                  {contact.companies && (
+                  {contact.organizations && (
                     <>
                       <div>
                         <div className="text-xs font-medium text-muted-foreground mb-1">
-                          Company name
+                          Organization name
                         </div>
                         <div className="text-sm">
                           <button
-                            onClick={() => navigate(`/companies/${contact.companies.id}`)}
+                            onClick={() => navigate(`/organizations/${contact.organizations.id}`)}
                             className="text-primary hover:underline"
                           >
-                            {contact.companies.name}
+                            {contact.organizations.name}
                           </button>
                         </div>
                       </div>
 
-                      {contact.companies.website && (
+                      {contact.organizations.website && (
                         <div>
                           <div className="text-xs font-medium text-muted-foreground mb-1">
-                            Company Website
+                            Organization Website
                           </div>
                           <div className="text-sm">
                             <a
-                              href={contact.companies.website}
+                              href={contact.organizations.website}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary hover:underline"
                             >
-                              {contact.companies.website}
+                              {contact.organizations.website}
                             </a>
                           </div>
                         </div>
                       )}
 
-                      {contact.companies.phone && (
+                      {contact.organizations.phone && (
                         <div>
                           <div className="text-xs font-medium text-muted-foreground mb-1">
-                            Company Phone
+                            Organization Phone
                           </div>
                           <div className="text-sm">
-                            {formatPhoneNumber(contact.companies.phone)}
+                            {formatPhoneNumber(contact.organizations.phone)}
                           </div>
                         </div>
                       )}
 
-                      {contact.companies.address && (
+                      {contact.organizations.address && (
                         <div className="md:col-span-2">
                           <div className="text-xs font-medium text-muted-foreground mb-1">
-                            Company Address
+                            Organization Address
                           </div>
-                          <div className="text-sm">{contact.companies.address}</div>
+                          <div className="text-sm">{contact.organizations.address}</div>
                         </div>
                       )}
                     </>
