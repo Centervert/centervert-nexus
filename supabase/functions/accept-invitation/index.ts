@@ -31,7 +31,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate invitation
     const { data: invitation, error: inviteError } = await supabaseClient
       .from("invitations")
-      .select("*, clients(name)")
+      .select("*")
       .eq("token", token)
       .eq("status", "pending")
       .single();
@@ -97,21 +97,12 @@ const handler = async (req: Request): Promise<Response> => {
         role: invitation.role,
       });
 
-    // If client_id exists, create client_users mapping
-    if (invitation.client_id) {
-      await supabaseClient
-        .from("client_users")
-        .insert({
-          user_id: authData.user.id,
-          client_id: invitation.client_id,
-        });
-
-      // Update profile with client_id and company name
+    // If company_id exists, update profile
+    if (invitation.company_id) {
       await supabaseClient
         .from("profiles")
         .update({ 
-          client_id: invitation.client_id,
-          company: invitation.clients?.name || null
+          company_id: invitation.company_id,
         })
         .eq("id", authData.user.id);
     }
@@ -131,7 +122,6 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true,
         user: authData.user,
-        client_name: invitation.clients?.name,
       }),
       {
         status: 200,

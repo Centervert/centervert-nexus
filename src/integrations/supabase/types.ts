@@ -287,6 +287,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_active: boolean
           roles: string[]
         }[]
       }

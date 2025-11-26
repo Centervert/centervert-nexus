@@ -30,7 +30,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Validate invitation
     const { data: invitation, error: inviteError } = await supabaseClient
       .from("invitations")
-      .select("email, role, client_id, expires_at, status, clients!invitations_client_id_fkey(name)")
+      .select("email, role, company_id, expires_at, status")
       .eq("token", token)
       .single();
 
@@ -57,14 +57,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const clientName = invitation.clients ? (invitation.clients as any).name : undefined;
-
     return new Response(
       JSON.stringify({
         valid: true,
         email: invitation.email,
         role: invitation.role,
-        client_name: clientName,
       }),
       {
         status: 200,
