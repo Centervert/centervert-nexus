@@ -59,7 +59,7 @@ const UnifiedSidebar = () => {
       name: 'Billing',
       href: '/billing',
       icon: Receipt,
-      show: true,
+      show: isAdmin, // Admin only
     },
   ].filter(item => item.show);
 
@@ -219,7 +219,7 @@ const UnifiedSidebar = () => {
               })()}
 
               {/* Settings */}
-              {(isAdmin || isAgent) && (
+              {isAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     isActive={location.pathname === '/settings'}
