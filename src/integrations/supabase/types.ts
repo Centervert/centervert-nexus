@@ -58,6 +58,7 @@ export type Database = {
       }
       contacts: {
         Row: {
+          address: string | null
           company_id: string | null
           created_at: string | null
           created_by: string | null
@@ -73,6 +74,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          address?: string | null
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -88,6 +90,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          address?: string | null
           company_id?: string | null
           created_at?: string | null
           created_by?: string | null

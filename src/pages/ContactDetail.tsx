@@ -401,6 +401,17 @@ const ContactDetail = () => {
                     </>
                   )}
 
+                   <div className="md:col-span-2">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                      Address
+                    </div>
+                    <EditableCell
+                      value={contact.address}
+                      onSave={(value) => updateMutation.mutate({ field: "address", value })}
+                      placeholder="--"
+                    />
+                  </div>
+
                   <div className="md:col-span-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Notes
