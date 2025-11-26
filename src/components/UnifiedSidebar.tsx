@@ -87,17 +87,11 @@ const UnifiedSidebar = () => {
         <div>
           {/* Logo */}
           <div className="p-4 flex items-center">
-            <div className="relative overflow-hidden transition-all duration-300 ease-in-out" style={{ width: isCollapsed ? '40px' : '180px', height: '40px' }}>
-              <img
-                src={logoIcon}
-                alt="Centervert"
-                className={`absolute left-0 top-0 h-10 w-10 object-contain transition-opacity duration-300 ${isCollapsed ? 'opacity-100' : 'opacity-0'}`}
-                style={{ filter: 'brightness(0) invert(1)' }}
-              />
+            <div className="overflow-hidden transition-all duration-300 ease-in-out" style={{ width: isCollapsed ? '40px' : '180px', height: '40px' }}>
               <img
                 src={logoFull}
                 alt="Centervert"
-                className={`absolute left-0 top-0 h-10 w-full object-contain transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}
+                className="h-10 w-auto object-left object-contain"
                 style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
