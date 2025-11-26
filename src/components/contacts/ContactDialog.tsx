@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -84,16 +84,32 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      first_name: contact?.first_name || "",
-      last_name: contact?.last_name || "",
-      email: contact?.email || "",
-      phone: contact?.phone || "",
-      title: contact?.title || "",
-      company_id: contact?.company_id || defaultCompanyId || "",
-      notes: contact?.notes || "",
-      is_primary: contact?.is_primary ?? false,
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      title: "",
+      company_id: "",
+      notes: "",
+      is_primary: false,
     },
   });
+
+  // Reset form when contact changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        first_name: contact?.first_name || "",
+        last_name: contact?.last_name || "",
+        email: contact?.email || "",
+        phone: contact?.phone || "",
+        title: contact?.title || "",
+        company_id: contact?.company_id || defaultCompanyId || "",
+        notes: contact?.notes || "",
+        is_primary: contact?.is_primary ?? false,
+      });
+    }
+  }, [contact, open, defaultCompanyId, form]);
 
   const createMutation = useMutation({
     mutationFn: async (values: ContactFormValues) => {
