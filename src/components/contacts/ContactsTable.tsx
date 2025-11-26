@@ -35,10 +35,10 @@ interface Contact {
   email: string;
   phone: string | null;
   title: string | null;
-  company_id: string | null;
+  organization_id: string | null;
   notes: string | null;
   is_primary: boolean | null;
-  companies: {
+  organizations: {
     name: string;
   } | null;
 }
@@ -64,7 +64,7 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
         .from("contacts")
         .select(`
           *,
-          companies (
+          organizations (
             name
           )
         `)
@@ -83,9 +83,9 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
       }
 
       if (viewFilter === "withCompany") {
-        query = query.not("company_id", "is", null);
+        query = query.not("organization_id", "is", null);
       } else if (viewFilter === "withoutCompany") {
-        query = query.is("company_id", null);
+        query = query.is("organization_id", null);
       } else if (viewFilter === "primary") {
         query = query.eq("is_primary", true);
       }
