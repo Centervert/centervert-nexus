@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { normalizePhoneNumber } from "@/lib/phoneUtils";
 import {
   Dialog,
   DialogContent,
@@ -119,7 +120,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,
@@ -149,7 +150,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           title: values.title || null,
           company_id: values.company_id || null,
           notes: values.notes || null,

@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, Mail, Phone, Globe, Check, X } from "lucide-react";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 
 interface Company {
   id: string;
@@ -55,7 +56,7 @@ export function CompanyRow({ company }: CompanyRowProps) {
         .update({
           name: values.name,
           billing_email: values.billing_email || null,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           website: values.website || null,
         })
         .eq("id", company.id);
@@ -209,7 +210,7 @@ export function CompanyRow({ company }: CompanyRowProps) {
             {company.phone && (
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="h-3 w-3 text-muted-foreground" />
-                <span className="text-muted-foreground">{company.phone}</span>
+                <span className="text-muted-foreground">{formatPhoneNumber(company.phone)}</span>
               </div>
             )}
           </div>

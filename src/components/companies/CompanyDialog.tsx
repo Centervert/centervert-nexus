@@ -5,6 +5,7 @@ import * as z from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { normalizePhoneNumber } from "@/lib/phoneUtils";
 import {
   Dialog,
   DialogContent,
@@ -78,7 +79,7 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
         .insert([{
           name: values.name,
           billing_email: values.billing_email || null,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           website: values.website || null,
           address: values.address || null,
           notes: values.notes || null,
@@ -107,7 +108,7 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
         .update({
           name: values.name,
           billing_email: values.billing_email || null,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           website: values.website || null,
           address: values.address || null,
           notes: values.notes || null,

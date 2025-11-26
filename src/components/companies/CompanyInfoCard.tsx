@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, Globe, MapPin, Pencil, Check, X } from "lucide-react";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 
 interface Company {
   id: string;
@@ -40,7 +41,7 @@ export function CompanyInfoCard({ company }: CompanyInfoCardProps) {
         .from("companies")
         .update({
           billing_email: values.billing_email || null,
-          phone: values.phone || null,
+          phone: normalizePhoneNumber(values.phone) || null,
           website: values.website || null,
           address: values.address || null,
           notes: values.notes || null,
@@ -197,7 +198,7 @@ export function CompanyInfoCard({ company }: CompanyInfoCardProps) {
               <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="text-sm">{company.phone}</p>
+                <p className="text-sm">{formatPhoneNumber(company.phone)}</p>
               </div>
             </div>
           )}
