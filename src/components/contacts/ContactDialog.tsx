@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AddressAutocomplete } from "./AddressAutocomplete";
 
 const contactSchema = z.object({
   first_name: z.string().min(1, "First name is required").max(100),
@@ -347,7 +348,11 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="123 Main St, City, State 12345" {...field} />
+                    <AddressAutocomplete
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="123 Main St, City, State 12345"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
