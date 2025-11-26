@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import {
   LayoutDashboard,
   Building2,
@@ -10,6 +11,8 @@ import {
   Receipt,
   Settings,
   LogOut,
+  UserSquare2,
+  ChevronRight,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -21,7 +24,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 
@@ -30,6 +37,7 @@ const UnifiedSidebar = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { data: userRole } = useUserRole();
+  const [crmOpen, setCrmOpen] = useState(true);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
@@ -49,6 +57,8 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
   const isClient = !isAdmin && !isAgent;
 
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname.startsWith('/companies/');
+
   // Navigation items based on role
   const navigation = [
     {
@@ -58,24 +68,25 @@ const UnifiedSidebar = () => {
       show: true,
     },
     {
-      name: 'Companies',
-      href: '/companies',
-      icon: Building2,
-      show: isAdmin || isAgent,
-    },
-    {
-      name: 'Contacts',
-      href: '/contacts',
-      icon: Users,
-      show: isAdmin || isAgent,
-    },
-    {
       name: 'Billing',
       href: '/billing',
       icon: Receipt,
       show: true,
     },
   ].filter(item => item.show);
+
+  const crmItems = [
+    {
+      name: 'Contacts',
+      href: '/contacts',
+      icon: Users,
+    },
+    {
+      name: 'Companies',
+      href: '/companies',
+      icon: Building2,
+    },
+  ];
 
   const getInitials = (name: string) => {
     return name
@@ -107,6 +118,39 @@ const UnifiedSidebar = () => {
                   </SidebarMenuItem>
                 );
               })}
+
+              {(isAdmin || isAgent) && (
+                <Collapsible open={crmOpen} onOpenChange={setCrmOpen} className="group/collapsible">
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton isActive={isCrmActive}>
+                        <UserSquare2 className="h-4 w-4" />
+                        <span>CRM</span>
+                        <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {crmItems.map((item) => {
+                          const isActive = location.pathname === item.href || 
+                            (item.href === '/companies' && location.pathname.startsWith('/companies/'));
+                          return (
+                            <SidebarMenuSubItem key={item.name}>
+                              <SidebarMenuSubButton
+                                isActive={isActive}
+                                onClick={() => navigate(item.href)}
+                              >
+                                <item.icon className="h-4 w-4" />
+                                <span>{item.name}</span>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
