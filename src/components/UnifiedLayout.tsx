@@ -53,24 +53,24 @@ const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 border-b flex items-center justify-between px-4 bg-background">
-            <SidebarTrigger />
+          <header className="h-14 flex items-center justify-between px-4" style={{ backgroundColor: '#9c5126' }}>
+            <div className="flex-1"></div>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
+                <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-white/20 text-white">
                       {profile?.full_name ? getInitials(profile.full_name) : 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium">
+                    <p className="text-sm font-medium text-white">
                       {profile?.full_name || user?.email}
                     </p>
                     {profile?.company && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-white/80">
                         {profile.company}
                       </p>
                     )}
