@@ -462,7 +462,7 @@ const UserManagement = () => {
                         disabled={updateRoleMutation.isPending}
                       >
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue />
+                          <SelectValue placeholder={getRoleLabel(user.roles)} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="admin">
