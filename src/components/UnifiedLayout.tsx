@@ -39,7 +39,7 @@ const UnifiedLayout = ({
   return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
-        <div className="flex-1 flex flex-col rounded-tl-2xl overflow-hidden" style={{ backgroundColor: '#9c5126' }}>
+        <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#9c5126' }}>
           <header className="h-12 flex items-center justify-end px-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -75,7 +75,7 @@ const UnifiedLayout = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 bg-background">
+          <main className="flex-1 bg-background rounded-tl-2xl">
             {children}
           </main>
         </div>
