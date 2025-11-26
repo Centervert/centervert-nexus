@@ -139,22 +139,16 @@ function CompanyDetail() {
   return (
     <UnifiedLayout>
       <div className="container mx-auto p-6">
-        {/* Header with back button and delete */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/companies")}
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-2xl font-semibold">Companies</h1>
-          </div>
-          <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Company
+        {/* Header with back button */}
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/companies")}
+          >
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <h1 className="text-2xl font-semibold">Companies</h1>
         </div>
 
         {/* Two-column layout */}
@@ -354,6 +348,27 @@ function CompanyDetail() {
                 </div>
               )}
             </Card>
+          </div>
+        </div>
+
+        {/* Delete Section at Bottom */}
+        <div className="mt-8 pt-6 border-t">
+          <div className="flex items-center justify-between max-w-4xl">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Danger Zone</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Permanently delete this company and all associated data
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setDeleteDialogOpen(true)}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Company
+            </Button>
           </div>
         </div>
       </div>

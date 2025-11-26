@@ -153,10 +153,6 @@ const ContactDetail = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Contacts
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete Contact
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -426,6 +422,27 @@ const ContactDetail = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        {/* Delete Section at Bottom */}
+        <div className="mt-8 pt-6 border-t">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">Danger Zone</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Permanently delete this contact and all associated data
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setDeleteDialogOpen(true)}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Contact
+            </Button>
           </div>
         </div>
       </div>
