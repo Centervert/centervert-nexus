@@ -9,7 +9,7 @@ import { CompanyContacts } from "@/components/companies/CompanyContacts";
 import { CompanyDialog } from "@/components/companies/CompanyDialog";
 import { useState } from "react";
 
-const CompanyDetail = () => {
+function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -147,6 +147,6 @@ const CompanyDetail = () => {
       </div>
     </UnifiedLayout>
   );
-};
+}
 
 export default CompanyDetail;
