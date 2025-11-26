@@ -25,6 +25,20 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
+  const { data: stats } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      const [companiesRes, contactsRes] = await Promise.all([
+        supabase.from('companies').select('id', { count: 'exact', head: true }),
+        supabase.from('contacts').select('id', { count: 'exact', head: true }),
+      ]);
+      return {
+        totalCompanies: companiesRes.count || 0,
+        totalContacts: contactsRes.count || 0,
+      };
+    },
+  });
+
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
   const isClient = !isAdmin && !isAgent;
@@ -65,7 +79,7 @@ const Dashboard = () => {
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
+                  <div className="text-2xl font-bold">{stats?.totalCompanies || 0}</div>
                   <p className="text-xs text-muted-foreground">Active companies</p>
                 </CardContent>
               </Card>
@@ -75,7 +89,7 @@ const Dashboard = () => {
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">0</div>
+                  <div className="text-2xl font-bold">{stats?.totalContacts || 0}</div>
                   <p className="text-xs text-muted-foreground">Contact records</p>
                 </CardContent>
               </Card>
