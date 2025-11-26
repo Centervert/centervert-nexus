@@ -18,7 +18,7 @@ interface Contact {
   email: string;
   phone: string | null;
   title: string | null;
-  company_id: string | null;
+  organization_id: string | null;
   notes: string | null;
   is_primary: boolean | null;
   companies: {
@@ -144,8 +144,8 @@ export function ContactRow({ contact, onDelete, isSelected = false, onSelectChan
       </TableCell>
       <TableCell>
         <EditableSelectCell
-          value={contact.company_id}
-          onSave={(value) => updateField("company_id", value)}
+          value={contact.organization_id}
+          onSave={(value) => updateField("organization_id", value)}
           options={companies || []}
           placeholder="--"
           onValueClick={(id) => navigate(`/companies/${id}`)}
