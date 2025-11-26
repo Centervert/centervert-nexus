@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Mail, Phone, Globe, Building2, ExternalLink, Trash2 } from "lucide-react";
 import { EditableCell } from "@/components/contacts/EditableCell";
+import { EditableAddressCell } from "@/components/contacts/EditableAddressCell";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { toast } from "sonner";
 import {
@@ -257,11 +258,10 @@ function CompanyDetail() {
                 <div className="space-y-3">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Address</div>
-                    <EditableCell
+                    <EditableAddressCell
                       value={company.address}
                       onSave={(value) => handleFieldUpdate("address", value)}
                       placeholder="123 Main St, City, State 12345"
-                      type="text"
                     />
                   </div>
                 </div>
