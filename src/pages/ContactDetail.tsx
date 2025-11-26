@@ -11,6 +11,7 @@ import { ArrowLeft, Mail, Phone, Building2, Briefcase, Trash2 } from "lucide-rea
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { EditableCell } from "@/components/contacts/EditableCell";
 import { EditableSelectCell } from "@/components/contacts/EditableSelectCell";
+import { EditableAddressCell } from "@/components/contacts/EditableAddressCell";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
@@ -401,11 +402,11 @@ const ContactDetail = () => {
                     </>
                   )}
 
-                   <div className="md:col-span-2">
+                  <div className="md:col-span-2">
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Address
                     </div>
-                    <EditableCell
+                    <EditableAddressCell
                       value={contact.address}
                       onSave={(value) => updateMutation.mutate({ field: "address", value })}
                       placeholder="--"
