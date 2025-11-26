@@ -38,7 +38,7 @@ const ContactDetail = () => {
         .from("contacts")
         .select(`
           *,
-          companies (
+          organizations (
             id,
             name,
             website,
@@ -179,7 +179,7 @@ const ContactDetail = () => {
                     )}
                     {contact.companies && (
                       <p className="text-sm text-muted-foreground">
-                        at {contact.companies.name}
+                        at {contact.organizations?.name}
                       </p>
                     )}
                   </div>
