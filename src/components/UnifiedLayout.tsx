@@ -6,54 +6,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LogOut, UserSquare2 } from 'lucide-react';
 import UnifiedSidebar from './UnifiedSidebar';
-
 interface UnifiedLayoutProps {
   children: ReactNode;
 }
-
-const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
+const UnifiedLayout = ({
+  children
+}: UnifiedLayoutProps) => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
-  const { data: profile } = useQuery({
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    data: profile
+  } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
-        .from('profiles')
-        .select('full_name, company, avatar_url')
-        .eq('id', user.id)
-        .single();
+      const {
+        data
+      } = await supabase.from('profiles').select('full_name, company, avatar_url').eq('id', user.id).single();
       return data;
     },
-    enabled: !!user,
+    enabled: !!user
   });
-
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
-
-  return (
-    <SidebarProvider defaultOpen={true}>
+  return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-12 flex items-center justify-end px-4" style={{ backgroundColor: '#9c5126' }}>
+          <header style={{
+          backgroundColor: '#9c5126'
+        }} className="h-12 flex items-center justify-end px-4 border-[#9c4926]">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
@@ -67,11 +56,9 @@ const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
                     <p className="text-sm font-medium text-white">
                       {profile?.full_name || user?.email}
                     </p>
-                    {profile?.company && (
-                      <p className="text-xs text-white/80">
+                    {profile?.company && <p className="text-xs text-white/80">
                         {profile.company}
-                      </p>
-                    )}
+                      </p>}
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -95,8 +82,6 @@ const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
           </main>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default UnifiedLayout;
