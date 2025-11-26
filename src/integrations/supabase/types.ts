@@ -24,6 +24,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          organization_type: string | null
           phone: string | null
           updated_at: string | null
           website: string | null
@@ -37,6 +38,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          organization_type?: string | null
           phone?: string | null
           updated_at?: string | null
           website?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          organization_type?: string | null
           phone?: string | null
           updated_at?: string | null
           website?: string | null

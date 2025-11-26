@@ -25,12 +25,12 @@ const Companies = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
-            <p className="text-muted-foreground">Manage your client companies</p>
+            <h1 className="text-3xl font-bold tracking-tight">Organizations</h1>
+            <p className="text-muted-foreground">Manage your client organizations</p>
           </div>
           <Button onClick={() => setIsDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Company
+            Create Organization
           </Button>
         </div>
 
@@ -38,7 +38,7 @@ const Companies = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search companies..."
+              placeholder="Search organizations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -49,7 +49,7 @@ const Companies = () => {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Companies</SelectItem>
+              <SelectItem value="all">All Organizations</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>

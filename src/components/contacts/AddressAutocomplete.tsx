@@ -9,6 +9,7 @@ interface AddressAutocompleteProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 interface MapboxFeature {
@@ -22,6 +23,7 @@ export function AddressAutocomplete({
   onChange,
   placeholder = "123 Main St, City, State 12345",
   className,
+  disabled = false,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value || "");
   const [suggestions, setSuggestions] = useState<MapboxFeature[]>([]);
@@ -105,6 +107,7 @@ export function AddressAutocomplete({
         onBlur={handleBlur}
         placeholder={placeholder}
         className={className}
+        disabled={disabled}
       />
       
       {isOpen && suggestions.length > 0 && (
