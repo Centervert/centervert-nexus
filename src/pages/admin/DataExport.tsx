@@ -5,6 +5,7 @@ import { Download, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { generateCSV } from "@/lib/exportUtils";
 import { toast } from "sonner";
+import JSZip from "jszip";
 
 export default function DataExport() {
   const [loading, setLoading] = useState<string | null>(null);
@@ -55,6 +56,7 @@ export default function DataExport() {
   const exportOpportunities = async () => {
     setLoading('opportunities');
     try {
+      // Fetch opportunities data
       const { data: opportunities, error } = await supabase
         .from('opportunities')
         .select(`
@@ -68,14 +70,103 @@ export default function DataExport() {
         `);
 
       if (error) throw error;
-      generateCSV(opportunities || [], 'opportunities_backup');
-      toast.success('Opportunities exported successfully');
+
+      // Fetch attachments
+      const { data: attachments, error: attachmentsError } = await supabase
+        .from('opportunity_attachments')
+        .select('*');
+
+      if (attachmentsError) throw attachmentsError;
+
+      // Create CSV
+      const csvBlob = new Blob(
+        [generateCSVContent(opportunities || [])],
+        { type: 'text/csv;charset=utf-8;' }
+      );
+
+      // Create zip file
+      const zip = new JSZip();
+      zip.file('opportunities_backup.csv', csvBlob);
+
+      // Download all files from storage
+      if (attachments && attachments.length > 0) {
+        const filesFolder = zip.folder('files');
+        
+        for (const attachment of attachments) {
+          try {
+            // Extract file path from URL
+            const urlParts = attachment.file_url.split('/');
+            const bucketPath = urlParts.slice(urlParts.indexOf('opportunity-attachments') + 1).join('/');
+            
+            const { data: fileData, error: downloadError } = await supabase.storage
+              .from('opportunity-attachments')
+              .download(bucketPath);
+
+            if (!downloadError && fileData) {
+              // Organize by opportunity number
+              const opportunity = opportunities?.find(o => o.id === attachment.opportunity_id);
+              const oppNumber = opportunity?.opportunity_number || 'unknown';
+              filesFolder?.file(`${oppNumber}/${attachment.file_name}`, fileData);
+            }
+          } catch (err) {
+            console.error(`Failed to download file: ${attachment.file_name}`, err);
+          }
+        }
+      }
+
+      // Generate and download zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(zipBlob);
+      
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `opportunities_backup_${timestamp}.zip`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Opportunities exported with files successfully');
     } catch (error) {
       console.error('Error exporting opportunities:', error);
       toast.error('Failed to export opportunities');
     } finally {
       setLoading(null);
     }
+  };
+
+  const generateCSVContent = (data: any[]) => {
+    if (!data || data.length === 0) return '';
+
+    const allKeys = new Set<string>();
+    data.forEach(item => {
+      Object.keys(item).forEach(key => allKeys.add(key));
+    });
+    
+    const headers = Array.from(allKeys);
+    
+    return [
+      headers.join(','),
+      ...data.map(row => 
+        headers.map(header => {
+          const value = row[header];
+          if (value === null || value === undefined) return '';
+          
+          if (typeof value === 'object') {
+            return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+          }
+          
+          const stringValue = String(value);
+          if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+            return `"${stringValue.replace(/"/g, '""')}"`;
+          }
+          
+          return stringValue;
+        }).join(',')
+      )
+    ].join('\n');
   };
 
   const exportClients = async () => {
@@ -156,7 +247,7 @@ export default function DataExport() {
           <CardHeader>
             <CardTitle>Opportunities</CardTitle>
             <CardDescription>
-              Export all opportunities with tasks, messages, sessions, and more
+              Export all opportunities with tasks, messages, sessions, and all attached files in a zip
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -173,7 +264,7 @@ export default function DataExport() {
               ) : (
                 <>
                   <Download className="mr-2 h-4 w-4" />
-                  Export Opportunities
+                  Export Opportunities + Files
                 </>
               )}
             </Button>
