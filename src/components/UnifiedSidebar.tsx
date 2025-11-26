@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Search,
 } from 'lucide-react';
+import logoFull from '@/assets/centervert-logo-full.png';
+import logoIcon from '@/assets/centervert-logo-icon.png';
 import {
   Sidebar,
   SidebarContent,
@@ -73,24 +75,45 @@ const UnifiedSidebar = () => {
   return (
     <Sidebar className="border-r border-sidebar-foreground/10" style={{ backgroundColor: '#9c5126' }}>
       <SidebarContent className="bg-transparent">
-        {/* Search Bar */}
-        <div className="p-3 border-b border-sidebar-foreground/10">
-          {!isCollapsed ? (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
-              <Input
-                type="text"
-                placeholder="Search Portal"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-sidebar-foreground/10 border-sidebar-foreground/20 text-sidebar-foreground placeholder:text-sidebar-foreground/60 focus-visible:ring-sidebar-foreground/30"
+        {/* Logo and Search Bar */}
+        <div className="border-b border-sidebar-foreground/10">
+          {/* Logo */}
+          <div className="p-4 flex items-center justify-center">
+            <div className="relative overflow-hidden transition-all duration-300 ease-in-out" style={{ width: isCollapsed ? '40px' : '180px', height: '40px' }}>
+              <img
+                src={logoIcon}
+                alt="Centervert"
+                className={`absolute left-0 top-0 h-10 w-10 object-contain transition-opacity duration-300 ${isCollapsed ? 'opacity-100' : 'opacity-0'}`}
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+              <img
+                src={logoFull}
+                alt="Centervert"
+                className={`absolute left-0 top-0 h-10 w-full object-contain transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
-          ) : (
-            <div className="flex justify-center">
-              <Search className="h-5 w-5 text-sidebar-foreground/80" />
-            </div>
-          )}
+          </div>
+          
+          {/* Search Bar */}
+          <div className="px-3 pb-3">
+            {!isCollapsed ? (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-sidebar-foreground/60" />
+                <Input
+                  type="text"
+                  placeholder="Search Portal"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-sidebar-foreground/10 border-sidebar-foreground/20 text-sidebar-foreground placeholder:text-sidebar-foreground/60 focus-visible:ring-sidebar-foreground/30"
+                />
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <Search className="h-5 w-5 text-sidebar-foreground/80" />
+              </div>
+            )}
+          </div>
         </div>
 
         <SidebarGroup className="px-2 py-2">
