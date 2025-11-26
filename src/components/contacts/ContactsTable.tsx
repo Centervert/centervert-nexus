@@ -172,7 +172,7 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
               <TableHead className="font-semibold text-foreground">NAME</TableHead>
               <TableHead className="font-semibold text-foreground">EMAIL</TableHead>
               <TableHead className="font-semibold text-foreground">PHONE NUMBER</TableHead>
-              <TableHead className="font-semibold text-foreground">COMPANY</TableHead>
+              <TableHead className="font-semibold text-foreground">ORGANIZATION</TableHead>
               <TableHead className="font-semibold text-foreground">TITLE</TableHead>
             </TableRow>
           </TableHeader>
@@ -180,7 +180,10 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
             {paginatedContacts.map((contact) => (
               <ContactRow
                 key={contact.id}
-                contact={contact}
+                contact={{
+                  ...contact,
+                  companies: contact.organizations
+                }}
                 onDelete={(id) => setDeletingContactId(id)}
                 isSelected={selectedContacts.has(contact.id)}
                 onSelectChange={handleSelectContact}
