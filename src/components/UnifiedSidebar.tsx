@@ -39,7 +39,7 @@ const UnifiedSidebar = () => {
   const { data: userRole } = useUserRole();
   const [crmOpen, setCrmOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
 
   const isCollapsed = state === 'collapsed';
   const isAdmin = userRole?.isAdmin || false;
@@ -219,15 +219,14 @@ const UnifiedSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-foreground/10 p-2">
-        <SidebarTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-full h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-          >
-            <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
-          </Button>
-        </SidebarTrigger>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className="w-full h-10 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        >
+          <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
