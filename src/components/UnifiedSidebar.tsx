@@ -93,11 +93,14 @@ const UnifiedSidebar = () => {
         {/* Logo and Search Bar */}
         <div>
           {/* Logo */}
-          <div className="p-4 flex items-center">
+          <div className="p-4 flex items-center justify-center overflow-hidden">
             <img
-              src={logoIcon}
+              src={isCollapsed ? logoIcon : logoFull}
               alt="Centervert"
-              className="h-10 w-10 object-contain"
+              className={`
+                object-contain transition-all duration-300 ease-in-out
+                ${isCollapsed ? 'h-10 w-10' : 'h-10 w-auto'}
+              `}
               style={{ filter: 'brightness(0) invert(1)' }}
             />
           </div>
@@ -163,33 +166,38 @@ const UnifiedSidebar = () => {
                         `}
                         tooltip={isCollapsed ? 'CRM' : undefined}
                       >
-                        <UserSquare2 className="h-5 w-5" />
+                        <UserSquare2 className="h-5 w-5 transition-transform duration-200 group-data-[state=open]/collapsible:scale-110" />
                         {!isCollapsed && (
                           <>
                             <span>CRM</span>
-                            <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-300 ease-in-out group-data-[state=open]/collapsible:rotate-90" />
                           </>
                         )}
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     {!isCollapsed && (
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {crmItems.map((item) => {
+                      <CollapsibleContent className="overflow-hidden transition-all duration-300 ease-in-out data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                        <SidebarMenuSub className="space-y-1">
+                          {crmItems.map((item, index) => {
                             const isActive = location.pathname === item.href || 
                               (item.href === '/companies' && location.pathname.startsWith('/companies/')) ||
                               (item.href === '/contacts' && location.pathname.startsWith('/contacts/'));
                             return (
-                              <SidebarMenuSubItem key={item.name}>
+                              <SidebarMenuSubItem 
+                                key={item.name}
+                                className="animate-fade-in"
+                                style={{ animationDelay: `${index * 50}ms` }}
+                              >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
                                   onClick={() => navigate(item.href)}
                                   className={`
                                     text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
+                                    transition-all duration-200 hover:translate-x-1
                                     ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground' : ''}
                                   `}
                                 >
-                                  <item.icon className="h-4 w-4" />
+                                  <item.icon className="h-4 w-4 transition-transform duration-200 group-hover:scale-110" />
                                   <span>{item.name}</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
