@@ -53,9 +53,7 @@ const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center justify-between px-4" style={{ backgroundColor: '#9c5126' }}>
-            <div className="flex-1"></div>
-            
+          <header className="h-12 flex items-center justify-end px-4" style={{ backgroundColor: '#9c5126' }}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
