@@ -65,7 +65,7 @@ const UnifiedSidebar = () => {
     {
       name: 'Users',
       href: '/users',
-      icon: UserCircle,
+      icon: UserSquare2,
       show: isAdmin, // Admin only
     },
   ].filter(item => item.show);
