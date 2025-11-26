@@ -1,6 +1,5 @@
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -57,9 +56,9 @@ export const InviteEmail = ({
             </Text>
 
             <Section style={buttonContainer}>
-              <Button style={button} href={inviteUrl}>
+              <Link style={button} href={inviteUrl}>
                 Accept Invitation
-              </Button>
+              </Link>
             </Section>
 
             <Text style={textSmall}>
