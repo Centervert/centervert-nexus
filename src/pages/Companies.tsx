@@ -11,30 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Download, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { CompaniesTable } from "@/components/companies/CompaniesTable";
 import { CompanyDialog } from "@/components/companies/CompanyDialog";
-import { generateCSV } from "@/lib/exportUtils";
 
 const Companies = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const { data: companies } = useQuery({
-    queryKey: ["companies-export"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("companies").select("*");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const handleExport = () => {
-    if (companies) {
-      generateCSV(companies, "companies");
-    }
-  };
 
   return (
     <UnifiedLayout>
@@ -44,16 +28,10 @@ const Companies = () => {
             <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
             <p className="text-muted-foreground">Manage your client companies</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Company
-            </Button>
-          </div>
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Company
+          </Button>
         </div>
 
         <div className="flex gap-4 items-center">
