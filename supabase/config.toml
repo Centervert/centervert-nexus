@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.create-managed-service-subscription]
 verify_jwt = true
+
+[functions.preview-invite-email]
+verify_jwt = true
