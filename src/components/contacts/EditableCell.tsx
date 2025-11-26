@@ -1,0 +1,101 @@
+import { useState, useRef, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { Pencil } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface EditableCellProps {
+  value: string | null;
+  onSave: (value: string) => void;
+  placeholder?: string;
+  type?: "text" | "email" | "tel";
+  className?: string;
+  displayValue?: string;
+}
+
+export function EditableCell({ 
+  value, 
+  onSave, 
+  placeholder = "--", 
+  type = "text", 
+  className = "",
+  displayValue,
+}: EditableCellProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value || "");
+  const [isHovered, setIsHovered] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    onSave(editValue.trim());
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditValue(value || "");
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
+  const handleCellClick = () => {
+    // If empty, start editing immediately on cell click
+    if (!value) {
+      setIsEditing(true);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-2">
+        <Input
+          ref={inputRef}
+          type={type}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleSave}
+          className="h-8 text-sm"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`group relative flex items-center gap-2 min-h-[32px] cursor-pointer ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCellClick}
+    >
+      <span className="text-sm text-muted-foreground flex-1">
+        {displayValue || value || placeholder}
+      </span>
+      {value && isHovered && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsEditing(true);
+          }}
+        >
+          <Pencil className="h-3 w-3" />
+        </Button>
+      )}
+    </div>
+  );
+}
