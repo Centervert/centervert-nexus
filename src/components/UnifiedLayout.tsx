@@ -42,7 +42,7 @@ const UnifiedLayout = ({
         <div className="flex-1 flex flex-col">
           <header style={{
           backgroundColor: '#9c5126'
-        }} className="h-12 flex items-center justify-end px-4 border-[#9c4926]">
+        }} className="h-12 flex items-center justify-end px-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
