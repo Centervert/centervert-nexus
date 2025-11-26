@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Mail, Phone, Globe, Building2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Globe, Building2, ExternalLink, Trash2 } from "lucide-react";
 import { EditableCell } from "@/components/contacts/EditableCell";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Contact {
   id: string;
@@ -26,6 +37,7 @@ function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["company", id],
@@ -51,6 +63,21 @@ function CompanyDetail() {
         .order("first_name", { ascending: true });
       if (error) throw error;
       return data as Contact[];
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("companies").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Company deleted successfully");
+      navigate("/companies");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete company", { description: error.message });
     },
   });
 
@@ -111,16 +138,22 @@ function CompanyDetail() {
   return (
     <UnifiedLayout>
       <div className="container mx-auto p-6">
-        {/* Header with back button */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/companies")}
-          >
-            <ArrowLeft className="h-4 w-4" />
+        {/* Header with back button and delete */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/companies")}
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-semibold">Companies</h1>
+          </div>
+          <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Company
           </Button>
-          <h1 className="text-2xl font-semibold">Companies</h1>
         </div>
 
         {/* Two-column layout */}
@@ -324,6 +357,23 @@ function CompanyDetail() {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Company</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {company?.name}? This will also affect all associated contacts. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </UnifiedLayout>
   );
 }

@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,17 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Mail, Phone, Building2, Briefcase } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, Briefcase, Trash2 } from "lucide-react";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { EditableCell } from "@/components/contacts/EditableCell";
 import { EditableSelectCell } from "@/components/contacts/EditableSelectCell";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ContactDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ["contact", id],
@@ -52,6 +64,21 @@ const ContactDetail = () => {
 
       if (error) throw error;
       return data;
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("contacts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      toast.success("Contact deleted successfully");
+      navigate("/contacts");
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to delete contact", { description: error.message });
     },
   });
 
@@ -116,15 +143,20 @@ const ContactDetail = () => {
   return (
     <UnifiedLayout>
       <div className="container mx-auto p-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/contacts")}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Contacts
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/contacts")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Contacts
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Contact
+          </Button>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar */}
@@ -225,16 +257,6 @@ const ContactDetail = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">Primary Contact</div>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={contact.is_primary}
-                          onCheckedChange={(checked) => updateMutation.mutate({ field: "is_primary", value: checked })}
-                        />
-                        <span className="text-sm">{contact.is_primary ? "Yes" : "No"}</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -395,6 +417,23 @@ const ContactDetail = () => {
           </div>
         </div>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {contact?.first_name} {contact?.last_name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </UnifiedLayout>
   );
 };
