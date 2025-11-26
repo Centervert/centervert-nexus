@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import React from 'https://esm.sh/react@18.3.1';
 import { renderAsync } from 'https://esm.sh/@react-email/components@0.0.22';
-import { InviteEmail } from '../send-user-invite/_templates/invite-email.tsx';
+import { InviteEmail } from './_templates/invite-email.tsx';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
