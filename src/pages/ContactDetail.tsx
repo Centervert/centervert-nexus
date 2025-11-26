@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
@@ -7,11 +7,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Mail, Phone, Building2, Briefcase } from "lucide-react";
-import { formatPhoneNumber } from "@/lib/phoneUtils";
+import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
+import { EditableCell } from "@/components/contacts/EditableCell";
+import { EditableSelectCell } from "@/components/contacts/EditableSelectCell";
+import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const ContactDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ["contact", id],
@@ -33,6 +38,45 @@ const ContactDetail = () => {
         .single();
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: companies } = useQuery({
+    queryKey: ["companies-active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ field, value }: { field: string; value: any }) => {
+      const updateData: any = { [field]: value };
+      
+      if (field === "phone") {
+        updateData[field] = normalizePhoneNumber(value);
+      }
+
+      const { error } = await supabase
+        .from("contacts")
+        .update(updateData)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact", id] });
+      toast.success("Contact updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update contact");
+      console.error("Update error:", error);
     },
   });
 
@@ -120,52 +164,77 @@ const ContactDetail = () => {
                   <div className="space-y-3">
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Email</div>
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
-                          {contact.email}
-                        </a>
+                        <EditableCell
+                          value={contact.email}
+                          onSave={(value) => updateMutation.mutate({ field: "email", value })}
+                          type="email"
+                        />
                       </div>
                     </div>
 
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Phone Number</div>
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        {contact.phone ? (
-                          <a href={`tel:${contact.phone}`} className="text-primary hover:underline">
-                            {formatPhoneNumber(contact.phone)}
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground">--</span>
-                        )}
+                        <EditableCell
+                          value={contact.phone}
+                          onSave={(value) => updateMutation.mutate({ field: "phone", value })}
+                          type="tel"
+                          displayValue={contact.phone ? formatPhoneNumber(contact.phone) : undefined}
+                          placeholder="--"
+                        />
                       </div>
                     </div>
 
-                    {contact.companies && (
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Company</div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <button
-                            onClick={() => navigate(`/companies/${contact.companies.id}`)}
-                            className="text-primary hover:underline"
-                          >
-                            {contact.companies.name}
-                          </button>
-                        </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Company</div>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                        <EditableSelectCell
+                          value={contact.company_id}
+                          onSave={(value) => updateMutation.mutate({ field: "company_id", value })}
+                          options={companies || []}
+                          placeholder="No company"
+                          renderValue={(option) => {
+                            if (!option || !contact.companies) return <span className="text-muted-foreground">No company</span>;
+                            return (
+                              <button
+                                onClick={() => navigate(`/companies/${contact.companies.id}`)}
+                                className="text-primary hover:underline text-left"
+                              >
+                                {contact.companies.name}
+                              </button>
+                            );
+                          }}
+                          onValueClick={(id) => navigate(`/companies/${id}`)}
+                        />
                       </div>
-                    )}
+                    </div>
 
-                    {contact.title && (
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Job Title</div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Briefcase className="h-4 w-4 text-muted-foreground" />
-                          <span>{contact.title}</span>
-                        </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Job Title</div>
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <EditableCell
+                          value={contact.title}
+                          onSave={(value) => updateMutation.mutate({ field: "title", value })}
+                          placeholder="--"
+                        />
                       </div>
-                    )}
+                    </div>
+
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Primary Contact</div>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={contact.is_primary}
+                          onCheckedChange={(checked) => updateMutation.mutate({ field: "is_primary", value: checked })}
+                        />
+                        <span className="text-sm">{contact.is_primary ? "Yes" : "No"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -177,8 +246,12 @@ const ContactDetail = () => {
                   <div className="space-y-3">
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Show in All Contacts</div>
-                      <div className="text-sm">
-                        {contact.show_in_all_contacts ? "Yes" : "No"}
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={contact.show_in_all_contacts}
+                          onCheckedChange={(checked) => updateMutation.mutate({ field: "show_in_all_contacts", value: checked })}
+                        />
+                        <span className="text-sm">{contact.show_in_all_contacts ? "Yes" : "No"}</span>
                       </div>
                     </div>
                   </div>
@@ -199,37 +272,55 @@ const ContactDetail = () => {
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       First Name
                     </div>
-                    <div className="text-sm">{contact.first_name}</div>
+                    <EditableCell
+                      value={contact.first_name}
+                      onSave={(value) => updateMutation.mutate({ field: "first_name", value })}
+                    />
                   </div>
 
                   <div>
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Last Name
                     </div>
-                    <div className="text-sm">{contact.last_name}</div>
+                    <EditableCell
+                      value={contact.last_name}
+                      onSave={(value) => updateMutation.mutate({ field: "last_name", value })}
+                    />
                   </div>
 
                   <div>
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Email
                     </div>
-                    <div className="text-sm">{contact.email}</div>
+                    <EditableCell
+                      value={contact.email}
+                      onSave={(value) => updateMutation.mutate({ field: "email", value })}
+                      type="email"
+                    />
                   </div>
 
                   <div>
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Phone Number
                     </div>
-                    <div className="text-sm">
-                      {contact.phone ? formatPhoneNumber(contact.phone) : "--"}
-                    </div>
+                    <EditableCell
+                      value={contact.phone}
+                      onSave={(value) => updateMutation.mutate({ field: "phone", value })}
+                      type="tel"
+                      displayValue={contact.phone ? formatPhoneNumber(contact.phone) : undefined}
+                      placeholder="--"
+                    />
                   </div>
 
                   <div>
                     <div className="text-xs font-medium text-muted-foreground mb-1">
                       Job Title
                     </div>
-                    <div className="text-sm">{contact.title || "--"}</div>
+                    <EditableCell
+                      value={contact.title}
+                      onSave={(value) => updateMutation.mutate({ field: "title", value })}
+                      placeholder="--"
+                    />
                   </div>
 
                   {contact.companies && (
@@ -288,14 +379,16 @@ const ContactDetail = () => {
                     </>
                   )}
 
-                  {contact.notes && (
-                    <div className="md:col-span-2">
-                      <div className="text-xs font-medium text-muted-foreground mb-1">
-                        Notes
-                      </div>
-                      <div className="text-sm">{contact.notes}</div>
+                  <div className="md:col-span-2">
+                    <div className="text-xs font-medium text-muted-foreground mb-1">
+                      Notes
                     </div>
-                  )}
+                    <EditableCell
+                      value={contact.notes}
+                      onSave={(value) => updateMutation.mutate({ field: "notes", value })}
+                      placeholder="No notes"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
