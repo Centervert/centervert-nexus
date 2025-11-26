@@ -41,9 +41,7 @@ export const InviteEmail = ({
         <Container style={container}>
           {/* Logo/Header */}
           <Section style={logoSection}>
-            <div style={logo}>
-              <Text style={logoText}>CENTERVERT</Text>
-            </div>
+            <Text style={logoText}>CENTERVERT</Text>
           </Section>
 
           {/* Main Content */}
@@ -112,9 +110,6 @@ const container = {
 const logoSection = {
   padding: '32px 40px',
   backgroundColor: '#9c5126',
-};
-
-const logo = {
   textAlign: 'center' as const,
 };
 
