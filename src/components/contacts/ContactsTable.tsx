@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ContactRow } from "./ContactRow";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Contact {
   id: string;
@@ -43,16 +44,18 @@ interface Contact {
 
 interface ContactsTableProps {
   searchQuery: string;
-  companyFilter: string;
+  viewFilter: string;
 }
 
-export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps) {
+export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 25;
 
   const { data: contacts, isLoading } = useQuery({
-    queryKey: ["contacts", searchQuery, companyFilter],
+    queryKey: ["contacts", searchQuery, viewFilter],
     queryFn: async () => {
       let query = supabase
         .from("contacts")
@@ -65,11 +68,15 @@ export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps
         .order("first_name", { ascending: true });
 
       if (searchQuery) {
-        query = query.or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+        query = query.or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);
       }
 
-      if (companyFilter !== "all") {
-        query = query.eq("company_id", companyFilter);
+      if (viewFilter === "withCompany") {
+        query = query.not("company_id", "is", null);
+      } else if (viewFilter === "withoutCompany") {
+        query = query.is("company_id", null);
+      } else if (viewFilter === "primary") {
+        query = query.eq("is_primary", true);
       }
 
       const { data, error } = await query;
@@ -109,28 +116,34 @@ export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps
 
   if (!contacts || contacts.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
+      <div className="text-center py-12 text-muted-foreground border rounded-md bg-card">
         <p>No contacts found.</p>
         <p className="text-sm mt-2">Try adjusting your search or filters.</p>
       </div>
     );
   }
 
+  const totalPages = Math.ceil(contacts.length / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContacts = contacts.slice(startIndex, endIndex);
+
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Company</TableHead>
-              <TableHead>Contact Info</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="font-semibold text-foreground">NAME</TableHead>
+              <TableHead className="font-semibold text-foreground">EMAIL</TableHead>
+              <TableHead className="font-semibold text-foreground">PHONE NUMBER</TableHead>
+              <TableHead className="font-semibold text-foreground">COMPANY</TableHead>
+              <TableHead className="font-semibold text-foreground">TITLE</TableHead>
+              <TableHead className="text-right font-semibold text-foreground">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {contacts.map((contact) => (
+            {paginatedContacts.map((contact) => (
               <ContactRow
                 key={contact.id}
                 contact={contact}
@@ -139,6 +152,33 @@ export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage(page - 1)}
+          disabled={page === 1}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Prev
+        </Button>
+        <span className="text-sm text-muted-foreground">
+          {page}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setPage(page + 1)}
+          disabled={page === totalPages}
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+        <span className="text-sm text-muted-foreground ml-4">
+          {itemsPerPage} per page
+        </span>
       </div>
 
       <AlertDialog open={!!deletingContactId} onOpenChange={() => setDeletingContactId(null)}>
