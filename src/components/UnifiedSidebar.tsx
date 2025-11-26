@@ -87,28 +87,12 @@ const UnifiedSidebar = () => {
         <div>
           {/* Logo */}
           <div className="p-4 flex items-center">
-            <div className="relative" style={{ width: isCollapsed ? '40px' : '180px', height: '40px', transition: 'width 300ms ease-in-out' }}>
-              <img
-                src={logoIcon}
-                alt="Centervert"
-                className="absolute left-0 top-0 h-10 w-10 object-contain transition-opacity duration-500"
-                style={{ 
-                  filter: 'brightness(0) invert(1)',
-                  opacity: isCollapsed ? 1 : 0,
-                  pointerEvents: isCollapsed ? 'auto' : 'none'
-                }}
-              />
-              <img
-                src={logoFull}
-                alt="Centervert"
-                className="absolute left-0 top-0 h-10 w-full object-contain transition-opacity duration-500"
-                style={{ 
-                  filter: 'brightness(0) invert(1)',
-                  opacity: isCollapsed ? 0 : 1,
-                  pointerEvents: isCollapsed ? 'none' : 'auto'
-                }}
-              />
-            </div>
+            <img
+              src={logoIcon}
+              alt="Centervert"
+              className="h-10 w-10 object-contain"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
           </div>
           
           {/* Search Bar */}
