@@ -4,15 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mail, Phone, Globe, MapPin, Edit } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CompanyContacts } from "@/components/companies/CompanyContacts";
-import { CompanyDialog } from "@/components/companies/CompanyDialog";
-import { useState } from "react";
+import { CompanyInfoCard } from "@/components/companies/CompanyInfoCard";
 
 function CompanyDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const { data: company, isLoading } = useQuery({
     queryKey: ["company", id],
@@ -71,79 +69,11 @@ function CompanyDetail() {
               </Badge>
             </div>
           </div>
-          <Button onClick={() => setIsEditDialogOpen(true)}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Company
-          </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-4 p-6 border rounded-lg bg-card">
-            <h2 className="text-lg font-semibold">Company Information</h2>
-            <div className="space-y-3">
-              {company.billing_email && (
-                <div className="flex items-start gap-3">
-                  <Mail className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Billing Email</p>
-                    <p className="text-sm">{company.billing_email}</p>
-                  </div>
-                </div>
-              )}
-              {company.phone && (
-                <div className="flex items-start gap-3">
-                  <Phone className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="text-sm">{company.phone}</p>
-                  </div>
-                </div>
-              )}
-              {company.website && (
-                <div className="flex items-start gap-3">
-                  <Globe className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Website</p>
-                    <a
-                      href={company.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      {company.website}
-                    </a>
-                  </div>
-                </div>
-              )}
-              {company.address && (
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Address</p>
-                    <p className="text-sm">{company.address}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {company.notes && (
-            <div className="space-y-4 p-6 border rounded-lg bg-card">
-              <h2 className="text-lg font-semibold">Notes</h2>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {company.notes}
-              </p>
-            </div>
-          )}
-        </div>
+        <CompanyInfoCard company={company} />
 
         <CompanyContacts companyId={id!} companyName={company.name} />
-
-        <CompanyDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          company={company}
-        />
       </div>
     </UnifiedLayout>
   );
