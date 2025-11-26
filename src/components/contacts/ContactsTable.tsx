@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,7 @@ export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
+  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
   const [page, setPage] = useState(1);
   const itemsPerPage = 25;
 
@@ -84,6 +86,24 @@ export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
       return data as Contact[];
     },
   });
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked && contacts) {
+      setSelectedContacts(new Set(contacts.map(c => c.id)));
+    } else {
+      setSelectedContacts(new Set());
+    }
+  };
+
+  const handleSelectContact = (id: string, selected: boolean) => {
+    const newSelected = new Set(selectedContacts);
+    if (selected) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedContacts(newSelected);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -134,12 +154,17 @@ export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={contacts && selectedContacts.size === contacts.length && contacts.length > 0}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead className="font-semibold text-foreground">NAME</TableHead>
               <TableHead className="font-semibold text-foreground">EMAIL</TableHead>
               <TableHead className="font-semibold text-foreground">PHONE NUMBER</TableHead>
               <TableHead className="font-semibold text-foreground">COMPANY</TableHead>
               <TableHead className="font-semibold text-foreground">TITLE</TableHead>
-              <TableHead className="text-right font-semibold text-foreground">ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -148,6 +173,8 @@ export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
                 key={contact.id}
                 contact={contact}
                 onDelete={(id) => setDeletingContactId(id)}
+                isSelected={selectedContacts.has(contact.id)}
+                onSelectChange={handleSelectContact}
               />
             ))}
           </TableBody>
