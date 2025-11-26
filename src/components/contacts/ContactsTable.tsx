@@ -46,9 +46,10 @@ interface Contact {
 interface ContactsTableProps {
   searchQuery: string;
   viewFilter: string;
+  scope: string;
 }
 
-export function ContactsTable({ searchQuery, viewFilter }: ContactsTableProps) {
+export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
