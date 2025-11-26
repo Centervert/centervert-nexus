@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import UnifiedLayout from '@/components/UnifiedLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -318,16 +319,17 @@ const UserManagement = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          User Management
-        </h1>
-        <p className="text-muted-foreground">
-          Manage team members, assign roles, and send invitations
-        </p>
-      </div>
+    <UnifiedLayout>
+      <div className="container mx-auto py-8 px-4">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+            <Users className="h-8 w-8" />
+            User Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage team members, assign roles, and send invitations
+          </p>
+        </div>
 
       <div className="mb-6">
         <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
@@ -603,7 +605,8 @@ const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </UnifiedLayout>
   );
 };
 
