@@ -218,11 +218,32 @@ const ContactDetail = () => {
                     </div>
 
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Company</div>
+                      <div className="text-xs text-muted-foreground mb-1">Organization</div>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                         <EditableSelectCell
-                          value={contact.company_id}
+                          value={contact.organization_id}
+                          onSave={(value) => updateMutation.mutate({ field: "organization_id", value })}
+                          options={companies || []}
+                          placeholder="No organization"
+                          renderValue={(option) => {
+                            if (!option || !contact.organizations) return <span className="text-muted-foreground">No organization</span>;
+                            return (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/organizations/${contact.organizations.id}`);
+                                }}
+                                className="text-primary hover:underline text-left"
+                              >
+                                {contact.organizations.name}
+                              </button>
+                            );
+                          }}
+                          onValueClick={(id) => navigate(`/organizations/${id}`)}
+                        />
+                      </div>
+                    </div>
                           onSave={(value) => updateMutation.mutate({ field: "company_id", value })}
                           options={companies || []}
                           placeholder="No company"
