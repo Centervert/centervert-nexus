@@ -38,7 +38,7 @@ interface Contact {
   organization_id: string | null;
   notes: string | null;
   is_primary: boolean | null;
-  organizations: {
+  companies: {
     name: string;
   } | null;
 }
@@ -180,10 +180,7 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
             {paginatedContacts.map((contact) => (
               <ContactRow
                 key={contact.id}
-                contact={{
-                  ...contact,
-                  companies: contact.organizations
-                }}
+                contact={contact}
                 onDelete={(id) => setDeletingContactId(id)}
                 isSelected={selectedContacts.has(contact.id)}
                 onSelectChange={handleSelectContact}
