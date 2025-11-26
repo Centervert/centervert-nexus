@@ -12,7 +12,8 @@ import Companies from "./pages/Companies";
 import CompanyDetail from "./pages/CompanyDetail";
 import Contacts from "./pages/Contacts";
 import ContactDetail from "./pages/ContactDetail";
-import Billing from "./pages/Billing";
+import Billing from "@/pages/Billing";
+import UserManagement from "@/pages/UserManagement";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -76,6 +77,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <Billing />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <UserManagement />
                   </ProtectedRoute>
                 }
               />

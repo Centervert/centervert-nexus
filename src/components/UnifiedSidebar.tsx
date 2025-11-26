@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Search,
   ChevronLeft,
+  UserCircle,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -59,6 +60,12 @@ const UnifiedSidebar = () => {
       name: 'Billing',
       href: '/billing',
       icon: Receipt,
+      show: isAdmin, // Admin only
+    },
+    {
+      name: 'Users',
+      href: '/users',
+      icon: UserCircle,
       show: isAdmin, // Admin only
     },
   ].filter(item => item.show);
