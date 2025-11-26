@@ -28,12 +28,12 @@ const Dashboard = () => {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
-      const [companiesRes, contactsRes] = await Promise.all([
-        supabase.from('companies').select('id', { count: 'exact', head: true }),
+      const [organizationsRes, contactsRes] = await Promise.all([
+        supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('contacts').select('id', { count: 'exact', head: true }),
       ]);
       return {
-        totalCompanies: companiesRes.count || 0,
+        totalCompanies: organizationsRes.count || 0,
         totalContacts: contactsRes.count || 0,
       };
     },

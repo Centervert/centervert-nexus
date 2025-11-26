@@ -32,7 +32,7 @@ interface Contact {
   email: string;
   phone: string | null;
   title: string | null;
-  company_id: string | null;
+  organization_id: string | null;
   notes: string | null;
   address: string | null;
   is_primary: boolean | null;
@@ -55,7 +55,7 @@ export function CompanyContacts({ companyId, companyName }: CompanyContactsProps
       const { data, error } = await supabase
         .from("contacts")
         .select("*")
-        .eq("company_id", companyId)
+        .eq("organization_id", companyId)
         .order("is_primary", { ascending: false })
         .order("first_name", { ascending: true });
       if (error) throw error;
