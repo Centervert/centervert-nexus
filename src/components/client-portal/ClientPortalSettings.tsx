@@ -16,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Loader2 } from 'lucide-react';
-import { useClientAutoPayment } from '@/hooks/useClientAutoPayment';
 
 interface ClientPortalSettingsProps {
   open: boolean;
@@ -45,8 +44,10 @@ const ClientPortalSettings = ({ open, onOpenChange }: ClientPortalSettingsProps)
     enabled: !!user?.id && open,
   });
 
-  const { autoPaymentEnabled, updateAutoPayment, isUpdating: isUpdatingPayment } = 
-    useClientAutoPayment(profile?.client_id);
+  // Auto payment functionality removed - will be rebuilt with new system
+  const autoPaymentEnabled = false;
+  const updateAutoPayment = async () => {};
+  const isUpdatingPayment = false;
 
   // Form state
   const [formData, setFormData] = useState({

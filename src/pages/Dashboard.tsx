@@ -22,9 +22,7 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AITicketDialog } from '@/components/ticket/AITicketDialog';
 import { CreateTicketDialog } from '@/components/ticket/CreateTicketDialog';
-import { FinancialStats } from '@/components/FinancialStats';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +33,6 @@ const Dashboard = () => {
   const [poFilter, setPoFilter] = useState<'all' | 'with_po' | 'without_po'>('all');
   const [sortBy, setSortBy] = useState<'created_at' | 'title' | 'priority' | 'status' | 'client' | 'due_date'>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState('open');
