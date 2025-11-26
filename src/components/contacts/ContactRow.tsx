@@ -112,9 +112,12 @@ export function ContactRow({ contact, onDelete, isSelected = false, onSelectChan
             </AvatarFallback>
           </Avatar>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-primary">
+            <button
+              onClick={() => navigate(`/contacts/${contact.id}`)}
+              className="font-medium text-primary hover:underline"
+            >
               {contact.first_name} {contact.last_name}
-            </span>
+            </button>
             {contact.is_primary && (
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             )}
