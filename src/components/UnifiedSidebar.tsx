@@ -244,8 +244,8 @@ const UnifiedSidebar = () => {
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     {!isCollapsed && (
-                      <CollapsibleContent className="overflow-hidden transition-all duration-300 ease-in-out data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
-                        <SidebarMenuSub className="space-y-1">
+                      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                        <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
                           {crmItems.map((item, index) => {
                             const isActive = location.pathname === item.href || 
                               (item.href === '/companies' && location.pathname.startsWith('/companies/')) ||
@@ -253,8 +253,11 @@ const UnifiedSidebar = () => {
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
-                                className="animate-fade-in"
-                                style={{ animationDelay: `${index * 50}ms` }}
+                                className="opacity-0 animate-fade-in"
+                                style={{ 
+                                  animationDelay: `${index * 75}ms`,
+                                  animationFillMode: 'forwards'
+                                }}
                               >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
@@ -265,13 +268,13 @@ const UnifiedSidebar = () => {
                                   className={`
                                     relative overflow-hidden
                                     text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
-                                    transition-all duration-200 hover:translate-x-2 hover:shadow-md
+                                    transition-all duration-300 ease-out hover:translate-x-2 hover:shadow-md
                                     ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
                                     group/sub
                                   `}
                                 >
                                   <item.icon className={`
-                                    h-4 w-4 transition-all duration-200
+                                    h-4 w-4 transition-all duration-300
                                     group-hover/sub:scale-125 group-hover/sub:rotate-12
                                     ${isActive ? 'scale-110' : ''}
                                   `} />
