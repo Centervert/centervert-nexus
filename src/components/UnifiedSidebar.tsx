@@ -82,7 +82,7 @@ const UnifiedSidebar = () => {
       style={{ backgroundColor: '#9c5126' }}
       collapsible="icon"
     >
-      <SidebarContent className="bg-transparent">
+      <SidebarContent style={{ backgroundColor: '#9c5126' }}>
         {/* Logo and Search Bar */}
         <div>
           {/* Logo */}
