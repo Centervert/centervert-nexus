@@ -24,8 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Pencil, Trash2, Mail, Phone, Star } from "lucide-react";
-import { ContactDialog } from "./ContactDialog";
+import { ContactRow } from "./ContactRow";
 
 interface Contact {
   id: string;
@@ -49,9 +48,7 @@ interface ContactsTableProps {
 
 export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps) {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const [deletingContactId, setDeletingContactId] = useState<string | null>(null);
 
   const { data: contacts, isLoading } = useQuery({
@@ -134,76 +131,15 @@ export function ContactsTable({ searchQuery, companyFilter }: ContactsTableProps
           </TableHeader>
           <TableBody>
             {contacts.map((contact) => (
-              <TableRow key={contact.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">
-                      {contact.first_name} {contact.last_name}
-                    </span>
-                    {contact.is_primary && (
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {contact.companies && contact.company_id ? (
-                    <Badge 
-                      variant="outline" 
-                      className="cursor-pointer hover:bg-accent"
-                      onClick={() => navigate(`/companies/${contact.company_id}`)}
-                    >
-                      {contact.companies.name}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No company</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-muted-foreground">{contact.email}</span>
-                    </div>
-                    {contact.phone && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">{contact.phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-muted-foreground">{contact.title || "—"}</span>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingContact(contact)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeletingContactId(contact.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <ContactRow
+                key={contact.id}
+                contact={contact}
+                onDelete={(id) => setDeletingContactId(id)}
+              />
             ))}
           </TableBody>
         </Table>
       </div>
-
-      <ContactDialog
-        open={!!editingContact}
-        onOpenChange={(open) => !open && setEditingContact(null)}
-        contact={editingContact || undefined}
-      />
 
       <AlertDialog open={!!deletingContactId} onOpenChange={() => setDeletingContactId(null)}>
         <AlertDialogContent>
