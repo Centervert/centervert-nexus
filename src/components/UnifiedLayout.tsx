@@ -77,7 +77,7 @@ const UnifiedLayout = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1">
+          <main className="flex-1 rounded-tl-3xl bg-background overflow-hidden">
             {children}
           </main>
         </div>
