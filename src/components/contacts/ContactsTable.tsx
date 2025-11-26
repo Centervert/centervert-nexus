@@ -58,7 +58,7 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
   const itemsPerPage = 25;
 
   const { data: contacts, isLoading } = useQuery({
-    queryKey: ["contacts", searchQuery, viewFilter],
+    queryKey: ["contacts", searchQuery, viewFilter, scope],
     queryFn: async () => {
       let query = supabase
         .from("contacts")
@@ -69,6 +69,14 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
           )
         `)
         .order("first_name", { ascending: true });
+
+      // Filter by scope (all vs my contacts)
+      if (scope === "my") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          query = query.eq("created_by", user.id);
+        }
+      }
 
       if (searchQuery) {
         query = query.or(`first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`);

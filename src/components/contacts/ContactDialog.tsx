@@ -114,6 +114,9 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
 
   const createMutation = useMutation({
     mutationFn: async (values: ContactFormValues) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
         .from("contacts")
         .insert([{
@@ -125,6 +128,7 @@ export function ContactDialog({ open, onOpenChange, contact, defaultCompanyId }:
           company_id: values.company_id || null,
           notes: values.notes || null,
           is_primary: values.is_primary,
+          created_by: user.id,
         }])
         .select()
         .single();
