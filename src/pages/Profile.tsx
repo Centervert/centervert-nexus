@@ -25,7 +25,7 @@ const Profile = () => {
       
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*, client:clients(name)')
+        .select('*, company:companies(name)')
         .eq('id', user.id)
         .single();
 
@@ -200,8 +200,8 @@ const Profile = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-muted-foreground">Client</Label>
-                        <p className="font-medium">{profile?.client?.name || 'Not assigned'}</p>
+                        <Label className="text-muted-foreground">Company</Label>
+                        <p className="font-medium">{profile?.company || 'Not assigned'}</p>
                       </div>
 
                       <div className="space-y-2">
