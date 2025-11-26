@@ -263,20 +263,29 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
               )}
             />
 
-            <div className={!selectedType ? "opacity-30 pointer-events-none blur-sm" : "transition-all duration-300"}>
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{getNameLabel()} *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter name..." {...field} disabled={!selectedType} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <div className="relative">
+              {!selectedType && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                  <div className="text-center">
+                    <p className="text-muted-foreground font-medium">Start by selecting organization type.</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className={!selectedType ? "opacity-30 pointer-events-none blur-sm" : "transition-all duration-300"}>
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{getNameLabel()} *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter name..." {...field} disabled={!selectedType} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
               <FormField
                 control={form.control}
@@ -486,6 +495,7 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
                   </FormItem>
                 )}
               />
+            </div>
             </div>
 
             <SheetFooter className="gap-2">
