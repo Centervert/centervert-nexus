@@ -5,7 +5,7 @@ import SettingsSidebar from '@/components/SettingsSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, Users, CreditCard, Building2, ArrowRight } from 'lucide-react';
+import { User, ArrowRight } from 'lucide-react';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -22,29 +22,8 @@ const Settings = () => {
     },
   ];
 
-  const adminSettings = userRole?.isAdmin ? [
-    {
-      title: 'User Management',
-      description: 'Invite and manage users, assign roles and permissions',
-      icon: Users,
-      href: '/settings/users',
-      color: 'text-purple-600'
-    },
-    {
-      title: 'Client Management',
-      description: 'Manage client accounts, contacts, and relationships',
-      icon: Building2,
-      href: '/clients',
-      color: 'text-green-600'
-    },
-    {
-      title: 'Payment Settings',
-      description: 'Configure payment methods and billing preferences',
-      icon: CreditCard,
-      href: '/settings/payments',
-      color: 'text-orange-600'
-    },
-  ] : [];
+  // No additional admin settings for now
+  const adminSettings: any[] = [];
 
   return (
     <SidebarProvider>

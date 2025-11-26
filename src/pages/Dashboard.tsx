@@ -103,8 +103,8 @@ const Dashboard = () => {
           <CardContent>
             <p className="text-muted-foreground">
               {isClient 
-                ? "View your tickets, billing information, and project updates all in one place."
-                : "Manage companies, contacts, tickets, and billing from your unified workspace."
+                ? "View your billing information and account details all in one place."
+                : "Manage companies, contacts, and billing from your unified workspace."
               }
             </p>
           </CardContent>

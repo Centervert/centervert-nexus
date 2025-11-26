@@ -25,11 +25,12 @@ const Profile = () => {
       
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*, company:companies(name)')
+        .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      if (!profileData) return null;
 
       const { data: roles, error: rolesError } = await supabase
         .from('user_roles')
@@ -197,11 +198,6 @@ const Profile = () => {
                       <div className="space-y-2">
                         <Label className="text-muted-foreground">Phone</Label>
                         <p className="font-medium">{profile?.phone || 'Not set'}</p>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label className="text-muted-foreground">Company</Label>
-                        <p className="font-medium">{profile?.company || 'Not assigned'}</p>
                       </div>
 
                       <div className="space-y-2">
