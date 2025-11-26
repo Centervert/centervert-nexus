@@ -170,8 +170,7 @@ const UnifiedSidebar = () => {
                     >
                       <Icon className={`
                         h-5 w-5 transition-all duration-300
-                        group-hover:scale-110 group-hover:rotate-6
-                        ${isActive ? 'scale-110' : ''}
+                        group-hover:scale-110
                       `} />
                       {!isCollapsed && (
                         <span className="transition-all duration-200 group-hover:translate-x-1">
@@ -218,8 +217,7 @@ const UnifiedSidebar = () => {
                       >
                         <UserSquare2 className={`
                           h-5 w-5 transition-all duration-300
-                          group-hover:scale-110 group-data-[state=open]/collapsible:rotate-12
-                          ${isCrmActive ? 'scale-110' : ''}
+                          group-hover:scale-110
                         `} />
                         {!isCollapsed && (
                           <>
@@ -274,8 +272,7 @@ const UnifiedSidebar = () => {
                                 >
                                   <item.icon className={`
                                     h-4 w-4 transition-all duration-300
-                                    group-hover/sub:scale-125 group-hover/sub:rotate-12
-                                    ${isActive ? 'scale-110' : ''}
+                                    group-hover/sub:scale-125
                                   `} />
                                   <span className="transition-all duration-200 group-hover/sub:font-medium">
                                     {item.name}
@@ -329,8 +326,7 @@ const UnifiedSidebar = () => {
                     >
                       <Icon className={`
                         h-5 w-5 transition-all duration-300
-                        group-hover:scale-110 group-hover:rotate-6
-                        ${isActive ? 'scale-110' : ''}
+                        group-hover:scale-110
                       `} />
                       {!isCollapsed && (
                         <span className="transition-all duration-200 group-hover:translate-x-1">
@@ -380,8 +376,7 @@ const UnifiedSidebar = () => {
                     >
                       <Icon className={`
                         h-5 w-5 transition-all duration-300
-                        group-hover:scale-110 group-hover:rotate-6
-                        ${isActive ? 'scale-110' : ''}
+                        group-hover:scale-110
                       `} />
                       {!isCollapsed && (
                         <span className="transition-all duration-200 group-hover:translate-x-1">
@@ -427,8 +422,7 @@ const UnifiedSidebar = () => {
                   >
                     <Settings className={`
                       h-5 w-5 transition-all duration-300
-                      group-hover:scale-110 group-hover:rotate-90
-                      ${location.pathname === '/settings' ? 'scale-110 rotate-90' : ''}
+                      group-hover:scale-110
                     `} />
                     {!isCollapsed && (
                       <span className="transition-all duration-200 group-hover:translate-x-1">
