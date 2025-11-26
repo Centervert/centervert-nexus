@@ -11,23 +11,10 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TicketDetail from "./pages/TicketDetail";
 import Settings from "./pages/Settings";
-import UserManagement from "./pages/settings/UserManagement";
-import PaymentSettings from "./pages/settings/PaymentSettings";
-import Clients from "./pages/Clients";
-import ClientDetail from "./pages/ClientDetail";
-import ManagedServices from "./pages/ManagedServices";
-import ManagedServiceDetail from "./pages/ManagedServiceDetail";
-import Opportunities from "./pages/Opportunities";
-import OpportunityDetail from "./pages/OpportunityDetail";
-import Contacts from "./pages/Contacts";
 import Profile from "./pages/Profile";
-import DevProjects from "./pages/DevProjects";
-import DevProjectDetail from "./pages/DevProjectDetail";
 import NotFound from "./pages/NotFound";
 import ClientPortal from "./pages/ClientPortal";
 import ClientPortalLayout from "./components/client-portal/ClientPortalLayout";
-import ClientBilling from "./pages/ClientBilling";
-import DataExport from "./pages/admin/DataExport";
 
 const queryClient = new QueryClient();
 
@@ -66,100 +53,11 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route path="/admin" element={<Navigate to="/settings" replace />} />
               <Route
                 path="/settings"
                 element={
                   <ProtectedRoute>
                     <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings/users"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <UserManagement />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings/payments"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <PaymentSettings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clients"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <Clients />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/clients/:id"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <ClientDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/managed-services"
-                element={
-                  <ProtectedRoute>
-                    <ManagedServices />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/managed-services/:id"
-                element={
-                  <ProtectedRoute>
-                    <ManagedServiceDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/opportunities"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <Opportunities />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/opportunities/:id"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <OpportunityDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/contacts"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <Contacts />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dev-projects"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <DevProjects />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dev-projects/:id"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <DevProjectDetail />
                   </ProtectedRoute>
                 }
               />
@@ -178,24 +76,6 @@ const App = () => {
                     <ClientPortalLayout>
                       <ClientPortal />
                     </ClientPortalLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/client-portal/billing"
-                element={
-                  <ProtectedRoute>
-                    <ClientPortalLayout>
-                      <ClientBilling />
-                    </ClientPortalLayout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/export"
-                element={
-                  <ProtectedRoute adminOnly>
-                    <DataExport />
                   </ProtectedRoute>
                 }
               />

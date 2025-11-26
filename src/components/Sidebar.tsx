@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Ticket, LogOut, RefreshCw, Settings, User, Briefcase, Code, Users } from 'lucide-react';
+import { Ticket, LogOut, Settings, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/useUserRole';
 import { cn } from '@/lib/utils';
@@ -56,12 +56,6 @@ const Sidebar = () => {
 
   const navigation = [
     { name: 'Tickets', href: '/dashboard', icon: Ticket },
-    { name: 'Managed Services', href: '/managed-services', icon: RefreshCw },
-    ...(userRole?.isAdmin ? [
-      { name: 'Sales & Opportunities', href: '/opportunities', icon: Briefcase },
-      { name: 'Contacts', href: '/contacts', icon: Users },
-      { name: 'Development', href: '/dev-projects', icon: Code }
-    ] : []),
   ];
 
   const initials = userProfile?.fullName
@@ -112,7 +106,7 @@ const Sidebar = () => {
         {/* Settings Link */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={location.pathname.startsWith('/settings') || location.pathname === '/profile' || location.pathname.startsWith('/clients')}>
+            <SidebarMenuButton asChild isActive={location.pathname.startsWith('/settings') || location.pathname === '/profile'}>
               <Link to="/settings" className="py-3">
                 <Settings className="h-5 w-5" />
                 <span>Settings</span>
