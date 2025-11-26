@@ -68,6 +68,7 @@ export type Database = {
           last_name: string
           notes: string | null
           phone: string | null
+          show_in_all_contacts: boolean
           title: string | null
           updated_at: string | null
         }
@@ -82,6 +83,7 @@ export type Database = {
           last_name: string
           notes?: string | null
           phone?: string | null
+          show_in_all_contacts?: boolean
           title?: string | null
           updated_at?: string | null
         }
@@ -96,6 +98,7 @@ export type Database = {
           last_name?: string
           notes?: string | null
           phone?: string | null
+          show_in_all_contacts?: boolean
           title?: string | null
           updated_at?: string | null
         }

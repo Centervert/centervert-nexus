@@ -168,6 +168,21 @@ const ContactDetail = () => {
                     )}
                   </div>
                 </div>
+
+                <Separator className="my-6" />
+
+                {/* Visibility Section */}
+                <div className="space-y-4">
+                  <h3 className="font-semibold text-sm">Visibility</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Show in All Contacts</div>
+                      <div className="text-sm">
+                        {contact.show_in_all_contacts ? "Yes" : "No"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
