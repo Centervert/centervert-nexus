@@ -77,7 +77,11 @@ const UnifiedSidebar = () => {
   ];
 
   return (
-    <Sidebar className="border-r border-sidebar-foreground/10" style={{ backgroundColor: '#9c5126' }}>
+    <Sidebar 
+      className="border-r border-sidebar-foreground/10" 
+      style={{ backgroundColor: '#9c5126' }}
+      collapsible="icon"
+    >
       <SidebarContent className="bg-transparent">
         {/* Logo and Search Bar */}
         <div className="border-b border-sidebar-foreground/10">

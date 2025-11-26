@@ -49,7 +49,7 @@ const UnifiedLayout = ({ children }: UnifiedLayoutProps) => {
   };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col">
