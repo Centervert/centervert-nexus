@@ -38,7 +38,7 @@ const ContactDetail = () => {
         .from("contacts")
         .select(`
           *,
-          organizations (
+          companies:organizations (
             id,
             name,
             website,
@@ -227,16 +227,16 @@ const ContactDetail = () => {
                           options={companies || []}
                           placeholder="No organization"
                           renderValue={(option) => {
-                            if (!option || !contact.organizations) return <span className="text-muted-foreground">No organization</span>;
+                            if (!option || !contact.companies) return <span className="text-muted-foreground">No organization</span>;
                             return (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/organizations/${contact.organizations.id}`);
+                                  navigate(`/organizations/${contact.companies.id}`);
                                 }}
                                 className="text-primary hover:underline text-left"
                               >
-                                {contact.organizations.name}
+                                {contact.companies.name}
                               </button>
                             );
                           }}
@@ -345,7 +345,7 @@ const ContactDetail = () => {
                     />
                   </div>
 
-                  {contact.organizations && (
+                  {contact.companies && (
                     <>
                       <div>
                         <div className="text-xs font-medium text-muted-foreground mb-1">
@@ -353,49 +353,49 @@ const ContactDetail = () => {
                         </div>
                         <div className="text-sm">
                           <button
-                            onClick={() => navigate(`/organizations/${contact.organizations.id}`)}
+                            onClick={() => navigate(`/organizations/${contact.companies.id}`)}
                             className="text-primary hover:underline"
                           >
-                            {contact.organizations.name}
+                            {contact.companies.name}
                           </button>
                         </div>
                       </div>
 
-                      {contact.organizations.website && (
+                      {contact.companies.website && (
                         <div>
                           <div className="text-xs font-medium text-muted-foreground mb-1">
                             Organization Website
                           </div>
                           <div className="text-sm">
                             <a
-                              href={contact.organizations.website}
+                              href={contact.companies.website}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-primary hover:underline"
                             >
-                              {contact.organizations.website}
+                              {contact.companies.website}
                             </a>
                           </div>
                         </div>
                       )}
 
-                      {contact.organizations.phone && (
+                      {contact.companies.phone && (
                         <div>
                           <div className="text-xs font-medium text-muted-foreground mb-1">
                             Organization Phone
                           </div>
                           <div className="text-sm">
-                            {formatPhoneNumber(contact.organizations.phone)}
+                            {formatPhoneNumber(contact.companies.phone)}
                           </div>
                         </div>
                       )}
 
-                      {contact.organizations.address && (
+                      {contact.companies.address && (
                         <div className="md:col-span-2">
                           <div className="text-xs font-medium text-muted-foreground mb-1">
                             Organization Address
                           </div>
-                          <div className="text-sm">{contact.organizations.address}</div>
+                          <div className="text-sm">{contact.companies.address}</div>
                         </div>
                       )}
                     </>

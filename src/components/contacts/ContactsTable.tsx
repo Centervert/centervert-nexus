@@ -64,7 +64,7 @@ export function ContactsTable({ searchQuery, viewFilter, scope }: ContactsTableP
         .from("contacts")
         .select(`
           *,
-          organizations (
+          companies:organizations (
             name
           )
         `)
