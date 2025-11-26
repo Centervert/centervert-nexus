@@ -78,7 +78,7 @@ const UnifiedSidebar = () => {
 
   return (
     <Sidebar 
-      className="border-none" 
+      className="border-none rounded-tr-3xl" 
       style={{ backgroundColor: '#9c5126' }}
       collapsible="icon"
     >
