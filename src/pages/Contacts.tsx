@@ -19,7 +19,7 @@ const Contacts = () => {
     queryKey: ["companies-filter"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies")
+        .from("organizations")
         .select("id, name")
         .eq("is_active", true)
         .order("name");

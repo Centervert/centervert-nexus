@@ -154,9 +154,9 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
 
   const createMutation = useMutation({
     mutationFn: async (values: CompanyFormValues) => {
-      // First create the company
-      const { data: companyData, error: companyError } = await supabase
-        .from("companies")
+      // First create the organization
+      const { data: organizationData, error: organizationError } = await supabase
+        .from("organizations")
         .insert([{
           organization_type: values.organization_type,
           name: values.name,
@@ -170,14 +170,14 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
         .select()
         .single();
       
-      if (companyError) throw companyError;
+      if (organizationError) throw organizationError;
 
       // Handle contact creation/linking if needed
       if (contactOption === "create" && values.new_contact_first_name && values.new_contact_last_name && values.new_contact_email) {
         const { error: contactError } = await supabase
           .from("contacts")
           .insert([{
-            company_id: companyData.id,
+            organization_id: organizationData.id,
             first_name: values.new_contact_first_name,
             last_name: values.new_contact_last_name,
             email: values.new_contact_email,
@@ -188,13 +188,13 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
       } else if (contactOption === "select" && values.existing_contact_id) {
         const { error: linkError } = await supabase
           .from("contacts")
-          .update({ company_id: companyData.id })
+          .update({ organization_id: organizationData.id })
           .eq("id", values.existing_contact_id);
         
         if (linkError) throw linkError;
       }
       
-      return companyData;
+      return organizationData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
@@ -211,7 +211,7 @@ export function CompanyDialog({ open, onOpenChange, company }: CompanyDialogProp
   const updateMutation = useMutation({
     mutationFn: async (values: CompanyFormValues) => {
       const { data, error } = await supabase
-        .from("companies")
+        .from("organizations")
         .update({
           organization_type: values.organization_type,
           name: values.name,

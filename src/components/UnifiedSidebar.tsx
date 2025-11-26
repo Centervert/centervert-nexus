@@ -46,7 +46,7 @@ const UnifiedSidebar = () => {
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
 
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/companies' || location.pathname.startsWith('/companies/') || location.pathname.startsWith('/contacts/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/');
 
   // Navigation items based on role
   const navigation = [
@@ -77,8 +77,8 @@ const UnifiedSidebar = () => {
       icon: Users,
     },
     {
-      name: 'Companies',
-      href: '/companies',
+      name: 'Organizations',
+      href: '/organizations',
       icon: Building2,
     },
   ];
@@ -203,7 +203,7 @@ const UnifiedSidebar = () => {
                         <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
                           {crmItems.map((item, index) => {
                             const isActive = location.pathname === item.href || 
-                              (item.href === '/companies' && location.pathname.startsWith('/companies/')) ||
+                              (item.href === '/organizations' && location.pathname.startsWith('/organizations/')) ||
                               (item.href === '/contacts' && location.pathname.startsWith('/contacts/'));
                             return (
                               <SidebarMenuSubItem 

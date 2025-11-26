@@ -33,7 +33,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
     queryKey: ["companies", searchQuery, statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from("companies")
+        .from("organizations")
         .select("*")
         .order("name", { ascending: true });
 

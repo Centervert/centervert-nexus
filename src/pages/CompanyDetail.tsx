@@ -44,7 +44,7 @@ function CompanyDetail() {
     queryKey: ["company", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("companies")
+        .from("organizations")
         .select("*")
         .eq("id", id)
         .single();
@@ -59,7 +59,7 @@ function CompanyDetail() {
       const { data, error } = await supabase
         .from("contacts")
         .select("id, first_name, last_name, email, phone, title, is_primary")
-        .eq("company_id", id)
+        .eq("organization_id", id)
         .order("is_primary", { ascending: false })
         .order("first_name", { ascending: true });
       if (error) throw error;
@@ -69,23 +69,23 @@ function CompanyDetail() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("companies").delete().eq("id", id);
+      const { error } = await supabase.from("organizations").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
-      toast.success("Company deleted successfully");
-      navigate("/companies");
+      toast.success("Organization deleted successfully");
+      navigate("/organizations");
     },
     onError: (error: Error) => {
-      toast.error("Failed to delete company", { description: error.message });
+      toast.error("Failed to delete organization", { description: error.message });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Partial<typeof company>) => {
       const { error } = await supabase
-        .from("companies")
+        .from("organizations")
         .update(updates)
         .eq("id", id);
       if (error) throw error;

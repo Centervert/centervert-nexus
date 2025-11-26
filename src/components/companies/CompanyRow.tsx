@@ -52,7 +52,7 @@ export function CompanyRow({ company }: CompanyRowProps) {
   const updateMutation = useMutation({
     mutationFn: async (values: typeof editedCompany) => {
       const { error } = await supabase
-        .from("companies")
+        .from("organizations")
         .update({
           name: values.name,
           billing_email: values.billing_email || null,
@@ -78,7 +78,7 @@ export function CompanyRow({ company }: CompanyRowProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("companies").delete().eq("id", id);
+      const { error } = await supabase.from("organizations").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

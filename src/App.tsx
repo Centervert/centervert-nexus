@@ -8,8 +8,8 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import Companies from "./pages/Companies";
-import CompanyDetail from "./pages/CompanyDetail";
+import Organizations from "./pages/Organizations";
+import OrganizationDetail from "./pages/OrganizationDetail";
 import Contacts from "./pages/Contacts";
 import ContactDetail from "./pages/ContactDetail";
 import Billing from "@/pages/Billing";
@@ -41,18 +41,18 @@ const App = () => {
                 }
               />
               <Route
-                path="/companies"
+                path="/organizations"
                 element={
                   <ProtectedRoute>
-                    <Companies />
+                    <Organizations />
                   </ProtectedRoute>
                 }
               />
               <Route
-                path="/companies/:id"
+                path="/organizations/:id"
                 element={
                   <ProtectedRoute>
-                    <CompanyDetail />
+                    <OrganizationDetail />
                   </ProtectedRoute>
                 }
               />
