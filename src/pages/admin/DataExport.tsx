@@ -13,6 +13,7 @@ export default function DataExport() {
   const exportTickets = async () => {
     setLoading('tickets');
     try {
+      // Fetch tickets data
       const { data: tickets, error } = await supabase
         .from('tickets')
         .select(`
@@ -42,9 +43,65 @@ export default function DataExport() {
           ticket_milestones: JSON.stringify(ticket.ticket_milestones),
         };
       });
+
+      // Fetch attachments
+      const { data: attachments, error: attachmentsError } = await supabase
+        .from('attachments')
+        .select('*');
+
+      if (attachmentsError) throw attachmentsError;
+
+      // Create CSV
+      const csvBlob = new Blob(
+        [generateCSVContent(flattened || [])],
+        { type: 'text/csv;charset=utf-8;' }
+      );
+
+      // Create zip file
+      const zip = new JSZip();
+      zip.file('tickets_backup.csv', csvBlob);
+
+      // Download all files from storage
+      if (attachments && attachments.length > 0) {
+        const filesFolder = zip.folder('files');
+        
+        for (const attachment of attachments) {
+          try {
+            // Extract file path from URL
+            const urlParts = attachment.file_url.split('/');
+            const bucketPath = urlParts.slice(urlParts.indexOf('ticket-attachments') + 1).join('/');
+            
+            const { data: fileData, error: downloadError } = await supabase.storage
+              .from('ticket-attachments')
+              .download(bucketPath);
+
+            if (!downloadError && fileData) {
+              // Organize by ticket number
+              const ticket = tickets?.find(t => t.id === attachment.ticket_id);
+              const ticketNumber = ticket?.ticket_number || 'unknown';
+              filesFolder?.file(`TICKET-${ticketNumber}/${attachment.file_name}`, fileData);
+            }
+          } catch (err) {
+            console.error(`Failed to download file: ${attachment.file_name}`, err);
+          }
+        }
+      }
+
+      // Generate and download zip
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(zipBlob);
       
-      generateCSV(flattened || [], 'tickets_backup');
-      toast.success('Tickets exported successfully');
+      const timestamp = new Date().toISOString().split('T')[0];
+      link.setAttribute('href', url);
+      link.setAttribute('download', `tickets_backup_${timestamp}.zip`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success('Tickets exported with files successfully');
     } catch (error) {
       console.error('Error exporting tickets:', error);
       toast.error('Failed to export tickets');
@@ -219,7 +276,7 @@ export default function DataExport() {
           <CardHeader>
             <CardTitle>Tickets</CardTitle>
             <CardDescription>
-              Export all tickets with quotes, messages, links, and milestones
+              Export all tickets with quotes, messages, links, milestones, and all attached files in a zip
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -236,7 +293,7 @@ export default function DataExport() {
               ) : (
                 <>
                   <Download className="mr-2 h-4 w-4" />
-                  Export Tickets
+                  Export Tickets + Files
                 </>
               )}
             </Button>
