@@ -230,7 +230,7 @@ const UnifiedSidebar = () => {
         </SidebarGroup>
 
         {/* Collapse Button at Bottom */}
-        <div className="mt-auto p-3 flex justify-center">
+        <div className={`mt-auto p-3 flex ${isCollapsed ? 'justify-center' : 'justify-end'}`}>
           <Button
             variant="ghost"
             size="icon"
