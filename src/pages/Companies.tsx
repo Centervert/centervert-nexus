@@ -1,0 +1,28 @@
+import UnifiedLayout from "@/components/UnifiedLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const Companies = () => {
+  return (
+    <UnifiedLayout>
+      <div className="container mx-auto p-6 space-y-8">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Companies</h1>
+          <p className="text-muted-foreground">Manage your client companies</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Companies List</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Company management interface coming soon.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </UnifiedLayout>
+  );
+};
+
+export default Companies;
