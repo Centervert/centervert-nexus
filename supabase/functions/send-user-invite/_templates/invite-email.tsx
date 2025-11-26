@@ -48,7 +48,7 @@ export const InviteEmail = ({
             <Heading style={h1}>You&apos;re Invited!</Heading>
             
             <Text style={text}>
-              <strong>{inviterName}</strong> has invited you to join Centervert as a <strong>{roleDisplay}</strong>.
+              {inviterName} has invited you to join Centervert as a {roleDisplay}.
             </Text>
 
             <Text style={text}>
@@ -136,6 +136,7 @@ const h1 = {
 const text = {
   color: '#484848',
   fontSize: '16px',
+  fontWeight: '500',
   lineHeight: '1.5',
   margin: '16px 0',
 };
