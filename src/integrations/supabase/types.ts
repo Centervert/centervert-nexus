@@ -119,6 +119,152 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunities: {
+        Row: {
+          award_date: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          name: string
+          owner_id: string | null
+          priority: Database["public"]["Enums"]["opportunity_priority"] | null
+          requestor_contact_id: string | null
+          requestor_organization_id: string | null
+          status: Database["public"]["Enums"]["opportunity_status"]
+          submission_address: string | null
+          submission_link: string | null
+          submission_location_type:
+            | Database["public"]["Enums"]["submission_location_type"]
+            | null
+          submission_notes: string | null
+          type: Database["public"]["Enums"]["opportunity_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          award_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["opportunity_priority"] | null
+          requestor_contact_id?: string | null
+          requestor_organization_id?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          submission_address?: string | null
+          submission_link?: string | null
+          submission_location_type?:
+            | Database["public"]["Enums"]["submission_location_type"]
+            | null
+          submission_notes?: string | null
+          type: Database["public"]["Enums"]["opportunity_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          award_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          priority?: Database["public"]["Enums"]["opportunity_priority"] | null
+          requestor_contact_id?: string | null
+          requestor_organization_id?: string | null
+          status?: Database["public"]["Enums"]["opportunity_status"]
+          submission_address?: string | null
+          submission_link?: string | null
+          submission_location_type?:
+            | Database["public"]["Enums"]["submission_location_type"]
+            | null
+          submission_notes?: string | null
+          type?: Database["public"]["Enums"]["opportunity_type"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_requestor_contact_id_fkey"
+            columns: ["requestor_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunities_requestor_organization_id_fkey"
+            columns: ["requestor_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_attachments: {
+        Row: {
+          attachment_type: string | null
+          created_at: string | null
+          created_by: string | null
+          file_name: string
+          file_path: string
+          file_type: string | null
+          id: string
+          opportunity_id: string
+        }
+        Insert: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name: string
+          file_path: string
+          file_type?: string | null
+          id?: string
+          opportunity_id: string
+        }
+        Update: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name?: string
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          opportunity_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_attachments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_attachments_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -354,6 +500,7 @@ export type Database = {
         | "lost"
         | "on_hold"
       opportunity_type: "private" | "government"
+      submission_location_type: "in_person" | "online" | "other"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status:
         | "open"
@@ -548,6 +695,7 @@ export const Constants = {
         "on_hold",
       ],
       opportunity_type: ["private", "government"],
+      submission_location_type: ["in_person", "online", "other"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: [
         "open",
