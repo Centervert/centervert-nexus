@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,17 +18,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { ResourceManager } from "@/components/opportunities/ResourceManager";
 
 export default function OpportunityDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [opportunity, setOpportunity] = useState<any>(null);
+  const [resources, setResources] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadOpportunity();
+    loadResources();
   }, [id]);
 
   const loadOpportunity = async () => {
@@ -56,6 +59,21 @@ export default function OpportunityDetail() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadResources = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("opportunity_attachments")
+        .select("*")
+        .eq("opportunity_id", id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setResources(data || []);
+    } catch (error: any) {
+      console.error("Error loading resources:", error);
     }
   };
 
@@ -218,6 +236,21 @@ export default function OpportunityDetail() {
             </CardContent>
           </Card>
         )}
+
+        {/* Resources Card */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Resources</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResourceManager
+              opportunityId={id!}
+              opportunityType={opportunity.type}
+              resources={resources}
+              onResourcesChange={loadResources}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="pt-8">

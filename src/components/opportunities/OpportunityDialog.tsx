@@ -31,7 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Link as LinkIcon, Upload } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AddressAutocomplete } from "@/components/contacts/AddressAutocomplete";
@@ -66,7 +66,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const [contacts, setContacts] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
-  const [showResourcesMenu, setShowResourcesMenu] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -152,7 +151,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
 
       toast({
         title: "Success",
-        description: "Opportunity created successfully",
+        description: "Opportunity created successfully. You can now add resources to it.",
       });
 
       handleOpenChange(false);
@@ -414,41 +413,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     )}
                   />
                 )}
-
-                {/* Resources Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <FormLabel>Resources</FormLabel>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={!selectedType}
-                      onClick={() => setShowResourcesMenu(!showResourcesMenu)}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add Resource
-                    </Button>
-                  </div>
-                  {showResourcesMenu && (
-                    <div className="border rounded-lg p-4 space-y-2">
-                      <Button type="button" variant="ghost" className="w-full justify-start">
-                        <LinkIcon className="h-4 w-4 mr-2" />
-                        Add Link
-                      </Button>
-                      <Button type="button" variant="ghost" className="w-full justify-start">
-                        <Upload className="h-4 w-4 mr-2" />
-                        {selectedType === "government" ? "Upload RFP" : "Upload File"}
-                      </Button>
-                      {selectedType === "government" && (
-                        <Button type="button" variant="ghost" className="w-full justify-start">
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload Supporting Documents
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
 
                 {/* Proposal Submission Location - Government only */}
                 {selectedType === "government" && (
