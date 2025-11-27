@@ -71,7 +71,7 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
             <TableHead>Priority</TableHead>
             <TableHead>Requestor</TableHead>
             <TableHead>Due Date</TableHead>
-            <TableHead>Owner</TableHead>
+            <TableHead>Manager</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
