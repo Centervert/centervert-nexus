@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -85,48 +86,50 @@ export default function Opportunities() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Opportunities</h2>
-          <p className="text-muted-foreground">Track and manage your business opportunities</p>
-        </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Opportunity
-        </Button>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search opportunities..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+    <UnifiedLayout>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight">Opportunities</h1>
+            <p className="text-sm text-muted-foreground">Track and manage your business opportunities</p>
+          </div>
+          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Opportunity
+          </Button>
         </div>
 
-        <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "all" | "my")}>
-          <TabsList>
-            <TabsTrigger value="all">All Opportunities</TabsTrigger>
-            <TabsTrigger value="my">My Opportunities</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search opportunities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "all" | "my")}>
+            <TabsList>
+              <TabsTrigger value="all">All Opportunities</TabsTrigger>
+              <TabsTrigger value="my">My Opportunities</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">Loading opportunities...</div>
+        ) : (
+          <OpportunitiesTable opportunities={filteredOpportunities} />
+        )}
+
+        <OpportunityDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSuccess={loadOpportunities}
+        />
       </div>
-
-      {isLoading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading opportunities...</div>
-      ) : (
-        <OpportunitiesTable opportunities={filteredOpportunities} />
-      )}
-
-      <OpportunityDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSuccess={loadOpportunities}
-      />
-    </div>
+    </UnifiedLayout>
   );
 }
