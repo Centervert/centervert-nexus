@@ -291,44 +291,45 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="due_date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Due Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                disabled={!selectedType}
-                                className={cn(
-                                  "pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                              className="pointer-events-auto"
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={form.control}
+                  name="due_date"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Due Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              disabled={!selectedType}
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            initialFocus
+                            className="pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                {/* Award Date - Government only */}
+                {selectedType === "government" && (
                   <FormField
                     control={form.control}
                     name="award_date"
@@ -340,7 +341,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                             <FormControl>
                               <Button
                                 variant="outline"
-                                disabled={!selectedType}
                                 className={cn(
                                   "pl-3 text-left font-normal",
                                   !field.value && "text-muted-foreground"
@@ -365,7 +365,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                       </FormItem>
                     )}
                   />
-                </div>
+                )}
 
                 {/* Resources Section */}
                 <div className="space-y-4">
@@ -402,32 +402,34 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                   )}
                 </div>
 
-                {/* Proposal Submission Location */}
-                <FormField
-                  control={form.control}
-                  name="submission_location_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Proposal Submission Location</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select submission type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="in_person">In-Person</SelectItem>
-                          <SelectItem value="online">Online</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Proposal Submission Location - Government only */}
+                {selectedType === "government" && (
+                  <FormField
+                    control={form.control}
+                    name="submission_location_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Proposal Submission Location</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select submission type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="in_person">In-Person</SelectItem>
+                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
-                {/* Conditional submission fields */}
-                {selectedSubmissionType === "in_person" && (
+                {/* Conditional submission fields - Government only */}
+                {selectedType === "government" && selectedSubmissionType === "in_person" && (
                   <FormField
                     control={form.control}
                     name="submission_address"
@@ -438,7 +440,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                           <AddressAutocomplete
                             value={field.value || ""}
                             onChange={field.onChange}
-                            disabled={!selectedType}
                           />
                         </FormControl>
                         <FormMessage />
@@ -447,7 +448,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                   />
                 )}
 
-                {selectedSubmissionType === "online" && (
+                {selectedType === "government" && selectedSubmissionType === "online" && (
                   <FormField
                     control={form.control}
                     name="submission_link"
@@ -455,7 +456,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                       <FormItem>
                         <FormLabel>Submission Link</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="https://" disabled={!selectedType} />
+                          <Input {...field} placeholder="https://" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -463,7 +464,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                   />
                 )}
 
-                {selectedSubmissionType === "other" && (
+                {selectedType === "government" && selectedSubmissionType === "other" && (
                   <FormField
                     control={form.control}
                     name="submission_notes"
@@ -471,7 +472,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                       <FormItem>
                         <FormLabel>Submission Notes</FormLabel>
                         <FormControl>
-                          <Textarea {...field} rows={3} disabled={!selectedType} />
+                          <Textarea {...field} rows={3} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
