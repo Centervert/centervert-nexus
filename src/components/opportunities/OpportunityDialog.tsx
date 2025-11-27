@@ -63,6 +63,7 @@ interface OpportunityDialogProps {
 export function OpportunityDialog({ open, onOpenChange, onSuccess }: OpportunityDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
@@ -77,42 +78,50 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
     },
   });
 
-  // Set current user as default manager when form opens
-  const setDefaultManager = async () => {
-    const { data: session } = await supabase.auth.getSession();
-    if (session?.session?.user) {
-      form.setValue("owner_id", session.session.user.id);
-    }
-  };
-
   const selectedType = form.watch("type");
   const selectedSubmissionType = form.watch("submission_location_type");
 
-  // Fetch contacts, organizations, and managers
-  const loadRequestors = async () => {
-    const [contactsRes, orgsRes, managersRes] = await Promise.all([
-      supabase.from("contacts").select("id, first_name, last_name"),
-      supabase.from("organizations").select("id, name"),
-      supabase.rpc("get_users_with_roles"),
-    ]);
+  // Load all data when dialog opens
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [contactsRes, orgsRes, managersRes, sessionRes] = await Promise.all([
+        supabase.from("contacts").select("id, first_name, last_name"),
+        supabase.from("organizations").select("id, name"),
+        supabase.rpc("get_users_with_roles"),
+        supabase.auth.getSession(),
+      ]);
 
-    if (contactsRes.data) setContacts(contactsRes.data);
-    if (orgsRes.data) setOrganizations(orgsRes.data);
-    
-    // Filter to only admin and agent users
-    if (managersRes.data) {
-      const eligibleManagers = managersRes.data.filter((user: any) => 
-        user.roles?.some((role: string) => role === 'admin' || role === 'agent')
-      );
-      setManagers(eligibleManagers);
+      if (contactsRes.data) setContacts(contactsRes.data);
+      if (orgsRes.data) setOrganizations(orgsRes.data);
+      
+      // Filter to only admin and agent users
+      if (managersRes.data) {
+        const eligibleManagers = managersRes.data.filter((user: any) => 
+          user.roles?.some((role: string) => role === 'admin' || role === 'agent')
+        );
+        setManagers(eligibleManagers);
+      }
+
+      // Set current user as default manager
+      if (sessionRes.data?.session?.user) {
+        form.setValue("owner_id", sessionRes.data.session.user.id);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to load form data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      loadRequestors();
       form.reset();
-      setDefaultManager();
+      loadData();
     }
     onOpenChange(open);
   };
@@ -177,30 +186,33 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
           </SheetDescription>
         </SheetHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
-            {/* Type Selection - Always visible */}
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select opportunity type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="government">Government</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">Loading form...</div>
+        ) : (
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+              {/* Type Selection - Always visible */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select opportunity type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="private">Private</SelectItem>
+                        <SelectItem value="government">Government</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
             {/* Rest of form - Blurred until type is selected */}
             <div className={cn(!selectedType && "pointer-events-none opacity-40 blur-sm")}>
@@ -509,6 +521,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
             </div>
           </form>
         </Form>
+        )}
       </SheetContent>
     </Sheet>
   );
