@@ -43,6 +43,7 @@ const formSchema = z.object({
   requestor_contact_id: z.string().optional(),
   requestor_organization_id: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  owner_id: z.string().min(1, "Opportunity manager is required"),
   due_date: z.date().optional(),
   award_date: z.date().optional(),
   submission_location_type: z.enum(["in_person", "online", "other"]).optional(),
@@ -64,6 +65,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<any[]>([]);
+  const [managers, setManagers] = useState<any[]>([]);
   const [showResourcesMenu, setShowResourcesMenu] = useState(false);
 
   const form = useForm<FormData>({
@@ -76,24 +78,42 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
     },
   });
 
+  // Set current user as default manager when form opens
+  const setDefaultManager = async () => {
+    const { data: session } = await supabase.auth.getSession();
+    if (session?.session?.user) {
+      form.setValue("owner_id", session.session.user.id);
+    }
+  };
+
   const selectedType = form.watch("type");
   const selectedSubmissionType = form.watch("submission_location_type");
 
-  // Fetch contacts and organizations
+  // Fetch contacts, organizations, and managers
   const loadRequestors = async () => {
-    const [contactsRes, orgsRes] = await Promise.all([
+    const [contactsRes, orgsRes, managersRes] = await Promise.all([
       supabase.from("contacts").select("id, first_name, last_name"),
       supabase.from("organizations").select("id, name"),
+      supabase.rpc("get_users_with_roles"),
     ]);
 
     if (contactsRes.data) setContacts(contactsRes.data);
     if (orgsRes.data) setOrganizations(orgsRes.data);
+    
+    // Filter to only admin and agent users
+    if (managersRes.data) {
+      const eligibleManagers = managersRes.data.filter((user: any) => 
+        user.roles?.some((role: string) => role === 'admin' || role === 'agent')
+      );
+      setManagers(eligibleManagers);
+    }
   };
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
       loadRequestors();
       form.reset();
+      setDefaultManager();
     }
     onOpenChange(open);
   };
@@ -116,6 +136,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         description: data.description,
         type: data.type,
         priority: data.priority,
+        owner_id: data.owner_id,
         due_date: data.due_date ? data.due_date.toISOString().split('T')[0] : null,
         award_date: data.award_date ? data.award_date.toISOString().split('T')[0] : null,
         requestor_contact_id: data.requestor_contact_id || null,
@@ -124,7 +145,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         submission_address: data.submission_address || null,
         submission_link: data.submission_link || null,
         submission_notes: data.submission_notes || null,
-        owner_id: session.session.user.id,
+        created_by: session.session.user.id,
       });
 
       if (error) throw error;
@@ -267,29 +288,56 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select priority" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Priority</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select priority" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="critical">Critical</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="owner_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Opportunity Manager *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select manager" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {managers.map((manager) => (
+                              <SelectItem key={manager.id} value={manager.id}>
+                                {manager.full_name || manager.email}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <FormField
                   control={form.control}

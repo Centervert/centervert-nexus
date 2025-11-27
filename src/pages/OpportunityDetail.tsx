@@ -136,7 +136,7 @@ export default function OpportunityDetail() {
             </div>
             {opportunity.profiles && (
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Owner</p>
+                <p className="text-sm font-medium text-muted-foreground">Manager</p>
                 <p className="mt-1">{opportunity.profiles.full_name || opportunity.profiles.email}</p>
               </div>
             )}
