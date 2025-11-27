@@ -12,6 +12,8 @@ import Organizations from "./pages/Organizations";
 import OrganizationDetail from "./pages/OrganizationDetail";
 import Contacts from "./pages/Contacts";
 import ContactDetail from "./pages/ContactDetail";
+import Opportunities from "./pages/Opportunities";
+import OpportunityDetail from "./pages/OpportunityDetail";
 import Billing from "@/pages/Billing";
 import UserManagement from "@/pages/UserManagement";
 import Settings from "./pages/Settings";
@@ -69,6 +71,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ContactDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/opportunities"
+                element={
+                  <ProtectedRoute>
+                    <Opportunities />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/opportunities/:id"
+                element={
+                  <ProtectedRoute>
+                    <OpportunityDetail />
                   </ProtectedRoute>
                 }
               />

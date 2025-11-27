@@ -12,6 +12,7 @@ import {
   Search,
   ChevronLeft,
   UserCircle,
+  Target,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -46,7 +47,7 @@ const UnifiedSidebar = () => {
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
 
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
 
   // Navigation items based on role
   const navigation = [
@@ -80,6 +81,11 @@ const UnifiedSidebar = () => {
       name: 'Organizations',
       href: '/organizations',
       icon: Building2,
+    },
+    {
+      name: 'Opportunities',
+      href: '/opportunities',
+      icon: Target,
     },
   ];
 
@@ -204,7 +210,8 @@ const UnifiedSidebar = () => {
                           {crmItems.map((item, index) => {
                             const isActive = location.pathname === item.href || 
                               (item.href === '/organizations' && location.pathname.startsWith('/organizations/')) ||
-                              (item.href === '/contacts' && location.pathname.startsWith('/contacts/'));
+                              (item.href === '/contacts' && location.pathname.startsWith('/contacts/')) ||
+                              (item.href === '/opportunities' && location.pathname.startsWith('/opportunities/'));
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}

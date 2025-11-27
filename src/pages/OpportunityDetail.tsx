@@ -1,0 +1,247 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { format } from "date-fns";
+
+export default function OpportunityDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [opportunity, setOpportunity] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    loadOpportunity();
+  }, [id]);
+
+  const loadOpportunity = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("opportunities")
+        .select(
+          `
+          *,
+          contacts (first_name, last_name, email, phone),
+          organizations (name, phone, website),
+          profiles:owner_id (full_name, email)
+        `
+        )
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+      setOpportunity(data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.from("opportunities").delete().eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Opportunity deleted successfully",
+      });
+      navigate("/opportunities");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex-1 p-8">Loading...</div>;
+  }
+
+  if (!opportunity) {
+    return <div className="flex-1 p-8">Opportunity not found</div>;
+  }
+
+  return (
+    <div className="flex-1 space-y-6 p-8">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/opportunities")}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex-1">
+          <h2 className="text-3xl font-bold tracking-tight">{opportunity.name}</h2>
+          <div className="flex items-center gap-2 mt-2">
+            <Badge variant="outline" className="capitalize">
+              {opportunity.type}
+            </Badge>
+            <Badge>{opportunity.status}</Badge>
+            {opportunity.priority && <Badge variant="secondary">{opportunity.priority}</Badge>}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Key Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {opportunity.description && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Description</p>
+                <p className="mt-1">{opportunity.description}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              {opportunity.due_date && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Due Date</p>
+                  <p className="mt-1">{format(new Date(opportunity.due_date), "MMM d, yyyy")}</p>
+                </div>
+              )}
+              {opportunity.award_date && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Award Date</p>
+                  <p className="mt-1">{format(new Date(opportunity.award_date), "MMM d, yyyy")}</p>
+                </div>
+              )}
+            </div>
+            {opportunity.profiles && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Owner</p>
+                <p className="mt-1">{opportunity.profiles.full_name || opportunity.profiles.email}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {(opportunity.contacts || opportunity.organizations) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Requestor</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {opportunity.contacts && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Contact</p>
+                  <p className="mt-1 font-medium">
+                    {opportunity.contacts.first_name} {opportunity.contacts.last_name}
+                  </p>
+                  {opportunity.contacts.email && <p className="text-sm">{opportunity.contacts.email}</p>}
+                  {opportunity.contacts.phone && <p className="text-sm">{opportunity.contacts.phone}</p>}
+                </div>
+              )}
+              {opportunity.organizations && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Organization</p>
+                  <p className="mt-1 font-medium">{opportunity.organizations.name}</p>
+                  {opportunity.organizations.phone && <p className="text-sm">{opportunity.organizations.phone}</p>}
+                  {opportunity.organizations.website && (
+                    <a
+                      href={opportunity.organizations.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {opportunity.organizations.website}
+                    </a>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {opportunity.submission_location_type && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Submission Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Location Type</p>
+                <p className="mt-1 capitalize">{opportunity.submission_location_type.replace("_", " ")}</p>
+              </div>
+              {opportunity.submission_address && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Address</p>
+                  <p className="mt-1">{opportunity.submission_address}</p>
+                </div>
+              )}
+              {opportunity.submission_link && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Link</p>
+                  <a
+                    href={opportunity.submission_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1 text-primary hover:underline break-all"
+                  >
+                    {opportunity.submission_link}
+                  </a>
+                </div>
+              )}
+              {opportunity.submission_notes && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Notes</p>
+                  <p className="mt-1">{opportunity.submission_notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <div className="pt-8">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" disabled={isDeleting}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Opportunity
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this opportunity. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  );
+}
