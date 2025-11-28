@@ -139,16 +139,6 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        totalSyncedCount,
-        organizationsProcessed: organizations.length,
-        results,
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   } catch (error) {
     console.error('Error syncing invoices:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -218,14 +208,15 @@ async function fetchBillComInvoices(session: BillComSession, customerId: string)
 }
 
 async function syncInvoice(supabase: any, organizationId: string, billcomInvoice: any) {
+  // Bill.com v3 API status mapping
   const statusMap: Record<string, string> = {
-    '0': 'draft',
-    '1': 'sent',
-    '2': 'viewed',
-    '3': 'partial',
-    '4': 'paid',
-    '5': 'overdue',
-    '6': 'void',
+    'DRAFT': 'draft',
+    'OPEN': 'sent',
+    'VIEWED': 'viewed',
+    'PARTIALLY_PAID': 'partial',
+    'PAID_IN_FULL': 'paid',
+    'OVERDUE': 'overdue',
+    'VOIDED': 'void',
   };
 
   const status = statusMap[billcomInvoice.status] || 'draft';
@@ -235,8 +226,8 @@ async function syncInvoice(supabase: any, organizationId: string, billcomInvoice
     billcom_invoice_id: billcomInvoice.id,
     invoice_number: billcomInvoice.invoiceNumber,
     status,
-    amount: parseFloat(billcomInvoice.amount || 0),
-    amount_due: parseFloat(billcomInvoice.amountDue || billcomInvoice.amount || 0),
+    amount: parseFloat(billcomInvoice.totalAmount || 0),
+    amount_due: parseFloat(billcomInvoice.dueAmount || billcomInvoice.totalAmount || 0),
     currency: 'USD',
     issue_date: billcomInvoice.invoiceDate,
     due_date: billcomInvoice.dueDate,
