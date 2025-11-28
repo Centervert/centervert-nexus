@@ -57,7 +57,6 @@ const formSchema = z.object({
   requestor_organization_id: z.string().optional(),
   priority: z.enum(["low", "medium", "high", "critical"]).optional(),
   owner_id: z.string().min(1, "Opportunity manager is required"),
-  team_member_ids: z.array(z.string()).optional(),
   due_date: z.date().optional(),
   award_date: z.date().optional(),
   submission_location_type: z.enum(["in_person", "online", "other"]).optional(),
@@ -96,7 +95,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
       description: "",
       priority: undefined,
       owner_id: "",
-      team_member_ids: [],
       requestor_contact_id: "",
       requestor_organization_id: "",
       submission_location_type: undefined,
@@ -114,31 +112,21 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
       
       // If editing, populate form with existing data
       if (opportunity) {
-        // Load team members for edit mode
-        supabase
-          .from("opportunity_team_members")
-          .select("user_id")
-          .eq("opportunity_id", opportunity.id)
-          .then(({ data }) => {
-            const teamMemberIds = data?.map(tm => tm.user_id) || [];
-            
-            form.reset({
-              type: opportunity.type,
-              name: opportunity.name,
-              description: opportunity.description || "",
-              priority: opportunity.priority || undefined,
-              owner_id: opportunity.owner_id || "",
-              team_member_ids: teamMemberIds,
-              requestor_contact_id: opportunity.requestor_contact_id || "",
-              requestor_organization_id: opportunity.requestor_organization_id || "",
-              submission_location_type: opportunity.submission_location_type || undefined,
-              due_date: opportunity.due_date ? new Date(opportunity.due_date) : undefined,
-              award_date: opportunity.award_date ? new Date(opportunity.award_date) : undefined,
-              submission_address: opportunity.submission_address || "",
-              submission_link: opportunity.submission_link || "",
-              submission_notes: opportunity.submission_notes || "",
-            });
-          });
+        form.reset({
+          type: opportunity.type,
+          name: opportunity.name,
+          description: opportunity.description || "",
+          priority: opportunity.priority || undefined,
+          owner_id: opportunity.owner_id || "",
+          requestor_contact_id: opportunity.requestor_contact_id || "",
+          requestor_organization_id: opportunity.requestor_organization_id || "",
+          submission_location_type: opportunity.submission_location_type || undefined,
+          due_date: opportunity.due_date ? new Date(opportunity.due_date) : undefined,
+          award_date: opportunity.award_date ? new Date(opportunity.award_date) : undefined,
+          submission_address: opportunity.submission_address || "",
+          submission_link: opportunity.submission_link || "",
+          submission_notes: opportunity.submission_notes || "",
+        });
       }
     }
   }, [open, opportunity]);
@@ -262,30 +250,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
 
         if (error) throw error;
 
-        // Update team members for edit mode
-        if (data.team_member_ids) {
-          // Remove existing team members
-          await supabase
-            .from("opportunity_team_members")
-            .delete()
-            .eq("opportunity_id", opportunity.id);
-
-          // Add new team members
-          if (data.team_member_ids.length > 0) {
-            const teamMembersData = data.team_member_ids.map(userId => ({
-              opportunity_id: opportunity.id,
-              user_id: userId,
-              added_by: session.session.user.id,
-            }));
-
-            const { error: teamError } = await supabase
-              .from("opportunity_team_members")
-              .insert(teamMembersData);
-
-            if (teamError) console.error("Error adding team members:", teamError);
-          }
-        }
-
         toast({
           title: "Success",
           description: "Opportunity updated successfully",
@@ -303,21 +267,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
 
         if (error) throw error;
         opportunityId = newOpportunity.id;
-
-        // Add team members for new opportunity
-        if (data.team_member_ids && data.team_member_ids.length > 0) {
-          const teamMembersData = data.team_member_ids.map(userId => ({
-            opportunity_id: opportunityId,
-            user_id: userId,
-            added_by: session.session.user.id,
-          }));
-
-          const { error: teamError } = await supabase
-            .from("opportunity_team_members")
-            .insert(teamMembersData);
-
-          if (teamError) console.error("Error adding team members:", teamError);
-        }
 
         toast({
           title: "Success",
@@ -600,66 +549,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
                     )}
                   />
                 </div>
-
-                <FormField
-                  control={form.control}
-                  name="team_member_ids"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team Members (Optional)</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              disabled={!selectedType || !form.watch("owner_id")}
-                              className={cn(
-                                "justify-between",
-                                (!field.value || field.value.length === 0) && "text-muted-foreground"
-                              )}
-                            >
-                              {field.value && field.value.length > 0
-                                ? `${field.value.length} team member${field.value.length > 1 ? 's' : ''} selected`
-                                : "Select team members"}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[300px] p-0">
-                          <Command>
-                            <CommandInput placeholder="Search team members..." />
-                            <CommandEmpty>No team members found.</CommandEmpty>
-                            <CommandGroup>
-                              {managers
-                                .filter(m => m.id !== form.watch("owner_id"))
-                                .map((manager) => (
-                                  <CommandItem
-                                    key={manager.id}
-                                    onSelect={() => {
-                                      const current = field.value || [];
-                                      const updated = current.includes(manager.id)
-                                        ? current.filter(id => id !== manager.id)
-                                        : [...current, manager.id];
-                                      form.setValue("team_member_ids", updated);
-                                    }}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value?.includes(manager.id) ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    {manager.full_name || manager.email}
-                                  </CommandItem>
-                                ))}
-                            </CommandGroup>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <FormField
                   control={form.control}
