@@ -30,8 +30,8 @@ export const EmployeeTable = ({
   onRefetch,
   searchQuery,
 }: EmployeeTableProps) => {
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [sortField, setSortField] = useState<SortField | null>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const getFilteredEmployees = () => {
     if (!searchQuery.trim()) return employees;
