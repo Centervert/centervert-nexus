@@ -33,6 +33,7 @@ interface EmployeeTableProps {
   isLoading: boolean;
   onEdit: (employee: Employee) => void;
   onRefetch: () => void;
+  searchQuery: string;
 }
 
 export const EmployeeTable = ({
@@ -40,12 +41,30 @@ export const EmployeeTable = ({
   isLoading,
   onEdit,
   onRefetch,
+  searchQuery,
 }: EmployeeTableProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const getFilteredEmployees = () => {
+    if (!searchQuery.trim()) return employees;
+
+    const query = searchQuery.toLowerCase();
+    return employees.filter(emp => {
+      const fullName = `${emp.first_name} ${emp.last_name}`.toLowerCase();
+      const nickname = emp.nickname?.toLowerCase() || '';
+      const position = emp.position.toLowerCase();
+      const email = emp.email.toLowerCase();
+      
+      return fullName.includes(query) || 
+             nickname.includes(query) || 
+             position.includes(query) || 
+             email.includes(query);
+    });
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -63,9 +82,10 @@ export const EmployeeTable = ({
   };
 
   const getSortedEmployees = () => {
-    if (!sortField || !sortDirection) return employees;
+    const filtered = getFilteredEmployees();
+    if (!sortField || !sortDirection) return filtered;
 
-    return [...employees].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       let aValue: any;
       let bValue: any;
 
@@ -198,15 +218,6 @@ export const EmployeeTable = ({
               <div className="flex items-center">
                 Salary
                 <SortIcon field="salary" />
-              </div>
-            </TableHead>
-            <TableHead 
-              className="cursor-pointer select-none hover:bg-muted/50"
-              onClick={() => handleSort('start_date')}
-            >
-              <div className="flex items-center">
-                Start Date
-                <SortIcon field="start_date" />
               </div>
             </TableHead>
             <TableHead>Status</TableHead>

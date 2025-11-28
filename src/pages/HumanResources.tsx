@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Plus, Users, DollarSign, TrendingUp, Search } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ const HumanResources = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | undefined>();
   const [countryFilter, setCountryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: employees = [], isLoading, refetch } = useQuery({
     queryKey: ['employees', countryFilter],
@@ -173,7 +175,19 @@ const HumanResources = () => {
         {/* Employee Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Team Members</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Team Members</CardTitle>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search employees..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <EmployeeTable
@@ -181,6 +195,7 @@ const HumanResources = () => {
               isLoading={isLoading}
               onEdit={handleEdit}
               onRefetch={refetch}
+              searchQuery={searchQuery}
             />
           </CardContent>
         </Card>
