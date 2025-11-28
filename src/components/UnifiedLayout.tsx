@@ -20,18 +20,19 @@ const UnifiedLayout = ({
     user,
     signOut
   } = useAuth();
-  const {
-    data: profile
-  } = useQuery({
+  const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const {
-        data
-      } = await supabase.from('profiles').select('full_name, company, avatar_url').eq('id', user.id).single();
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, company, avatar_url')
+        .eq('id', user.id)
+        .single();
       return data;
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10, // 10 minutes
   });
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -75,7 +76,7 @@ const UnifiedLayout = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 bg-background rounded-tl-2xl">
+          <main className="flex-1 bg-background rounded-tl-2xl page-transition">
             {children}
           </main>
         </div>
