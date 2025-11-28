@@ -119,6 +119,53 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_read: boolean | null
+          metadata: Json | null
+          related_opportunity_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          related_opportunity_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          related_opportunity_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_opportunity_id_fkey"
+            columns: ["related_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunities: {
         Row: {
           award_date: string | null
@@ -514,6 +561,7 @@ export type Database = {
           deleted_profile_id: string
         }[]
       }
+      extract_mentioned_users: { Args: { content: string }; Returns: string[] }
       get_available_agents: {
         Args: never
         Returns: {
