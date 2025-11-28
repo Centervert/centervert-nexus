@@ -145,7 +145,7 @@ export type Database = {
           position: string
           salary_amount: number
           salary_type: string
-          start_date: string
+          start_date: string | null
           updated_at: string | null
         }
         Insert: {
@@ -167,7 +167,7 @@ export type Database = {
           position: string
           salary_amount: number
           salary_type: string
-          start_date: string
+          start_date?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -189,7 +189,7 @@ export type Database = {
           position?: string
           salary_amount?: number
           salary_type?: string
-          start_date?: string
+          start_date?: string | null
           updated_at?: string | null
         }
         Relationships: [
