@@ -213,8 +213,8 @@ async function fetchBillComInvoices(session: BillComSession, customerId: string)
   }
 
   const data = await response.json();
-  // v3 API returns invoices directly in an array
-  return Array.isArray(data) ? data : [];
+  // v3 API returns paginated results with a 'results' array
+  return data.results || [];
 }
 
 async function syncInvoice(supabase: any, organizationId: string, billcomInvoice: any) {
