@@ -118,12 +118,16 @@ export default function OpportunityDetail() {
         </Button>
         <div className="flex-1">
           <h2 className="text-3xl font-bold tracking-tight">{opportunity.name}</h2>
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="capitalize">
-              {opportunity.type}
-            </Badge>
-            <Badge>{opportunity.status}</Badge>
-            {opportunity.priority && <Badge variant="secondary">{opportunity.priority}</Badge>}
+          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+            <span className="capitalize">{opportunity.type}</span>
+            <span className="text-foreground">•</span>
+            <span className="capitalize">{opportunity.status.replace(/_/g, " ")}</span>
+            {opportunity.priority && (
+              <>
+                <span className="text-foreground">•</span>
+                <span className="capitalize">{opportunity.priority}</span>
+              </>
+            )}
           </div>
         </div>
         <Button onClick={() => setShowEditDialog(true)}>
