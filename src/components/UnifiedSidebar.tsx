@@ -6,7 +6,6 @@ import {
   Building2,
   Users,
   Receipt,
-  Settings,
   UserSquare2,
   ChevronRight,
   Search,
@@ -408,37 +407,6 @@ const UnifiedSidebar = () => {
                   </SidebarMenuItem>
                 );
               })()}
-
-              {/* Settings */}
-              {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    isActive={location.pathname === '/settings'}
-                    onClick={() => navigate('/settings')}
-                    className={`
-                      relative overflow-hidden select-none
-                      text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                      transition-all duration-normal ease-smooth
-                      hover:shadow-lg hover:scale-[1.02]
-                      ${location.pathname === '/settings' ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
-                      ${isCollapsed ? 'justify-center' : ''}
-                      group
-                    `}
-                    tooltip={isCollapsed ? 'Settings' : undefined}
-                  >
-                    <Settings className={`
-                      h-5 w-5 transition-all duration-normal ease-smooth
-                      hover:scale-110
-                      ${location.pathname === '/settings' ? 'rotate-90' : ''}
-                    `} />
-                    {!isCollapsed && (
-                      <span className="transition-all duration-fast ease-smooth">
-                        Settings
-                      </span>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
