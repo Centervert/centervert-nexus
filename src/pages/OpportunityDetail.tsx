@@ -39,6 +39,7 @@ export default function OpportunityDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
@@ -338,27 +339,26 @@ export default function OpportunityDetail() {
         </div>
       </div>
 
-      <div className="pt-8">
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive" disabled={isDeleting}>
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Opportunity
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will permanently delete this opportunity. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      {/* Delete Section at Bottom - Danger Zone */}
+      <div className="mt-8 pt-6 border-t">
+        <div className="flex items-center justify-between max-w-4xl">
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">Danger Zone</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Permanently delete this opportunity and all associated data
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDeleteDialog(true)}
+            disabled={isDeleting}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete Opportunity
+          </Button>
+        </div>
       </div>
 
       <OpportunityDialog
@@ -370,6 +370,26 @@ export default function OpportunityDetail() {
           setShowEditDialog(false);
         }}
       />
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Opportunity</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {opportunity?.name}? This will permanently delete this opportunity and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       </div>
     </UnifiedLayout>
   );
