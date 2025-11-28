@@ -163,19 +163,21 @@ Deno.serve(async (req) => {
 });
 
 async function getBillComSession(): Promise<BillComSession> {
-  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
-  const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
+  const username = Deno.env.get('BILLCOM_USERNAME')!;
   const password = Deno.env.get('BILLCOM_PASSWORD')!;
+  const organizationId = Deno.env.get('BILLCOM_ORG_ID')!;
+  const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
 
-  const response = await fetch('https://api.bill.com/api/v3/login', {
+  const response = await fetch('https://gateway.prod.bill.com/connect/v3/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      orgId,
-      devKey,
+      username,
       password,
+      organizationId,
+      devKey,
     }),
   });
 
@@ -194,27 +196,14 @@ async function getBillComSession(): Promise<BillComSession> {
 
 async function fetchBillComInvoices(session: BillComSession, customerId: string): Promise<any[]> {
   const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
-  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
 
-  const response = await fetch('https://api.bill.com/api/v3/Crud/Read/Invoice.json', {
-    method: 'POST',
+  const response = await fetch(`https://gateway.prod.bill.com/connect/v3/invoices?customerId=${customerId}`, {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'devKey': devKey,
+      'sessionId': session.sessionId,
     },
-    body: JSON.stringify({
-      devKey,
-      sessionId: session.sessionId,
-      data: {
-        orgId,
-        filters: [
-          {
-            field: 'customerId',
-            op: '=',
-            value: customerId,
-          },
-        ],
-      },
-    }),
   });
 
   if (!response.ok) {
@@ -224,7 +213,8 @@ async function fetchBillComInvoices(session: BillComSession, customerId: string)
   }
 
   const data = await response.json();
-  return data.response_data || [];
+  // v3 API returns invoices directly in an array
+  return Array.isArray(data) ? data : [];
 }
 
 async function syncInvoice(supabase: any, organizationId: string, billcomInvoice: any) {
@@ -350,21 +340,14 @@ async function findOrganizationForInvoice(
 
 async function fetchBillComCustomer(session: BillComSession, customerId: string): Promise<any> {
   const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
-  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
 
-  const response = await fetch('https://api.bill.com/api/v3/Crud/Read/Customer.json', {
-    method: 'POST',
+  const response = await fetch(`https://gateway.prod.bill.com/connect/v3/customers/${customerId}`, {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'devKey': devKey,
+      'sessionId': session.sessionId,
     },
-    body: JSON.stringify({
-      devKey,
-      sessionId: session.sessionId,
-      data: {
-        orgId,
-        id: customerId,
-      },
-    }),
   });
 
   if (!response.ok) {
@@ -374,5 +357,6 @@ async function fetchBillComCustomer(session: BillComSession, customerId: string)
   }
 
   const data = await response.json();
-  return data.response_data;
+  // v3 API returns customer object directly
+  return data;
 }

@@ -109,19 +109,21 @@ Deno.serve(async (req) => {
 });
 
 async function getBillComSession(): Promise<BillComSession> {
-  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
-  const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
+  const username = Deno.env.get('BILLCOM_USERNAME')!;
   const password = Deno.env.get('BILLCOM_PASSWORD')!;
+  const organizationId = Deno.env.get('BILLCOM_ORG_ID')!;
+  const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
 
-  const response = await fetch('https://api.bill.com/api/v3/login', {
+  const response = await fetch('https://gateway.prod.bill.com/connect/v3/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      orgId,
-      devKey,
+      username,
       password,
+      organizationId,
+      devKey,
     }),
   });
 
@@ -140,28 +142,14 @@ async function getBillComSession(): Promise<BillComSession> {
 
 async function fetchBillComCustomers(session: BillComSession): Promise<any[]> {
   const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
-  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
 
-  const response = await fetch('https://api.bill.com/api/v3/Crud/Read/Customer.json', {
-    method: 'POST',
+  const response = await fetch('https://gateway.prod.bill.com/connect/v3/customers', {
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
+      'devKey': devKey,
+      'sessionId': session.sessionId,
     },
-    body: JSON.stringify({
-      devKey,
-      sessionId: session.sessionId,
-      data: {
-        orgId,
-        // Fetch all active customers
-        filters: [
-          {
-            field: 'isActive',
-            op: '=',
-            value: '1',
-          },
-        ],
-      },
-    }),
   });
 
   if (!response.ok) {
@@ -171,5 +159,6 @@ async function fetchBillComCustomers(session: BillComSession): Promise<any[]> {
   }
 
   const data = await response.json();
-  return data.response_data || [];
+  // v3 API returns customers directly in an array
+  return Array.isArray(data) ? data : [];
 }
