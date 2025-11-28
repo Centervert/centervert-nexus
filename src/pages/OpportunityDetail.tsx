@@ -194,12 +194,13 @@ export default function OpportunityDetail() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-background z-50">
-                  <SelectItem value="lead">Lead</SelectItem>
-                  <SelectItem value="working_on_rfp">Working on RFP</SelectItem>
-                  <SelectItem value="submitted">Submitted</SelectItem>
-                  <SelectItem value="awarded">Awarded</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
-                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="new">New</SelectItem>
+                  <SelectItem value="in_talks">In-Talks</SelectItem>
+                  <SelectItem value="working_on_proposal">Working on proposal</SelectItem>
+                  <SelectItem value="proposal_submitted">Proposal submitted</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="declined">Declined</SelectItem>
+                  <SelectItem value="see_activity">See Activity</SelectItem>
                 </SelectContent>
               </Select>
             </div>
