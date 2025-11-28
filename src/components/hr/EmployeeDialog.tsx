@@ -73,6 +73,7 @@ export const EmployeeDialog = ({
     status: 'pending' as 'pending' | 'approved' | 'canceled',
     notes: ''
   });
+  const [raiseDisplayAmount, setRaiseDisplayAmount] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm<EmployeeFormData>();
 
@@ -92,6 +93,29 @@ export const EmployeeDialog = ({
     },
     enabled: !!employee?.id,
   });
+
+  // Format raise amount with commas
+  const formatRaiseInput = (value: string) => {
+    const cleaned = value.replace(/[^\d.]/g, '');
+    const parts = cleaned.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
+  };
+
+  const handleRaiseAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    const rawValue = inputValue.replace(/,/g, '');
+    const formatted = formatRaiseInput(rawValue);
+    setRaiseDisplayAmount(formatted);
+    setRaiseData({ ...raiseData, raise_amount: rawValue });
+  };
+
+  // Calculate new salary
+  const calculateNewSalary = () => {
+    const currentSalary = Number(salaryAmount) || Number(employee?.salary_amount || 0);
+    const raiseAmount = Number(raiseData.raise_amount) || 0;
+    return currentSalary + raiseAmount;
+  };
 
   useEffect(() => {
     if (employee) {
@@ -257,6 +281,7 @@ export const EmployeeDialog = ({
         status: 'pending',
         notes: ''
       });
+      setRaiseDisplayAmount('');
       refetchRaises();
     } catch (error: any) {
       console.error('Error adding raise:', error);
@@ -499,13 +524,18 @@ export const EmployeeDialog = ({
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                           <Input
-                            type="number"
-                            value={raiseData.raise_amount}
-                            onChange={(e) => setRaiseData({ ...raiseData, raise_amount: e.target.value })}
-                            placeholder="0.00"
+                            type="text"
+                            value={raiseDisplayAmount}
+                            onChange={handleRaiseAmountChange}
+                            placeholder="0"
                             className="pl-7"
                           />
                         </div>
+                        {raiseData.raise_amount && (
+                          <div className="text-xs text-muted-foreground">
+                            New Salary: ${calculateNewSalary().toLocaleString()}/{salaryType.charAt(0)}
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Effective Date</Label>
@@ -547,7 +577,15 @@ export const EmployeeDialog = ({
                       <Button type="button" onClick={handleAddRaise} size="sm">
                         Save Raise
                       </Button>
-                      <Button type="button" variant="outline" onClick={() => setShowRaiseForm(false)} size="sm">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => {
+                          setShowRaiseForm(false);
+                          setRaiseDisplayAmount('');
+                        }} 
+                        size="sm"
+                      >
                         Cancel
                       </Button>
                     </div>
