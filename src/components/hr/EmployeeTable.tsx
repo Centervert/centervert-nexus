@@ -137,7 +137,82 @@ export const EmployeeTable = ({
 
   return (
     <Table>
-...
+      <TableHeader>
+        <TableRow>
+          <TableHead 
+            className="cursor-pointer select-none hover:bg-muted/50"
+            onClick={() => handleSort('name')}
+          >
+            <div className="flex items-center">
+              Name
+              <SortIcon field="name" />
+            </div>
+          </TableHead>
+          <TableHead 
+            className="cursor-pointer select-none hover:bg-muted/50"
+            onClick={() => handleSort('position')}
+          >
+            <div className="flex items-center">
+              Position
+              <SortIcon field="position" />
+            </div>
+          </TableHead>
+          <TableHead 
+            className="cursor-pointer select-none hover:bg-muted/50"
+            onClick={() => handleSort('salary')}
+          >
+            <div className="flex items-center">
+              Salary
+              <SortIcon field="salary" />
+            </div>
+          </TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead 
+            className="cursor-pointer select-none hover:bg-muted/50"
+            onClick={() => handleSort('country')}
+          >
+            <div className="flex items-center">
+              Country
+              <SortIcon field="country" />
+            </div>
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {getSortedEmployees().map((employee) => (
+          <TableRow key={employee.id}>
+            <TableCell className="font-medium">
+              <button
+                onClick={() => onEdit(employee)}
+                className="text-left hover:text-primary transition-colors cursor-pointer"
+              >
+                {employee.first_name} {employee.last_name}
+                {employee.nickname && (
+                  <span className="text-sm text-muted-foreground ml-2">
+                    ({employee.nickname})
+                  </span>
+                )}
+              </button>
+            </TableCell>
+            <TableCell>{employee.position}</TableCell>
+            <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
+            <TableCell>
+              <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
+                {employee.is_active ? 'Active' : 'Inactive'}
+              </span>
+            </TableCell>
+            <TableCell>
+              <span className={`inline-flex items-center gap-1 ${
+                employee.country === 'Philippines' ? 'text-blue-600 font-medium' : ''
+              }`}>
+                {employee.country === 'Philippines' && '🇵🇭 PH'}
+                {employee.country === 'United States' && '🇺🇸 US'}
+                {employee.country !== 'Philippines' && employee.country !== 'United States' && employee.country}
+              </span>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
     </Table>
   );
 };
