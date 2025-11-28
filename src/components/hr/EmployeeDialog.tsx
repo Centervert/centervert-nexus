@@ -54,6 +54,7 @@ export const EmployeeDialog = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [salaryType, setSalaryType] = useState<'weekly' | 'monthly' | 'annual'>('monthly');
   const [salaryAmount, setSalaryAmount] = useState('');
+  const [displayAmount, setDisplayAmount] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm<EmployeeFormData>();
 
@@ -71,12 +72,38 @@ export const EmployeeDialog = ({
       setValue('notes', employee.notes || '');
       setSalaryType(employee.salary_type as 'weekly' | 'monthly' | 'annual');
       setSalaryAmount(employee.salary_amount.toString());
+      const formatted = formatSalaryInput(employee.salary_amount.toString());
+      setDisplayAmount(formatted);
     } else {
       reset();
       setSalaryType('monthly');
       setSalaryAmount('');
+      setDisplayAmount('');
     }
   }, [employee, reset, setValue]);
+
+  // Format salary with commas as user types
+  const formatSalaryInput = (value: string) => {
+    // Remove non-numeric characters except decimal point
+    const cleaned = value.replace(/[^\d.]/g, '');
+    // Split into integer and decimal parts
+    const parts = cleaned.split('.');
+    // Add commas to integer part
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // Rejoin with decimal (limit to 2 decimal places)
+    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
+  };
+
+  const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    // Remove commas to get raw number
+    const rawValue = inputValue.replace(/,/g, '');
+    // Format for display
+    const formatted = formatSalaryInput(rawValue);
+    setDisplayAmount(formatted);
+    setSalaryAmount(rawValue);
+    setValue('salary_amount', rawValue);
+  };
 
   // Calculate other salary amounts based on input
   const calculateSalaries = (amount: string, type: 'weekly' | 'monthly' | 'annual') => {
@@ -226,6 +253,7 @@ export const EmployeeDialog = ({
                   <SelectItem value="full-time">Full-time</SelectItem>
                   <SelectItem value="part-time">Part-time</SelectItem>
                   <SelectItem value="contractor">Contractor</SelectItem>
+                  <SelectItem value="owner">Owner</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -252,13 +280,9 @@ export const EmployeeDialog = ({
                 </SelectContent>
               </Select>
               <Input
-                type="number"
-                step="0.01"
-                value={salaryAmount}
-                onChange={(e) => {
-                  setSalaryAmount(e.target.value);
-                  setValue('salary_amount', e.target.value);
-                }}
+                type="text"
+                value={displayAmount}
+                onChange={handleSalaryChange}
                 placeholder="0.00"
               />
             </div>
