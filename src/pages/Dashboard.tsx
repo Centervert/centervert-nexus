@@ -74,7 +74,8 @@ const Dashboard = () => {
 
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
-  const isClient = !isAdmin && !isAgent;
+  const isSalesAgent = userRole?.isSalesAgent || false;
+  const isClient = !isAdmin && !isAgent && !isSalesAgent;
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -104,7 +105,7 @@ const Dashboard = () => {
 
         {/* Stats Cards - Different for admin vs client */}
         <div className="grid gap-4 md:grid-cols-3">
-          {(isAdmin || isAgent) && (
+          {(isAdmin || isAgent || isSalesAgent) && (
             <>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -153,7 +154,7 @@ const Dashboard = () => {
         </div>
 
         {/* My Opportunities */}
-        {(isAdmin || isAgent) && (
+        {(isAdmin || isAgent || isSalesAgent) && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>My Opportunities</CardTitle>
