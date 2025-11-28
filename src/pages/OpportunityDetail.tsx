@@ -19,6 +19,8 @@ import {
 import { format } from "date-fns";
 import { ResourceManager } from "@/components/opportunities/ResourceManager";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
+import { OpportunityUpdates } from "@/components/opportunities/OpportunityUpdates";
+import { OpportunityTeamMembers } from "@/components/opportunities/OpportunityTeamMembers";
 import UnifiedLayout from "@/components/UnifiedLayout";
 
 export default function OpportunityDetail() {
@@ -270,6 +272,19 @@ export default function OpportunityDetail() {
             />
           </CardContent>
         </Card>
+
+        {/* Team Members */}
+        <div className="md:col-span-2">
+          <OpportunityTeamMembers 
+            opportunityId={id!} 
+            managerId={opportunity.owner_id}
+          />
+        </div>
+
+        {/* Activity Feed */}
+        <div className="md:col-span-2">
+          <OpportunityUpdates opportunityId={id!} />
+        </div>
       </div>
 
       <div className="pt-8">

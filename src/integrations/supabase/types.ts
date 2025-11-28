@@ -265,6 +265,100 @@ export type Database = {
           },
         ]
       }
+      opportunity_team_members: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          id: string
+          opportunity_id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          id?: string
+          opportunity_id: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          id?: string
+          opportunity_id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_team_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_team_members_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_updates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          metadata: Json | null
+          opportunity_id: string
+          update_type: Database["public"]["Enums"]["opportunity_update_type"]
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          metadata?: Json | null
+          opportunity_id: string
+          update_type?: Database["public"]["Enums"]["opportunity_update_type"]
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          metadata?: Json | null
+          opportunity_id?: string
+          update_type?: Database["public"]["Enums"]["opportunity_update_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_updates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_updates_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
@@ -500,6 +594,11 @@ export type Database = {
         | "lost"
         | "on_hold"
       opportunity_type: "private" | "government"
+      opportunity_update_type:
+        | "manual"
+        | "status_change"
+        | "assignment_change"
+        | "resource_added"
       submission_location_type: "in_person" | "online" | "other"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status:
@@ -695,6 +794,12 @@ export const Constants = {
         "on_hold",
       ],
       opportunity_type: ["private", "government"],
+      opportunity_update_type: [
+        "manual",
+        "status_change",
+        "assignment_change",
+        "resource_added",
+      ],
       submission_location_type: ["in_person", "online", "other"],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: [
