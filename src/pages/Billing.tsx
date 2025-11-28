@@ -1,5 +1,6 @@
 import UnifiedLayout from "@/components/UnifiedLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import BillingSummaryCards from "@/components/billing/BillingSummaryCards";
+import InvoiceTable from "@/components/billing/InvoiceTable";
 
 const Billing = () => {
   return (
@@ -10,16 +11,14 @@ const Billing = () => {
           <p className="text-muted-foreground">Manage invoices and payments</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing & Invoices</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              Billing interface coming soon.
-            </p>
-          </CardContent>
-        </Card>
+        <BillingSummaryCards />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">All Invoices</h2>
+          </div>
+          <InvoiceTable />
+        </div>
       </div>
     </UnifiedLayout>
   );

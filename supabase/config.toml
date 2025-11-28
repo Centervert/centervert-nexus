@@ -3,6 +3,9 @@ project_id = "tcuxcnszolrkozktpilz"
 [functions.ai-ticket-assistant]
 verify_jwt = true
 
+[functions.billcom-webhook]
+verify_jwt = false
+
 [functions.create-checkout-session]
 verify_jwt = true
 
@@ -13,4 +16,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.preview-invite-email]
+verify_jwt = true
+
+[functions.sync-billcom-invoices]
 verify_jwt = true
