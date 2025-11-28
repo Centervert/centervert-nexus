@@ -4,6 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Users, DollarSign, TrendingUp } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import UnifiedLayout from '@/components/UnifiedLayout';
 import { EmployeeDialog } from '@/components/hr/EmployeeDialog';
 import { EmployeeTable } from '@/components/hr/EmployeeTable';
@@ -14,14 +21,21 @@ type Employee = Database['public']['Tables']['employees']['Row'];
 const HumanResources = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | undefined>();
+  const [countryFilter, setCountryFilter] = useState('all');
 
   const { data: employees = [], isLoading, refetch } = useQuery({
-    queryKey: ['employees'],
+    queryKey: ['employees', countryFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('employees')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      if (countryFilter !== 'all') {
+        query = query.eq('country', countryFilter);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as Employee[];
@@ -46,6 +60,8 @@ const HumanResources = () => {
   const activeEmployees = employees.filter(e => e.is_active);
   const totalAnnualPayroll = activeEmployees.reduce((sum, emp) => sum + calculateAnnualSalary(emp), 0);
   const totalMonthlyPayroll = totalAnnualPayroll / 12;
+  const usEmployees = activeEmployees.filter(e => e.country === 'United States').length;
+  const internationalEmployees = activeEmployees.filter(e => e.country !== 'United States').length;
 
   const handleEdit = (employee: Employee) => {
     setSelectedEmployee(employee);
@@ -71,14 +87,27 @@ const HumanResources = () => {
             <h1 className="text-3xl font-bold text-foreground">Human Resources</h1>
             <p className="text-muted-foreground">Manage your team and payroll</p>
           </div>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Employee
-          </Button>
+          <div className="flex items-center gap-3">
+            <Select value={countryFilter} onValueChange={setCountryFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by country" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Countries</SelectItem>
+                <SelectItem value="United States">🇺🇸 United States</SelectItem>
+                <SelectItem value="Philippines">🇵🇭 Philippines</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Employee
+            </Button>
+          </div>
         </div>
 
         {/* Payroll Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
@@ -87,7 +116,7 @@ const HumanResources = () => {
             <CardContent>
               <div className="text-2xl font-bold">{activeEmployees.length}</div>
               <p className="text-xs text-muted-foreground">
-                Active team members
+                {usEmployees} US • {internationalEmployees} International
               </p>
             </CardContent>
           </Card>
@@ -118,6 +147,24 @@ const HumanResources = () => {
               </div>
               <p className="text-xs text-muted-foreground">
                 Total annual cost
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg. Salary</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${activeEmployees.length > 0 
+                  ? (totalAnnualPayroll / activeEmployees.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : '0.00'
+                }
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Per employee (annual)
               </p>
             </CardContent>
           </Card>
