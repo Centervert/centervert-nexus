@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Pencil } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ResourceManager } from "@/components/opportunities/ResourceManager";
+import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
 
 export default function OpportunityDetail() {
   const { id } = useParams();
@@ -28,6 +29,7 @@ export default function OpportunityDetail() {
   const [resources, setResources] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     loadOpportunity();
@@ -124,6 +126,10 @@ export default function OpportunityDetail() {
             {opportunity.priority && <Badge variant="secondary">{opportunity.priority}</Badge>}
           </div>
         </div>
+        <Button onClick={() => setShowEditDialog(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -275,6 +281,16 @@ export default function OpportunityDetail() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      <OpportunityDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        opportunity={opportunity}
+        onSuccess={() => {
+          loadOpportunity();
+          setShowEditDialog(false);
+        }}
+      />
     </div>
   );
 }
