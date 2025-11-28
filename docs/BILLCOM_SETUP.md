@@ -8,11 +8,45 @@ This integration syncs invoices from Bill.com to your application. The data flow
 
 ### Data Flow
 1. You create invoices in Bill.com (manually or via their API in the future)
-2. Invoices are synced to your app via:
-   - **Automated**: Hourly cron job
-   - **Manual**: "Sync Invoices" button in billing dashboard
+2. Invoices are synced to your app **ONLY IF**:
+   - The Bill.com customer exists as an organization in your system
+   - The organization has `billcom_customer_id` set (linked)
 3. Invoices appear in your billing dashboard
 4. Clients receive invoice emails from Bill.com and pay through Bill.com's portal
+
+### ⚠️ Important: Invoice Sync Rules
+
+**What Gets Synced:**
+✅ Invoices for Bill.com customers that are linked to organizations in your system
+✅ Organization must have `billcom_customer_id` field populated
+
+**What Does NOT Get Synced:**
+❌ Invoices for Bill.com customers NOT in your system
+❌ Invoices for organizations without `billcom_customer_id`
+
+**Example:**
+- You have Organization "Acme Corp" in your app
+- Acme Corp is linked to Bill.com Customer ID "abc-123"
+- You create an invoice in Bill.com for customer "abc-123"
+- ✅ Invoice syncs to your app and appears under Acme Corp
+
+**If customer doesn't exist in your system:**
+- You invoice Bill.com customer "xyz-789" 
+- No organization in your system has `billcom_customer_id = "xyz-789"`
+- ❌ Invoice does NOT sync to your app
+- Invoice still exists in Bill.com, just not visible in your app
+
+### Sync Behavior
+
+**Automated Hourly Sync:**
+- Runs every hour at :00
+- Loops through ALL organizations with `billcom_customer_id`
+- Syncs invoices for each linked organization
+- Skips organizations without Bill.com customer ID
+
+**Manual Sync:**
+- "Sync Invoices" button: Syncs ALL linked organizations
+- Organization-specific sync: Syncs only that organization's invoices
 
 ### Organization Linking
 
