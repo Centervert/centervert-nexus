@@ -157,7 +157,7 @@ const UnifiedSidebar = () => {
                       isActive={isActive}
                       onClick={() => navigate(item.href)}
                       className={`
-                        relative overflow-hidden
+                        relative overflow-hidden select-none
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                         transition-all duration-normal ease-smooth
                         hover:shadow-lg hover:scale-[1.02]
@@ -190,7 +190,7 @@ const UnifiedSidebar = () => {
                       <SidebarMenuButton
                         isActive={isCrmActive}
                         className={`
-                          relative overflow-hidden
+                          relative overflow-hidden select-none
                           text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                           transition-all duration-normal ease-smooth
                           hover:shadow-lg hover:scale-[1.02]
@@ -235,7 +235,7 @@ const UnifiedSidebar = () => {
                                   isActive={isActive}
                                   onClick={() => navigate(item.href)}
                                   className={`
-                                    relative overflow-hidden
+                                    relative overflow-hidden select-none
                                     text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
                                     transition-all duration-normal ease-smooth hover:translate-x-2 hover:shadow-md
                                     ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
@@ -269,7 +269,7 @@ const UnifiedSidebar = () => {
                       <SidebarMenuButton
                         isActive={isBackOfficeActive}
                         className={`
-                          relative overflow-hidden
+                          relative overflow-hidden select-none
                           text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                           transition-all duration-normal ease-smooth
                           hover:shadow-lg hover:scale-[1.02]
@@ -311,7 +311,7 @@ const UnifiedSidebar = () => {
                                   isActive={isActive}
                                   onClick={() => navigate(item.href)}
                                   className={`
-                                    relative overflow-hidden
+                                    relative overflow-hidden select-none
                                     text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
                                     transition-all duration-normal ease-smooth hover:translate-x-2 hover:shadow-md
                                     ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
@@ -348,7 +348,7 @@ const UnifiedSidebar = () => {
                       isActive={isActive}
                       onClick={() => navigate(item.href)}
                       className={`
-                        relative overflow-hidden
+                        relative overflow-hidden select-none
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                         transition-all duration-normal ease-smooth
                         hover:shadow-lg hover:scale-[1.02]
@@ -384,7 +384,7 @@ const UnifiedSidebar = () => {
                       isActive={isActive}
                       onClick={() => navigate(item.href)}
                       className={`
-                        relative overflow-hidden
+                        relative overflow-hidden select-none
                         text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                         transition-all duration-normal ease-smooth
                         hover:shadow-lg hover:scale-[1.02]
@@ -416,7 +416,7 @@ const UnifiedSidebar = () => {
                     isActive={location.pathname === '/settings'}
                     onClick={() => navigate('/settings')}
                     className={`
-                      relative overflow-hidden
+                      relative overflow-hidden select-none
                       text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                       transition-all duration-normal ease-smooth
                       hover:shadow-lg hover:scale-[1.02]
