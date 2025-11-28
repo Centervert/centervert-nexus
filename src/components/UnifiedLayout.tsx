@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { LogOut, UserSquare2 } from 'lucide-react';
 import UnifiedSidebar from './UnifiedSidebar';
 import { NotificationBell } from './notifications/NotificationBell';
+import { DynamicBreadcrumbs } from './DynamicBreadcrumbs';
 interface UnifiedLayoutProps {
   children: ReactNode;
 }
@@ -42,9 +43,13 @@ const UnifiedLayout = ({
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#9c5126' }}>
-          <header className="h-12 flex items-center justify-end px-4 gap-2">
-            <NotificationBell />
-            <DropdownMenu>
+          <header className="h-12 flex items-center justify-between px-4 gap-4">
+            <div className="flex-1 min-w-0">
+              <DynamicBreadcrumbs />
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
                   <Avatar className="h-8 w-8">
@@ -77,6 +82,7 @@ const UnifiedLayout = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </header>
           <main className="flex-1 bg-background rounded-tl-2xl page-transition">
             {children}
