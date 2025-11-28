@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -272,15 +274,18 @@ export const EmployeeDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-right duration-300">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="sm:max-w-3xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>
             {employee ? 'Edit Employee' : 'Add Employee'}
-          </DialogTitle>
-        </DialogHeader>
+          </SheetTitle>
+          <SheetDescription>
+            {employee ? 'Update employee information and manage salary raises.' : 'Add a new team member to your organization.'}
+          </SheetDescription>
+        </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -586,7 +591,7 @@ export const EmployeeDialog = ({
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4">
+          <SheetFooter className="gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
@@ -598,9 +603,9 @@ export const EmployeeDialog = ({
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : employee ? 'Update' : 'Add Employee'}
             </Button>
-          </div>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 };
