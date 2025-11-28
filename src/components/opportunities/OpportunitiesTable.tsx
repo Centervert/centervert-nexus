@@ -61,7 +61,7 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
           {opportunities.map((opportunity) => (
             <TableRow
               key={opportunity.id}
-              className="cursor-pointer hover:bg-muted/50"
+              className="cursor-pointer hover:bg-muted/50 select-none"
               onClick={() => handleRowClick(opportunity.id)}
             >
               <TableCell className="font-medium">{opportunity.name}</TableCell>
