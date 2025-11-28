@@ -34,6 +34,7 @@ interface EmployeeDialogProps {
 interface EmployeeFormData {
   first_name: string;
   last_name: string;
+  nickname: string;
   email: string;
   phone: string;
   position: string;
@@ -65,6 +66,7 @@ export const EmployeeDialog = ({
     if (employee) {
       setValue('first_name', employee.first_name);
       setValue('last_name', employee.last_name);
+      setValue('nickname', employee.nickname || '');
       setValue('email', employee.email);
       setValue('phone', employee.phone || '');
       setValue('position', employee.position);
@@ -150,6 +152,7 @@ export const EmployeeDialog = ({
       const employeeData = {
         first_name: data.first_name,
         last_name: data.last_name,
+        nickname: data.nickname || null,
         email: data.email,
         phone: data.phone || null,
         position: data.position,
@@ -217,6 +220,16 @@ export const EmployeeDialog = ({
                 placeholder="Doe"
               />
             </div>
+          </div>
+
+          {/* Nickname Field */}
+          <div className="space-y-2">
+            <Label htmlFor="nickname">Nickname</Label>
+            <Input
+              id="nickname"
+              {...register('nickname')}
+              placeholder="Preferred name or alias"
+            />
           </div>
 
           {/* Contact Fields */}
