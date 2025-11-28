@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trash2, Pencil } from "lucide-react";
 import {
@@ -20,6 +19,7 @@ import {
 import { format } from "date-fns";
 import { ResourceManager } from "@/components/opportunities/ResourceManager";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
+import UnifiedLayout from "@/components/UnifiedLayout";
 
 export default function OpportunityDetail() {
   const { id } = useParams();
@@ -103,15 +103,24 @@ export default function OpportunityDetail() {
   };
 
   if (isLoading) {
-    return <div className="flex-1 p-8">Loading...</div>;
+    return (
+      <UnifiedLayout>
+        <div className="flex-1 p-8">Loading...</div>
+      </UnifiedLayout>
+    );
   }
 
   if (!opportunity) {
-    return <div className="flex-1 p-8">Opportunity not found</div>;
+    return (
+      <UnifiedLayout>
+        <div className="flex-1 p-8">Opportunity not found</div>
+      </UnifiedLayout>
+    );
   }
 
   return (
-    <div className="flex-1 space-y-6 p-8">
+    <UnifiedLayout>
+      <div className="flex-1 space-y-6 p-8">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate("/opportunities")}>
           <ArrowLeft className="h-5 w-5" />
@@ -295,6 +304,7 @@ export default function OpportunityDetail() {
           setShowEditDialog(false);
         }}
       />
-    </div>
+      </div>
+    </UnifiedLayout>
   );
 }
