@@ -22,5 +22,7 @@ export const useUserRole = () => {
         roles: roles?.map(r => r.role) || []
       };
     },
+    staleTime: 1000 * 60 * 10, // 10 minutes - roles don't change often
+    gcTime: 1000 * 60 * 30, // 30 minutes cache
   });
 };
