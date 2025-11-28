@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   UserCircle,
   Target,
+  Briefcase,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -40,6 +41,7 @@ const UnifiedSidebar = () => {
   const navigate = useNavigate();
   const { data: userRole } = useUserRole();
   const [crmOpen, setCrmOpen] = useState(true);
+  const [backOfficeOpen, setBackOfficeOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const { state, toggleSidebar } = useSidebar();
 
@@ -48,6 +50,7 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
+  const isBackOfficeActive = location.pathname === '/hr';
 
   // Navigation items based on role
   const navigation = [
@@ -86,6 +89,14 @@ const UnifiedSidebar = () => {
       name: 'Opportunities',
       href: '/opportunities',
       icon: Target,
+    },
+  ];
+
+  const backOfficeItems = [
+    {
+      name: 'Human Resources',
+      href: '/hr',
+      icon: Users,
     },
   ];
 
@@ -212,6 +223,82 @@ const UnifiedSidebar = () => {
                               (item.href === '/organizations' && location.pathname.startsWith('/organizations/')) ||
                               (item.href === '/contacts' && location.pathname.startsWith('/contacts/')) ||
                               (item.href === '/opportunities' && location.pathname.startsWith('/opportunities/'));
+                            return (
+                              <SidebarMenuSubItem 
+                                key={item.name}
+                                className="animate-fade-in"
+                                style={{ 
+                                  animationDelay: `${index * 50}ms`,
+                                }}
+                              >
+                                <SidebarMenuSubButton
+                                  isActive={isActive}
+                                  onClick={() => navigate(item.href)}
+                                  className={`
+                                    relative overflow-hidden
+                                    text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
+                                    transition-all duration-normal ease-smooth hover:translate-x-2 hover:shadow-md
+                                    ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
+                                    group/sub
+                                  `}
+                                >
+                                  <item.icon className={`
+                                    h-4 w-4 transition-all duration-normal ease-smooth
+                                    hover:scale-125
+                                    ${isActive ? 'rotate-12' : ''}
+                                  `} />
+                                  <span className="transition-all duration-fast ease-smooth">
+                                    {item.name}
+                                  </span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
+
+              {/* Back Office */}
+              {isAdmin && (
+                <Collapsible open={backOfficeOpen} onOpenChange={setBackOfficeOpen} className="group/collapsible">
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isBackOfficeActive}
+                        className={`
+                          relative overflow-hidden
+                          text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                          transition-all duration-normal ease-smooth
+                          hover:shadow-lg hover:scale-[1.02]
+                          ${isBackOfficeActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
+                          ${isCollapsed ? 'justify-center' : ''}
+                          group
+                        `}
+                        tooltip={isCollapsed ? 'Back Office' : undefined}
+                      >
+                        <Briefcase className={`
+                          h-5 w-5 transition-all duration-normal ease-smooth
+                          hover:scale-110
+                          ${isBackOfficeActive ? 'rotate-12' : ''}
+                        `} />
+                        {!isCollapsed && (
+                          <>
+                            <span className="transition-all duration-fast ease-smooth">
+                              Back Office
+                            </span>
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-normal ease-smooth group-data-[state=open]/collapsible:rotate-90" />
+                          </>
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    {!isCollapsed && (
+                        <CollapsibleContent className="overflow-hidden transition-all duration-normal ease-smooth data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                        <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
+                          {backOfficeItems.map((item, index) => {
+                            const isActive = location.pathname === item.href;
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
