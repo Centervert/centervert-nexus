@@ -567,7 +567,9 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) 
+                                ? format(field.value, "PPP") 
+                                : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
                           </FormControl>
@@ -605,7 +607,9 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
                                   !field.value && "text-muted-foreground"
                                 )}
                               >
-                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) 
+                                  ? format(field.value, "PPP") 
+                                  : <span>Pick a date</span>}
                                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                               </Button>
                             </FormControl>
