@@ -45,16 +45,40 @@ const HumanResources = () => {
     },
   });
 
+  // Fetch all raises to include approved raises that have taken effect
+  const { data: raises = [] } = useQuery({
+    queryKey: ['all-raises'],
+    queryFn: async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('employee_raises')
+        .select('*')
+        .eq('status', 'approved')
+        .lte('effective_date', today);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   // Calculate payroll totals
   const calculateAnnualSalary = (employee: Employee) => {
-    const amount = Number(employee.salary_amount);
-    switch (employee.salary_type) {
+    // Check if there's an approved raise that has already taken effect
+    const applicableRaise = raises
+      .filter(r => r.employee_id === employee.id)
+      .sort((a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime())[0];
+    
+    // Use the new salary from the raise if it exists, otherwise use base salary
+    const salaryAmount = applicableRaise ? Number(applicableRaise.new_salary) : Number(employee.salary_amount);
+    const salaryType = applicableRaise ? 'annual' : employee.salary_type; // Raises are stored as annual amounts
+    
+    switch (salaryType) {
       case 'weekly':
-        return amount * 52;
+        return salaryAmount * 52;
       case 'monthly':
-        return amount * 12;
+        return salaryAmount * 12;
       case 'annual':
-        return amount;
+        return salaryAmount;
       default:
         return 0;
     }
