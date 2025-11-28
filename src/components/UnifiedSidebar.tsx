@@ -337,7 +337,7 @@ const UnifiedSidebar = () => {
 
               {/* Users */}
               {navigation[1] && (() => {
-                const item = navigation[2];
+                const item = navigation[1];
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
                 return (
