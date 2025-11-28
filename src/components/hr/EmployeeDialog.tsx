@@ -67,6 +67,7 @@ export const EmployeeDialog = ({
   const [displayAmount, setDisplayAmount] = useState('');
   const [employmentType, setEmploymentType] = useState('');
   const [showRaiseForm, setShowRaiseForm] = useState(false);
+  const [editingRaiseId, setEditingRaiseId] = useState<string | null>(null);
   const [raiseData, setRaiseData] = useState({
     new_salary: '',
     salary_type: 'annually' as 'weekly' | 'monthly' | 'annually',
@@ -247,23 +248,43 @@ export const EmployeeDialog = ({
       const newSalary = Number(raiseData.new_salary);
       const raiseAmount = newSalary - currentSalary;
 
-      const { error } = await supabase
-        .from('employee_raises')
-        .insert([{
-          employee_id: employee.id,
-          current_salary: currentSalary,
-          raise_amount: raiseAmount,
-          new_salary: newSalary,
-          effective_date: raiseData.effective_date,
-          status: raiseData.status,
-          notes: raiseData.notes || null,
-          created_by: user!.id,
-        }]);
+      if (editingRaiseId) {
+        // Update existing raise
+        const { error } = await supabase
+          .from('employee_raises')
+          .update({
+            current_salary: currentSalary,
+            raise_amount: raiseAmount,
+            new_salary: newSalary,
+            effective_date: raiseData.effective_date,
+            status: raiseData.status,
+            notes: raiseData.notes || null,
+          })
+          .eq('id', editingRaiseId);
 
-      if (error) throw error;
+        if (error) throw error;
+        toast.success('Raise updated successfully');
+      } else {
+        // Insert new raise
+        const { error } = await supabase
+          .from('employee_raises')
+          .insert([{
+            employee_id: employee.id,
+            current_salary: currentSalary,
+            raise_amount: raiseAmount,
+            new_salary: newSalary,
+            effective_date: raiseData.effective_date,
+            status: raiseData.status,
+            notes: raiseData.notes || null,
+            created_by: user!.id,
+          }]);
 
-      toast.success('Raise added successfully');
+        if (error) throw error;
+        toast.success('Raise added successfully');
+      }
+
       setShowRaiseForm(false);
+      setEditingRaiseId(null);
       setRaiseData({
         new_salary: '',
         salary_type: 'annually',
@@ -274,9 +295,22 @@ export const EmployeeDialog = ({
       setNewSalaryDisplay('');
       refetchRaises();
     } catch (error: any) {
-      console.error('Error adding raise:', error);
-      toast.error(error.message || 'Failed to add raise');
+      console.error('Error saving raise:', error);
+      toast.error(error.message || 'Failed to save raise');
     }
+  };
+
+  const handleEditRaise = (raise: EmployeeRaise) => {
+    setEditingRaiseId(raise.id);
+    setRaiseData({
+      new_salary: raise.new_salary.toString(),
+      salary_type: 'annually',
+      effective_date: raise.effective_date,
+      status: raise.status as 'pending' | 'approved' | 'canceled',
+      notes: raise.notes || ''
+    });
+    setNewSalaryDisplay(formatSalaryInput(raise.new_salary.toString()));
+    setShowRaiseForm(true);
   };
 
   const getStatusColor = (status: string) => {
@@ -507,7 +541,7 @@ export const EmployeeDialog = ({
                 {/* Add Raise Form */}
                 {showRaiseForm && (
                   <div className="p-4 border rounded-lg space-y-3 bg-background">
-                    <h4 className="font-medium">New Raise</h4>
+                    <h4 className="font-medium">{editingRaiseId ? 'Edit Raise' : 'New Raise'}</h4>
                     <div className="space-y-2">
                       <Label>New Salary Amount</Label>
                       <div className="flex gap-2">
@@ -588,7 +622,15 @@ export const EmployeeDialog = ({
                         variant="outline" 
                         onClick={() => {
                           setShowRaiseForm(false);
+                          setEditingRaiseId(null);
                           setNewSalaryDisplay('');
+                          setRaiseData({
+                            new_salary: '',
+                            salary_type: 'annually',
+                            effective_date: '',
+                            status: 'pending',
+                            notes: ''
+                          });
                         }} 
                         size="sm"
                       >
@@ -598,35 +640,46 @@ export const EmployeeDialog = ({
                   </div>
                 )}
 
-                {/* Raises History */}
+                {/* Raises List */}
                 {raises.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Raise History</h4>
+                    <h4 className="font-medium text-sm">
+                      {raises.some(r => r.status === 'pending' || new Date(r.effective_date) > new Date()) 
+                        ? 'Upcoming Raises' 
+                        : 'Raise History'}
+                    </h4>
                     <div className="space-y-2">
-                      {raises.map((raise) => (
-                        <div key={raise.id} className="p-3 border rounded-lg text-sm">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">
-                                {new Date(raise.effective_date).toLocaleDateString()}
+                      {raises.map((raise) => {
+                        const raiseDate = new Date(raise.effective_date + 'T00:00:00');
+                        const formattedDate = `${raiseDate.getMonth() + 1}/${raiseDate.getDate()}/${raiseDate.getFullYear()}`;
+                        
+                        return (
+                          <div 
+                            key={raise.id} 
+                            className="p-3 border rounded-lg text-sm hover:bg-muted/50 cursor-pointer transition-colors"
+                            onClick={() => handleEditRaise(raise)}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">{formattedDate}</span>
+                              </div>
+                              <span className={`font-medium capitalize ${getStatusColor(raise.status)}`}>
+                                {raise.status}
                               </span>
                             </div>
-                            <span className={`font-medium capitalize ${getStatusColor(raise.status)}`}>
-                              {raise.status}
-                            </span>
+                            <div className="text-muted-foreground">
+                              ${raise.current_salary.toLocaleString()} → ${raise.new_salary.toLocaleString()}
+                              <span className="text-green-600 ml-2">
+                                (+${raise.raise_amount.toLocaleString()})
+                              </span>
+                            </div>
+                            {raise.notes && (
+                              <p className="text-xs text-muted-foreground mt-1">{raise.notes}</p>
+                            )}
                           </div>
-                          <div className="text-muted-foreground">
-                            ${raise.current_salary.toLocaleString()} → ${raise.new_salary.toLocaleString()}
-                            <span className="text-green-600 ml-2">
-                              (+${raise.raise_amount.toLocaleString()})
-                            </span>
-                          </div>
-                          {raise.notes && (
-                            <p className="text-xs text-muted-foreground mt-1">{raise.notes}</p>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
