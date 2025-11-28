@@ -51,7 +51,7 @@ export const PayrollSummary = () => {
         .select('*')
         .gte('effective_date', format(today, 'yyyy-MM-dd'))
         .lte('effective_date', format(ninetyDaysOut, 'yyyy-MM-dd'))
-        .in('status', ['pending', 'approved']);
+        .eq('status', 'approved');
       
       if (error) throw error;
       console.log('Payroll Summary - Upcoming Raises:', data?.length || 0, data);
@@ -80,9 +80,9 @@ export const PayrollSummary = () => {
     const monthEnd = endOfMonth(monthDate);
     
     return employees.reduce((total, employee) => {
-      // Find if there's an approved or pending raise effective in or before this month
+      // Find if there's an approved raise effective in or before this month
       const applicableRaise = raises
-        .filter(r => r.employee_id === employee.id && (r.status === 'approved' || r.status === 'pending'))
+        .filter(r => r.employee_id === employee.id && r.status === 'approved')
         .filter(r => {
           const raiseDate = parseISO(r.effective_date);
           return raiseDate <= monthEnd;
