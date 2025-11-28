@@ -71,9 +71,10 @@ interface OpportunityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  opportunity?: any; // For edit mode
 }
 
-export function OpportunityDialog({ open, onOpenChange, onSuccess }: OpportunityDialogProps) {
+export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }: OpportunityDialogProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +85,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const [showOrgDialog, setShowOrgDialog] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [orgOpen, setOrgOpen] = useState(false);
+  const isEditMode = !!opportunity;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -107,8 +109,27 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
     if (open) {
       console.log("Dialog opened, loading data...");
       loadData();
+      
+      // If editing, populate form with existing data
+      if (opportunity) {
+        form.reset({
+          type: opportunity.type,
+          name: opportunity.name,
+          description: opportunity.description || "",
+          priority: opportunity.priority || undefined,
+          owner_id: opportunity.owner_id || "",
+          requestor_contact_id: opportunity.requestor_contact_id || "",
+          requestor_organization_id: opportunity.requestor_organization_id || "",
+          submission_location_type: opportunity.submission_location_type || undefined,
+          due_date: opportunity.due_date ? new Date(opportunity.due_date) : undefined,
+          award_date: opportunity.award_date ? new Date(opportunity.award_date) : undefined,
+          submission_address: opportunity.submission_address || "",
+          submission_link: opportunity.submission_link || "",
+          submission_notes: opportunity.submission_notes || "",
+        });
+      }
     }
-  }, [open]);
+  }, [open, opportunity]);
 
   // Load all data when dialog opens
   const loadData = async () => {
@@ -202,7 +223,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         return;
       }
 
-      const { error } = await supabase.from("opportunities").insert({
+      const opportunityData = {
         name: data.name,
         description: data.description,
         type: data.type,
@@ -216,15 +237,35 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         submission_address: data.submission_address || null,
         submission_link: data.submission_link || null,
         submission_notes: data.submission_notes || null,
-        created_by: session.session.user.id,
-      });
+      };
 
-      if (error) throw error;
+      if (isEditMode) {
+        // Update existing opportunity
+        const { error } = await supabase
+          .from("opportunities")
+          .update(opportunityData)
+          .eq("id", opportunity.id);
 
-      toast({
-        title: "Success",
-        description: "Opportunity created successfully. You can now add resources to it.",
-      });
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Opportunity updated successfully",
+        });
+      } else {
+        // Create new opportunity
+        const { error } = await supabase.from("opportunities").insert({
+          ...opportunityData,
+          created_by: session.session.user.id,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: "Opportunity created successfully. You can now add resources to it.",
+        });
+      }
 
       handleOpenChange(false);
       onSuccess?.();
@@ -244,9 +285,9 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create Opportunity</SheetTitle>
+          <SheetTitle>{isEditMode ? "Edit Opportunity" : "Create Opportunity"}</SheetTitle>
           <SheetDescription>
-            Add a new opportunity to track proposals and contracts
+            {isEditMode ? "Update opportunity details" : "Add a new opportunity to track proposals and contracts"}
           </SheetDescription>
         </SheetHeader>
 
@@ -668,7 +709,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting || !selectedType} className="flex-1">
-                {isSubmitting ? "Creating..." : "Create Opportunity"}
+                {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Opportunity" : "Create Opportunity")}
               </Button>
             </div>
           </form>
