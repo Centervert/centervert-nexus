@@ -21,8 +21,14 @@ import { ResourceManager } from "@/components/opportunities/ResourceManager";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
 import { OpportunityUpdates } from "@/components/opportunities/OpportunityUpdates";
 import { OpportunityTeamMembers } from "@/components/opportunities/OpportunityTeamMembers";
-import { OpportunityStatusTracking } from "@/components/opportunities/OpportunityStatusTracking";
 import UnifiedLayout from "@/components/UnifiedLayout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function OpportunityDetail() {
   const { id } = useParams();
@@ -33,6 +39,7 @@ export default function OpportunityDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     loadOpportunity();
@@ -79,6 +86,32 @@ export default function OpportunityDetail() {
       setResources(data || []);
     } catch (error: any) {
       console.error("Error loading resources:", error);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    setIsUpdatingStatus(true);
+    try {
+      const { error } = await supabase
+        .from("opportunities")
+        .update({ status: newStatus as any })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Status updated successfully",
+      });
+      loadOpportunity();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -154,6 +187,22 @@ export default function OpportunityDetail() {
             <CardTitle>Key Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
+              <Select value={opportunity.status} onValueChange={handleStatusChange} disabled={isUpdatingStatus}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="lead">Lead</SelectItem>
+                  <SelectItem value="working_on_rfp">Working on RFP</SelectItem>
+                  <SelectItem value="submitted">Submitted</SelectItem>
+                  <SelectItem value="awarded">Awarded</SelectItem>
+                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             {opportunity.description && (
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Description</p>
@@ -273,14 +322,6 @@ export default function OpportunityDetail() {
             />
           </CardContent>
         </Card>
-
-        {/* Status Tracking */}
-        <div className="md:col-span-2">
-          <OpportunityStatusTracking 
-            opportunityId={id!}
-            currentStatus={opportunity.status}
-          />
-        </div>
 
         {/* Team Members */}
         <div className="md:col-span-2">
