@@ -227,7 +227,7 @@ async function syncInvoice(supabase: any, organizationId: string, billcomInvoice
     invoice_number: billcomInvoice.invoiceNumber,
     status,
     amount: parseFloat(billcomInvoice.totalAmount || 0),
-    amount_due: parseFloat(billcomInvoice.dueAmount || billcomInvoice.totalAmount || 0),
+    amount_due: parseFloat(billcomInvoice.dueAmount || 0),
     currency: 'USD',
     issue_date: billcomInvoice.invoiceDate,
     due_date: billcomInvoice.dueDate,
