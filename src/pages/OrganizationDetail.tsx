@@ -15,6 +15,8 @@ import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { toast } from "sonner";
 import BillComActivityFeed from "@/components/billing/BillComActivityFeed";
 import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
+import OrganizationBillingSummary from "@/components/billing/OrganizationBillingSummary";
+import InvoiceTable from "@/components/billing/InvoiceTable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -151,6 +153,19 @@ function OrganizationDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-2xl font-semibold">Organizations</h1>
+        </div>
+
+        {/* Billing Section */}
+        <div className="space-y-6 mb-6">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Billing</h2>
+            <OrganizationBillingSummary organizationId={id!} />
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Invoices</h3>
+            <InvoiceTable organizationId={id} />
+          </div>
         </div>
 
         {/* Two-column layout */}
