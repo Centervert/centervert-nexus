@@ -15,6 +15,7 @@ import {
 import UnifiedLayout from '@/components/UnifiedLayout';
 import { EmployeeDialog } from '@/components/hr/EmployeeDialog';
 import { EmployeeTable } from '@/components/hr/EmployeeTable';
+import { PayrollSummary } from '@/components/hr/PayrollSummary';
 import { Database } from '@/integrations/supabase/types';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
@@ -171,6 +172,9 @@ const HumanResources = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* 90-Day Payroll Forecast */}
+        <PayrollSummary />
 
         {/* Employee Table */}
         <Card>
