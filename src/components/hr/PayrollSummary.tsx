@@ -33,6 +33,7 @@ export const PayrollSummary = () => {
         .eq('is_active', true);
       
       if (error) throw error;
+      console.log('Payroll Summary - Active Employees:', data?.length || 0);
       return data as Employee[];
     },
   });
@@ -41,16 +42,19 @@ export const PayrollSummary = () => {
     queryKey: ['raises-payroll'],
     queryFn: async () => {
       const today = new Date();
-      const threeMonthsOut = addMonths(today, 3);
+      const ninetyDaysOut = addMonths(today, 4); // Extended to 4 months to capture full quarter
+      
+      console.log('Querying raises from', format(today, 'yyyy-MM-dd'), 'to', format(ninetyDaysOut, 'yyyy-MM-dd'));
       
       const { data, error } = await supabase
         .from('employee_raises')
         .select('*')
         .gte('effective_date', format(today, 'yyyy-MM-dd'))
-        .lte('effective_date', format(threeMonthsOut, 'yyyy-MM-dd'))
+        .lte('effective_date', format(ninetyDaysOut, 'yyyy-MM-dd'))
         .in('status', ['pending', 'approved']);
       
       if (error) throw error;
+      console.log('Payroll Summary - Upcoming Raises:', data?.length || 0, data);
       return data as Raise[];
     },
   });
@@ -130,6 +134,7 @@ export const PayrollSummary = () => {
     .filter(data => data.raises.length > 0); // Only show months with raises
 
   // If no upcoming changes, don't render anything
+  console.log('Payroll Summary - Upcoming Changes:', upcomingChanges.length, upcomingChanges);
   if (upcomingChanges.length === 0) {
     return null;
   }
