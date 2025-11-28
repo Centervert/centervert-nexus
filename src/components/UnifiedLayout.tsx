@@ -7,10 +7,11 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LogOut, UserSquare2 } from 'lucide-react';
+import { LogOut, UserSquare2, Shield, Users } from 'lucide-react';
 import UnifiedSidebar from './UnifiedSidebar';
 import { NotificationBell } from './notifications/NotificationBell';
 import { DynamicBreadcrumbs } from './DynamicBreadcrumbs';
+import { useUserRole } from '@/hooks/useUserRole';
 interface UnifiedLayoutProps {
   children: ReactNode;
 }
@@ -22,6 +23,7 @@ const UnifiedLayout = ({
     user,
     signOut
   } = useAuth();
+  const { data: userRole } = useUserRole();
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -38,6 +40,12 @@ const UnifiedLayout = ({
   });
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const getUserRoleLabel = () => {
+    if (userRole?.isAdmin) return 'Admin';
+    if (userRole?.isAgent) return 'Team Member';
+    return 'User';
   };
   return <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen flex w-full">
@@ -68,9 +76,29 @@ const UnifiedLayout = ({
                   </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-72">
+                {/* User Info Header */}
+                <div className="px-2 py-3 space-y-1">
+                  <p className="text-sm font-semibold text-foreground">
+                    {profile?.full_name || 'User'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {user?.email}
+                  </p>
+                  <div className="flex items-center gap-1.5 pt-1">
+                    {userRole?.isAdmin ? (
+                      <Shield className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {getUserRoleLabel()}
+                    </span>
+                  </div>
+                </div>
+                
                 <DropdownMenuSeparator />
+                
                 <DropdownMenuItem onClick={() => navigate('/profile')}>
                   <UserSquare2 className="mr-2 h-4 w-4" />
                   Profile
