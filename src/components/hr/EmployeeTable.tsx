@@ -7,20 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
@@ -43,9 +30,6 @@ export const EmployeeTable = ({
   onRefetch,
   searchQuery,
 }: EmployeeTableProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
@@ -130,34 +114,6 @@ export const EmployeeTable = ({
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
-  const handleDeleteClick = (employee: Employee) => {
-    setEmployeeToDelete(employee);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDelete = async () => {
-    if (!employeeToDelete) return;
-    setIsDeleting(true);
-
-    try {
-      const { error } = await supabase
-        .from('employees')
-        .delete()
-        .eq('id', employeeToDelete.id);
-
-      if (error) throw error;
-
-      toast.success('Employee deleted successfully');
-      onRefetch();
-      setDeleteDialogOpen(false);
-    } catch (error: any) {
-      console.error('Error deleting employee:', error);
-      toast.error(error.message || 'Failed to delete employee');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const formatSalary = (amount: number, type: string) => {
     const formatted = amount.toLocaleString('en-US', {
       minimumFractionDigits: 0,
@@ -180,126 +136,8 @@ export const EmployeeTable = ({
   }
 
   return (
-    <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead 
-              className="cursor-pointer select-none hover:bg-muted/50"
-              onClick={() => handleSort('name')}
-            >
-              <div className="flex items-center">
-                Name
-                <SortIcon field="name" />
-              </div>
-            </TableHead>
-            <TableHead 
-              className="cursor-pointer select-none hover:bg-muted/50"
-              onClick={() => handleSort('position')}
-            >
-              <div className="flex items-center">
-                Position
-                <SortIcon field="position" />
-              </div>
-            </TableHead>
-            <TableHead 
-              className="cursor-pointer select-none hover:bg-muted/50"
-              onClick={() => handleSort('country')}
-            >
-              <div className="flex items-center">
-                Country
-                <SortIcon field="country" />
-              </div>
-            </TableHead>
-            <TableHead 
-              className="cursor-pointer select-none hover:bg-muted/50"
-              onClick={() => handleSort('salary')}
-            >
-              <div className="flex items-center">
-                Salary
-                <SortIcon field="salary" />
-              </div>
-            </TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {getSortedEmployees().map((employee) => (
-            <TableRow key={employee.id}>
-              <TableCell className="font-medium">
-                <button
-                  onClick={() => onEdit(employee)}
-                  className="text-left hover:text-primary transition-colors cursor-pointer"
-                >
-                  {employee.first_name} {employee.last_name}
-                  {employee.nickname && (
-                    <span className="text-sm text-muted-foreground ml-2">
-                      ({employee.nickname})
-                    </span>
-                  )}
-                </button>
-              </TableCell>
-              <TableCell>{employee.position}</TableCell>
-              <TableCell>
-                <span className={`inline-flex items-center gap-1 ${
-                  employee.country === 'Philippines' ? 'text-blue-600 font-medium' : ''
-                }`}>
-                  {employee.country === 'Philippines' && '🇵🇭 PH'}
-                  {employee.country === 'United States' && '🇺🇸 US'}
-                  {employee.country !== 'Philippines' && employee.country !== 'United States' && employee.country}
-                </span>
-              </TableCell>
-              <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
-              <TableCell>
-                <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
-                  {employee.is_active ? 'Active' : 'Inactive'}
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(employee)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteClick(employee)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete {employeeToDelete?.first_name} {employeeToDelete?.last_name}?
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <Table>
+...
+    </Table>
   );
 };
