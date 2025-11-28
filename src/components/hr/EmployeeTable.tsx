@@ -228,12 +228,17 @@ export const EmployeeTable = ({
           {getSortedEmployees().map((employee) => (
             <TableRow key={employee.id}>
               <TableCell className="font-medium">
-                {employee.first_name} {employee.last_name}
-                {employee.nickname && (
-                  <span className="text-sm text-muted-foreground ml-2">
-                    ({employee.nickname})
-                  </span>
-                )}
+                <button
+                  onClick={() => onEdit(employee)}
+                  className="text-left hover:text-primary transition-colors cursor-pointer"
+                >
+                  {employee.first_name} {employee.last_name}
+                  {employee.nickname && (
+                    <span className="text-sm text-muted-foreground ml-2">
+                      ({employee.nickname})
+                    </span>
+                  )}
+                </button>
               </TableCell>
               <TableCell>{employee.position}</TableCell>
               <TableCell>
