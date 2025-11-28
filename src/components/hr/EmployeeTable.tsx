@@ -104,6 +104,7 @@ export const EmployeeTable = ({
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Position</TableHead>
+            <TableHead>Country</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Salary</TableHead>
             <TableHead>Start Date</TableHead>
@@ -118,6 +119,15 @@ export const EmployeeTable = ({
                 {employee.first_name} {employee.last_name}
               </TableCell>
               <TableCell>{employee.position}</TableCell>
+              <TableCell>
+                <span className={`inline-flex items-center gap-1 ${
+                  employee.country === 'Philippines' ? 'text-blue-600 font-medium' : ''
+                }`}>
+                  {employee.country === 'Philippines' && '🇵🇭'}
+                  {employee.country === 'United States' && '🇺🇸'}
+                  {employee.country}
+                </span>
+              </TableCell>
               <TableCell>{formatEmploymentType(employee.employment_type)}</TableCell>
               <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
               <TableCell>{new Date(employee.start_date).toLocaleDateString()}</TableCell>

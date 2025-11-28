@@ -41,6 +41,8 @@ interface EmployeeFormData {
   salary_type: string;
   salary_amount: string;
   start_date: string;
+  country: string;
+  address: string;
   notes: string;
 }
 
@@ -70,6 +72,8 @@ export const EmployeeDialog = ({
       setValue('salary_type', employee.salary_type);
       setValue('salary_amount', employee.salary_amount.toString());
       setValue('start_date', employee.start_date);
+      setValue('country', employee.country);
+      setValue('address', employee.address || '');
       setValue('notes', employee.notes || '');
       setEmploymentType(employee.employment_type);
       setSalaryType(employee.salary_type as 'weekly' | 'monthly' | 'annual');
@@ -82,6 +86,7 @@ export const EmployeeDialog = ({
       setSalaryType('monthly');
       setSalaryAmount('');
       setDisplayAmount('');
+      setValue('country', 'United States'); // Default to US
     }
   }, [employee, reset, setValue]);
 
@@ -148,10 +153,12 @@ export const EmployeeDialog = ({
         email: data.email,
         phone: data.phone || null,
         position: data.position,
-        employment_type: data.employment_type,
+        employment_type: employmentType,
         salary_type: salaryType,
         salary_amount: parseFloat(salaryAmount),
         start_date: data.start_date,
+        country: data.country,
+        address: data.address || null,
         notes: data.notes || null,
         created_by: user.id,
       };
@@ -312,6 +319,39 @@ export const EmployeeDialog = ({
               id="start_date"
               type="date"
               {...register('start_date', { required: true })}
+            />
+          </div>
+
+          {/* Country and Address */}
+          <div className="space-y-2">
+            <Label htmlFor="country">Country *</Label>
+            <Select
+              onValueChange={(value) => setValue('country', value)}
+              defaultValue={employee?.country || 'United States'}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="United States">United States</SelectItem>
+                <SelectItem value="Philippines">Philippines</SelectItem>
+                <SelectItem value="Canada">Canada</SelectItem>
+                <SelectItem value="Mexico">Mexico</SelectItem>
+                <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+                <SelectItem value="Australia">Australia</SelectItem>
+                <SelectItem value="India">India</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Full Address (Optional)</Label>
+            <Textarea
+              id="address"
+              {...register('address')}
+              placeholder="Street address, city, state/province, postal code..."
+              rows={2}
             />
           </div>
 
