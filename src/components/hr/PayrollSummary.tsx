@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { TrendingUp, TrendingDown, Calendar, AlertTriangle } from 'lucide-react';
-import { addMonths, format, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { TrendingUp, TrendingDown, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { addMonths, format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 
 interface Employee {
   id: string;
@@ -103,6 +104,8 @@ export const PayrollSummary = () => {
     });
   };
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const today = new Date();
   const months = [
     addMonths(today, 1),
@@ -131,60 +134,89 @@ export const PayrollSummary = () => {
     return null;
   }
 
-  return (
-    <div className="space-y-4">
-      {upcomingChanges.map(({ month, payroll, raises: monthRaises, change, previousPayroll }) => {
-        const percentChange = previousPayroll > 0 ? (change / previousPayroll) * 100 : 0;
-        const isIncrease = change > 0;
+  // Get the earliest change
+  const firstChange = upcomingChanges[0];
+  const totalAffectedEmployees = upcomingChanges.reduce((sum, change) => sum + change.raises.length, 0);
+  const isIncrease = firstChange.change > 0;
 
-        return (
-          <Alert key={month.toISOString()} className={`border-2 ${isIncrease ? 'border-orange-500 bg-orange-50' : 'border-green-500 bg-green-50'}`}>
-            <AlertTriangle className={`h-5 w-5 ${isIncrease ? 'text-orange-600' : 'text-green-600'}`} />
-            <AlertTitle className="flex items-center gap-2 text-base">
-              <span className="font-semibold">
-                {isIncrease ? 'Payroll Increase Detected' : 'Payroll Decrease Detected'}
-              </span>
-              <Badge variant="outline" className={`${isIncrease ? 'bg-orange-100 text-orange-800 border-orange-300' : 'bg-green-100 text-green-800 border-green-300'}`}>
-                {format(month, 'MMMM yyyy')}
-              </Badge>
-            </AlertTitle>
-            <AlertDescription className="mt-2 space-y-2">
-              <div className="flex items-center gap-3">
-                {isIncrease ? (
-                  <TrendingUp className="h-5 w-5 text-orange-600" />
-                ) : (
-                  <TrendingDown className="h-5 w-5 text-green-600" />
-                )}
-                <span className={`text-lg font-semibold ${isIncrease ? 'text-orange-900' : 'text-green-900'}`}>
-                  {isIncrease ? '+' : '-'}${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
-                  <span className="text-base font-normal ml-1">
-                    ({percentChange > 0 ? '+' : ''}{percentChange.toFixed(1)}%)
-                  </span>
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  New monthly payroll: ${payroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              
-              <div className="text-sm space-y-1 mt-3">
-                <p className="font-medium text-foreground">Affected employees:</p>
-                {monthRaises.map((raise) => {
-                  const employee = employees.find(e => e.id === raise.employee_id);
-                  return (
-                    <div key={raise.id} className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      <span>
-                        {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name}
-                        {raise.status === 'pending' && <span className="text-yellow-600 font-medium"> (pending approval)</span>}
+  return (
+    <Alert className={`border-l-4 ${isIncrease ? 'border-l-orange-500 bg-orange-50/50' : 'border-l-green-500 bg-green-50/50'}`}>
+      <AlertTriangle className={`h-4 w-4 ${isIncrease ? 'text-orange-600' : 'text-green-600'}`} />
+      <AlertDescription>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">
+              <span className="font-medium">Please note:</span> There is a predicted{' '}
+              <span className={`font-semibold ${isIncrease ? 'text-orange-700' : 'text-green-700'}`}>
+                {isIncrease ? 'increase' : 'decrease'}
+              </span>{' '}
+              in your payroll expense starting{' '}
+              <span className="font-semibold">{format(firstChange.month, 'MMMM yyyy')}</span>
+              {' '}({totalAffectedEmployees} {totalAffectedEmployees === 1 ? 'employee' : 'employees'} affected).
+            </span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="ml-4 h-auto py-1"
+          >
+            <span className="text-xs mr-1">View details</span>
+            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+          </Button>
+        </div>
+
+        {isExpanded && (
+          <div className="mt-4 pt-4 border-t space-y-3">
+            {upcomingChanges.map(({ month, payroll, raises: monthRaises, change, previousPayroll }) => {
+              const percentChange = previousPayroll > 0 ? (change / previousPayroll) * 100 : 0;
+              const monthIsIncrease = change > 0;
+
+              return (
+                <div key={month.toISOString()} className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="font-normal">
+                      {format(month, 'MMM yyyy')}
+                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {monthIsIncrease ? (
+                        <TrendingUp className="h-4 w-4 text-orange-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-green-600" />
+                      )}
+                      <span className={`text-sm font-semibold ${monthIsIncrease ? 'text-orange-700' : 'text-green-700'}`}>
+                        {monthIsIncrease ? '+' : '-'}${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        <span className="text-xs font-normal ml-1">
+                          ({percentChange > 0 ? '+' : ''}{percentChange.toFixed(1)}%)
+                        </span>
                       </span>
                     </div>
-                  );
-                })}
-              </div>
-            </AlertDescription>
-          </Alert>
-        );
-      })}
-    </div>
+                  </div>
+                  
+                  <div className="ml-4 space-y-1">
+                    {monthRaises.map((raise) => {
+                      const employee = employees.find(e => e.id === raise.employee_id);
+                      return (
+                        <div key={raise.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name}
+                            {raise.status === 'pending' && (
+                              <Badge variant="outline" className="ml-2 text-xs bg-yellow-50 text-yellow-700 border-yellow-300">
+                                Pending
+                              </Badge>
+                            )}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </AlertDescription>
+    </Alert>
   );
 };
