@@ -203,6 +203,7 @@ async function fetchBillComInvoices(session: BillComSession, customerId: string)
   }
 
   const data = await response.json();
+  console.log('Bill.com API response for customer', customerId, ':', JSON.stringify(data, null, 2));
   // v3 API returns paginated results with a 'results' array
   return data.results || [];
 }
