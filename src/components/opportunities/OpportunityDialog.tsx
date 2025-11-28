@@ -75,6 +75,10 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
       name: "",
       description: "",
       priority: undefined,
+      owner_id: "",
+      requestor_contact_id: "",
+      requestor_organization_id: "",
+      submission_location_type: undefined,
     },
   });
 
@@ -288,18 +292,22 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Requestor (Contact)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select contact" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {contacts.map((contact) => (
-                              <SelectItem key={contact.id} value={contact.id}>
-                                {contact.first_name} {contact.last_name}
-                              </SelectItem>
-                            ))}
+                            {contacts.length === 0 ? (
+                              <div className="px-2 py-1 text-sm text-muted-foreground">No contacts available</div>
+                            ) : (
+                              contacts.map((contact) => (
+                                <SelectItem key={contact.id} value={contact.id}>
+                                  {contact.first_name} {contact.last_name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -313,18 +321,22 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Requestor (Organization)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select organization" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {organizations.map((org) => (
-                              <SelectItem key={org.id} value={org.id}>
-                                {org.name}
-                              </SelectItem>
-                            ))}
+                            {organizations.length === 0 ? (
+                              <div className="px-2 py-1 text-sm text-muted-foreground">No organizations available</div>
+                            ) : (
+                              organizations.map((org) => (
+                                <SelectItem key={org.id} value={org.id}>
+                                  {org.name}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -340,7 +352,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Priority</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select priority" />
@@ -364,18 +376,22 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Opportunity Manager *</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedType}>
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select manager" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {managers.map((manager) => (
-                              <SelectItem key={manager.id} value={manager.id}>
-                                {manager.full_name || manager.email}
-                              </SelectItem>
-                            ))}
+                            {managers.length === 0 ? (
+                              <div className="px-2 py-1 text-sm text-muted-foreground">No managers available</div>
+                            ) : (
+                              managers.map((manager) => (
+                                <SelectItem key={manager.id} value={manager.id}>
+                                  {manager.full_name || manager.email}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -468,7 +484,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Proposal Submission Location</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select submission type" />
