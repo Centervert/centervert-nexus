@@ -327,11 +327,11 @@ export const EmployeeDialog = ({
 
           {/* Start Date */}
           <div className="space-y-2">
-            <Label htmlFor="start_date">Start Date *</Label>
+            <Label htmlFor="start_date">Start Date</Label>
             <Input
               id="start_date"
               type="date"
-              {...register('start_date', { required: true })}
+              {...register('start_date')}
             />
           </div>
 
