@@ -68,12 +68,13 @@ export const EmployeeDialog = ({
   const [employmentType, setEmploymentType] = useState('');
   const [showRaiseForm, setShowRaiseForm] = useState(false);
   const [raiseData, setRaiseData] = useState({
-    raise_amount: '',
+    new_salary: '',
+    salary_type: 'annually' as 'weekly' | 'monthly' | 'annually',
     effective_date: '',
     status: 'pending' as 'pending' | 'approved' | 'canceled',
     notes: ''
   });
-  const [raiseDisplayAmount, setRaiseDisplayAmount] = useState('');
+  const [newSalaryDisplay, setNewSalaryDisplay] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm<EmployeeFormData>();
 
@@ -94,27 +95,27 @@ export const EmployeeDialog = ({
     enabled: !!employee?.id,
   });
 
-  // Format raise amount with commas
-  const formatRaiseInput = (value: string) => {
+  // Format new salary with commas
+  const formatSalaryInput = (value: string) => {
     const cleaned = value.replace(/[^\d.]/g, '');
     const parts = cleaned.split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
   };
 
-  const handleRaiseAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNewSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
     const rawValue = inputValue.replace(/,/g, '');
-    const formatted = formatRaiseInput(rawValue);
-    setRaiseDisplayAmount(formatted);
-    setRaiseData({ ...raiseData, raise_amount: rawValue });
+    const formatted = formatSalaryInput(rawValue);
+    setNewSalaryDisplay(formatted);
+    setRaiseData({ ...raiseData, new_salary: rawValue });
   };
 
-  // Calculate new salary
-  const calculateNewSalary = () => {
+  // Calculate raise amount (difference)
+  const calculateRaiseAmount = () => {
     const currentSalary = Number(salaryAmount) || Number(employee?.salary_amount || 0);
-    const raiseAmount = Number(raiseData.raise_amount) || 0;
-    return currentSalary + raiseAmount;
+    const newSalary = Number(raiseData.new_salary) || 0;
+    return newSalary - currentSalary;
   };
 
   useEffect(() => {
@@ -146,18 +147,6 @@ export const EmployeeDialog = ({
       setValue('country', 'United States'); // Default to US
     }
   }, [employee, reset, setValue]);
-
-  // Format salary with commas as user types
-  const formatSalaryInput = (value: string) => {
-    // Remove non-numeric characters except decimal point
-    const cleaned = value.replace(/[^\d.]/g, '');
-    // Split into integer and decimal parts
-    const parts = cleaned.split('.');
-    // Add commas to integer part
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    // Rejoin with decimal (limit to 2 decimal places)
-    return parts.length > 1 ? `${parts[0]}.${parts[1].slice(0, 2)}` : parts[0];
-  };
 
   const handleSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -248,15 +237,15 @@ export const EmployeeDialog = ({
   };
 
   const handleAddRaise = async () => {
-    if (!employee || !raiseData.raise_amount || !raiseData.effective_date) {
-      toast.error('Please fill in all raise fields');
+    if (!employee?.id || !raiseData.new_salary || !raiseData.effective_date) {
+      toast.error("Please fill in all required fields");
       return;
     }
 
     try {
-      const currentSalary = Number(salaryAmount) || Number(employee.salary_amount);
-      const raiseAmount = Number(raiseData.raise_amount);
-      const newSalary = currentSalary + raiseAmount;
+      const currentSalary = Number(salaryAmount) || Number(employee?.salary_amount || 0);
+      const newSalary = Number(raiseData.new_salary);
+      const raiseAmount = newSalary - currentSalary;
 
       const { error } = await supabase
         .from('employee_raises')
@@ -276,12 +265,13 @@ export const EmployeeDialog = ({
       toast.success('Raise added successfully');
       setShowRaiseForm(false);
       setRaiseData({
-        raise_amount: '',
+        new_salary: '',
+        salary_type: 'annually',
         effective_date: '',
         status: 'pending',
         notes: ''
       });
-      setRaiseDisplayAmount('');
+      setNewSalaryDisplay('');
       refetchRaises();
     } catch (error: any) {
       console.error('Error adding raise:', error);
@@ -518,33 +508,49 @@ export const EmployeeDialog = ({
                 {showRaiseForm && (
                   <div className="p-4 border rounded-lg space-y-3 bg-background">
                     <h4 className="font-medium">New Raise</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label>Raise Amount</Label>
-                        <div className="relative">
+                    <div className="space-y-2">
+                      <Label>New Salary Amount</Label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                           <Input
                             type="text"
-                            value={raiseDisplayAmount}
-                            onChange={handleRaiseAmountChange}
+                            value={newSalaryDisplay}
+                            onChange={handleNewSalaryChange}
                             placeholder="0"
                             className="pl-7"
                           />
                         </div>
-                        {raiseData.raise_amount && (
-                          <div className="text-xs text-muted-foreground">
-                            New Salary: ${calculateNewSalary().toLocaleString()}/{salaryType.charAt(0)}
-                          </div>
-                        )}
+                        <Select
+                          value={raiseData.salary_type}
+                          onValueChange={(value: 'weekly' | 'monthly' | 'annually') => 
+                            setRaiseData({ ...raiseData, salary_type: value })
+                          }
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="annually">Annually</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Effective Date</Label>
-                        <Input
-                          type="date"
-                          value={raiseData.effective_date}
-                          onChange={(e) => setRaiseData({ ...raiseData, effective_date: e.target.value })}
-                        />
-                      </div>
+                      {raiseData.new_salary && (
+                        <div className="text-xs text-muted-foreground">
+                          Raise Amount: ${Math.abs(calculateRaiseAmount()).toLocaleString()} 
+                          {calculateRaiseAmount() < 0 ? ' (decrease)' : ' (increase)'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Effective Date</Label>
+                      <Input
+                        type="date"
+                        value={raiseData.effective_date}
+                        onChange={(e) => setRaiseData({ ...raiseData, effective_date: e.target.value })}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Status</Label>
@@ -582,7 +588,7 @@ export const EmployeeDialog = ({
                         variant="outline" 
                         onClick={() => {
                           setShowRaiseForm(false);
-                          setRaiseDisplayAmount('');
+                          setNewSalaryDisplay('');
                         }} 
                         size="sm"
                       >
