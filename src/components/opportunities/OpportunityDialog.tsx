@@ -26,15 +26,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AddressAutocomplete } from "@/components/contacts/AddressAutocomplete";
+import { ContactDialog } from "@/components/contacts/ContactDialog";
+import { CompanyDialog } from "@/components/companies/CompanyDialog";
 
 const formSchema = z.object({
   type: z.enum(["private", "government"]),
@@ -67,6 +80,10 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const [contacts, setContacts] = useState<any[]>([]);
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [managers, setManagers] = useState<any[]>([]);
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showOrgDialog, setShowOrgDialog] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [orgOpen, setOrgOpen] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -223,6 +240,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
@@ -298,26 +316,64 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     control={form.control}
                     name="requestor_contact_id"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Requestor (Contact)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select contact" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {contacts.length === 0 ? (
-                              <div className="px-2 py-1 text-sm text-muted-foreground">No contacts available</div>
-                            ) : (
-                              contacts.map((contact) => (
-                                <SelectItem key={contact.id} value={contact.id}>
-                                  {contact.first_name} {contact.last_name}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={contactOpen} onOpenChange={setContactOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                disabled={!selectedType}
+                                className={cn(
+                                  "justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? contacts.find((c) => c.id === field.value)?.first_name + " " + contacts.find((c) => c.id === field.value)?.last_name
+                                  : "Select contact"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search contacts..." />
+                              <CommandEmpty>No contact found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  onSelect={() => {
+                                    setContactOpen(false);
+                                    setShowContactDialog(true);
+                                  }}
+                                  className="text-primary"
+                                >
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Create Contact
+                                </CommandItem>
+                                {contacts.map((contact) => (
+                                  <CommandItem
+                                    key={contact.id}
+                                    value={`${contact.first_name} ${contact.last_name}`}
+                                    onSelect={() => {
+                                      form.setValue("requestor_contact_id", contact.id);
+                                      setContactOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === contact.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {contact.first_name} {contact.last_name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -327,26 +383,64 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
                     control={form.control}
                     name="requestor_organization_id"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="flex flex-col">
                         <FormLabel>Requestor (Organization)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select organization" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {organizations.length === 0 ? (
-                              <div className="px-2 py-1 text-sm text-muted-foreground">No organizations available</div>
-                            ) : (
-                              organizations.map((org) => (
-                                <SelectItem key={org.id} value={org.id}>
-                                  {org.name}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <Popover open={orgOpen} onOpenChange={setOrgOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                disabled={!selectedType}
+                                className={cn(
+                                  "justify-between",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value
+                                  ? organizations.find((org) => org.id === field.value)?.name
+                                  : "Select organization"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[300px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search organizations..." />
+                              <CommandEmpty>No organization found.</CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  onSelect={() => {
+                                    setOrgOpen(false);
+                                    setShowOrgDialog(true);
+                                  }}
+                                  className="text-primary"
+                                >
+                                  <Plus className="mr-2 h-4 w-4" />
+                                  Create Organization
+                                </CommandItem>
+                                {organizations.map((org) => (
+                                  <CommandItem
+                                    key={org.id}
+                                    value={org.name}
+                                    onSelect={() => {
+                                      form.setValue("requestor_organization_id", org.id);
+                                      setOrgOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === org.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {org.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -582,5 +676,30 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         )}
       </SheetContent>
     </Sheet>
+    
+    {/* Contact Creation Dialog */}
+    <ContactDialog
+      open={showContactDialog}
+      onOpenChange={(isOpen) => {
+        setShowContactDialog(isOpen);
+        if (!isOpen) {
+          // Reload contacts when dialog closes
+          loadData();
+        }
+      }}
+    />
+    
+    {/* Organization Creation Dialog */}
+    <CompanyDialog
+      open={showOrgDialog}
+      onOpenChange={(isOpen) => {
+        setShowOrgDialog(isOpen);
+        if (!isOpen) {
+          // Reload organizations when dialog closes
+          loadData();
+        }
+      }}
+    />
+  </>
   );
 }
