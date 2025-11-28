@@ -15,10 +15,12 @@ export const useUserRole = () => {
 
       const isAdmin = roles?.some(r => r.role === 'admin') || false;
       const isAgent = roles?.some(r => r.role === 'agent') || false;
+      const isSalesAgent = roles?.some(r => r.role === 'sales_agent' as any) || false;
 
       return {
         isAdmin,
         isAgent,
+        isSalesAgent,
         roles: roles?.map(r => r.role) || []
       };
     },

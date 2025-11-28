@@ -47,6 +47,7 @@ const UnifiedSidebar = () => {
   const isCollapsed = state === 'collapsed';
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
+  const isSalesAgent = userRole?.isSalesAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing' || location.pathname === '/users';
