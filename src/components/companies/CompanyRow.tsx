@@ -194,7 +194,7 @@ export function CompanyRow({ company }: CompanyRowProps) {
     <>
       <TableRow
         className="cursor-pointer"
-        onClick={() => navigate(`/companies/${company.id}`)}
+        onClick={() => navigate(`/organizations/${company.id}`)}
       >
         <TableCell className="font-medium">{company.name}</TableCell>
         <TableCell>
