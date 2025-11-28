@@ -159,6 +159,6 @@ async function fetchBillComCustomers(session: BillComSession): Promise<any[]> {
   }
 
   const data = await response.json();
-  // v3 API returns customers directly in an array
-  return Array.isArray(data) ? data : [];
+  // v3 API returns paginated results with a 'results' array
+  return data.results || [];
 }
