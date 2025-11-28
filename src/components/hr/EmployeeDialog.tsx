@@ -55,6 +55,7 @@ export const EmployeeDialog = ({
   const [salaryType, setSalaryType] = useState<'weekly' | 'monthly' | 'annual'>('monthly');
   const [salaryAmount, setSalaryAmount] = useState('');
   const [displayAmount, setDisplayAmount] = useState('');
+  const [employmentType, setEmploymentType] = useState('');
 
   const { register, handleSubmit, reset, setValue } = useForm<EmployeeFormData>();
 
@@ -70,12 +71,14 @@ export const EmployeeDialog = ({
       setValue('salary_amount', employee.salary_amount.toString());
       setValue('start_date', employee.start_date);
       setValue('notes', employee.notes || '');
+      setEmploymentType(employee.employment_type);
       setSalaryType(employee.salary_type as 'weekly' | 'monthly' | 'annual');
       setSalaryAmount(employee.salary_amount.toString());
       const formatted = formatSalaryInput(employee.salary_amount.toString());
       setDisplayAmount(formatted);
     } else {
       reset();
+      setEmploymentType('');
       setSalaryType('monthly');
       setSalaryAmount('');
       setDisplayAmount('');
@@ -243,8 +246,11 @@ export const EmployeeDialog = ({
             <div className="space-y-2">
               <Label htmlFor="employment_type">Employment Type *</Label>
               <Select
-                onValueChange={(value) => setValue('employment_type', value)}
-                defaultValue={employee?.employment_type}
+                value={employmentType}
+                onValueChange={(value) => {
+                  setEmploymentType(value);
+                  setValue('employment_type', value);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
