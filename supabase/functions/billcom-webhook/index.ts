@@ -1,9 +1,35 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createHmac } from 'https://deno.land/std@0.190.0/node/crypto.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-billcom-signature',
 };
+
+// Verify Bill.com webhook signature for security
+function verifyWebhookSignature(payload: string, signature: string | null, secret: string): boolean {
+  if (!signature) {
+    console.error('No signature provided in webhook request');
+    return false;
+  }
+
+  // Bill.com uses HMAC-SHA256 for webhook signatures
+  const hmac = createHmac('sha256', secret);
+  hmac.update(payload);
+  const expectedSignature = hmac.digest('hex');
+
+  // Timing-safe comparison to prevent timing attacks
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
+
+  let mismatch = 0;
+  for (let i = 0; i < signature.length; i++) {
+    mismatch |= signature.charCodeAt(i) ^ expectedSignature.charCodeAt(i);
+  }
+
+  return mismatch === 0;
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,9 +39,32 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const webhookSecret = Deno.env.get('BILLCOM_WEBHOOK_SECRET');
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const payload = await req.json();
+    // Get raw body for signature verification
+    const rawBody = await req.text();
+    const signature = req.headers.get('x-billcom-signature');
+
+    // SECURITY: Verify webhook signature if secret is configured
+    if (webhookSecret) {
+      const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
+      if (!isValid) {
+        console.error('Invalid webhook signature - potential security threat');
+        return new Response(
+          JSON.stringify({ error: 'Invalid signature' }),
+          { 
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      console.log('✓ Webhook signature verified');
+    } else {
+      console.warn('⚠️ BILLCOM_WEBHOOK_SECRET not configured - webhook signature verification disabled');
+    }
+
+    const payload = JSON.parse(rawBody);
     console.log('Bill.com webhook received:', JSON.stringify(payload, null, 2));
 
     const eventType = payload.eventType || payload.event_type;
