@@ -8,7 +8,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -122,17 +121,17 @@ export const EmployeeTable = ({
                 <span className={`inline-flex items-center gap-1 ${
                   employee.country === 'Philippines' ? 'text-blue-600 font-medium' : ''
                 }`}>
-                  {employee.country === 'Philippines' && '🇵🇭'}
-                  {employee.country === 'United States' && '🇺🇸'}
-                  {employee.country}
+                  {employee.country === 'Philippines' && '🇵🇭 PH'}
+                  {employee.country === 'United States' && '🇺🇸 US'}
+                  {employee.country !== 'Philippines' && employee.country !== 'United States' && employee.country}
                 </span>
               </TableCell>
               <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
               <TableCell>{new Date(employee.start_date).toLocaleDateString()}</TableCell>
               <TableCell>
-                <Badge variant={employee.is_active ? 'default' : 'secondary'}>
+                <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
                   {employee.is_active ? 'Active' : 'Inactive'}
-                </Badge>
+                </span>
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
