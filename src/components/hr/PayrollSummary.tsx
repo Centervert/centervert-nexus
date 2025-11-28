@@ -154,7 +154,7 @@ export const PayrollSummary = () => {
             <span className="text-sm">
               <span className="font-medium">Please note:</span> There is a predicted{' '}
               <span className={`font-semibold ${isIncrease ? 'text-orange-700' : 'text-green-700'}`}>
-                {isIncrease ? 'increase' : 'decrease'}
+                {isIncrease ? 'increase' : 'decrease'} of ${Math.abs(firstChange.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>{' '}
               in your payroll expense starting{' '}
               <span className="font-semibold">{format(firstChange.month, 'MMMM yyyy')}</span>
