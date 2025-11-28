@@ -5,14 +5,12 @@ import UnifiedLayout from "@/components/UnifiedLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Search, Upload } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { OpportunitiesTable } from "@/components/opportunities/OpportunitiesTable";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
-import { useNavigate } from "react-router-dom";
 
 export default function Opportunities() {
   const { toast } = useToast();
-  const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState<any[]>([]);
   const [filteredOpportunities, setFilteredOpportunities] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,16 +93,10 @@ export default function Opportunities() {
             <h1 className="text-3xl font-bold tracking-tight">Opportunities</h1>
             <p className="text-sm text-muted-foreground">Track and manage your business opportunities</p>
           </div>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => navigate("/opportunities/import")}>
-              <Upload className="h-4 w-4 mr-2" />
-              Import
-            </Button>
-            <Button size="sm" onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Opportunity
-            </Button>
-          </div>
+          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Opportunity
+          </Button>
         </div>
 
         <div className="flex items-center gap-4">

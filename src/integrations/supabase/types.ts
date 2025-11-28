@@ -292,10 +292,8 @@ export type Database = {
           created_by: string | null
           description: string | null
           due_date: string | null
-          estimated_value: number | null
           id: string
           name: string
-          opportunity_number: string | null
           owner_id: string | null
           priority: Database["public"]["Enums"]["opportunity_priority"] | null
           requestor_contact_id: string | null
@@ -316,10 +314,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           due_date?: string | null
-          estimated_value?: number | null
           id?: string
           name: string
-          opportunity_number?: string | null
           owner_id?: string | null
           priority?: Database["public"]["Enums"]["opportunity_priority"] | null
           requestor_contact_id?: string | null
@@ -340,10 +336,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           due_date?: string | null
-          estimated_value?: number | null
           id?: string
           name?: string
-          opportunity_number?: string | null
           owner_id?: string | null
           priority?: Database["public"]["Enums"]["opportunity_priority"] | null
           requestor_contact_id?: string | null
