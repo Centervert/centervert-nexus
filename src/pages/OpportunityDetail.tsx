@@ -21,6 +21,7 @@ import { ResourceManager } from "@/components/opportunities/ResourceManager";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
 import { OpportunityUpdates } from "@/components/opportunities/OpportunityUpdates";
 import { OpportunityTeamMembers } from "@/components/opportunities/OpportunityTeamMembers";
+import { OpportunityStatusTracking } from "@/components/opportunities/OpportunityStatusTracking";
 import UnifiedLayout from "@/components/UnifiedLayout";
 
 export default function OpportunityDetail() {
@@ -272,6 +273,14 @@ export default function OpportunityDetail() {
             />
           </CardContent>
         </Card>
+
+        {/* Status Tracking */}
+        <div className="md:col-span-2">
+          <OpportunityStatusTracking 
+            opportunityId={id!}
+            currentStatus={opportunity.status}
+          />
+        </div>
 
         {/* Team Members */}
         <div className="md:col-span-2">
