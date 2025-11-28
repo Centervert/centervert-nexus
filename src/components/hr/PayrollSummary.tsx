@@ -130,8 +130,9 @@ export const PayrollSummary = () => {
     }))
     .map((data, index) => {
       const previousPayroll = index === 0 ? currentMonthPayroll : calculateMonthlyPayroll(addMonths(data.month, -1));
-      const change = data.payroll - previousPayroll;
-      return { ...data, change, previousPayroll };
+      const monthlyChange = data.payroll - previousPayroll;
+      const annualChange = monthlyChange * 12; // Convert monthly change to annual for display
+      return { ...data, monthlyChange, annualChange, previousPayroll };
     })
     .filter(data => data.raises.length > 0); // Only show months with raises
 
@@ -144,7 +145,7 @@ export const PayrollSummary = () => {
   // Get the earliest change
   const firstChange = upcomingChanges[0];
   const totalAffectedEmployees = upcomingChanges.reduce((sum, change) => sum + change.raises.length, 0);
-  const isIncrease = firstChange.change > 0;
+  const isIncrease = firstChange.monthlyChange > 0;
   
   // Calculate new totals after the first raise takes effect
   const newMonthlyPayroll = firstChange.payroll;
@@ -161,7 +162,7 @@ export const PayrollSummary = () => {
             <span className="text-sm">
               <span className="font-medium">Please note:</span> There is a predicted{' '}
               <span className={`font-semibold ${isIncrease ? 'text-orange-700' : 'text-green-700'}`}>
-                {isIncrease ? 'increase' : 'decrease'} of ${Math.abs(firstChange.change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {isIncrease ? 'increase' : 'decrease'} of ${Math.abs(firstChange.monthlyChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>{' '}
               in your payroll expense starting{' '}
               <span className="font-semibold">{format(firstChange.month, 'MMMM yyyy')}</span>
@@ -208,9 +209,9 @@ export const PayrollSummary = () => {
 
             {/* Monthly Breakdown */}
             <div className="space-y-3">
-              {upcomingChanges.map(({ month, payroll, raises: monthRaises, change, previousPayroll }) => {
-                const percentChange = previousPayroll > 0 ? (change / previousPayroll) * 100 : 0;
-                const monthIsIncrease = change > 0;
+              {upcomingChanges.map(({ month, payroll, raises: monthRaises, monthlyChange, annualChange, previousPayroll }) => {
+                const percentChange = previousPayroll > 0 ? (monthlyChange / previousPayroll) * 100 : 0;
+                const monthIsIncrease = monthlyChange > 0;
 
                 return (
                   <div key={month.toISOString()} className="space-y-2">
@@ -225,7 +226,7 @@ export const PayrollSummary = () => {
                           <TrendingDown className="h-4 w-4 text-green-600" />
                         )}
                         <span className={`text-sm font-semibold ${monthIsIncrease ? 'text-orange-700' : 'text-green-700'}`}>
-                          {monthIsIncrease ? '+' : '-'}${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {monthIsIncrease ? '+' : '-'}${Math.abs(monthlyChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           <span className="text-xs font-normal ml-1">
                             ({percentChange > 0 ? '+' : ''}{percentChange.toFixed(1)}%)
                           </span>
