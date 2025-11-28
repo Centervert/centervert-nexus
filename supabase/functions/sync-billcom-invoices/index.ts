@@ -204,8 +204,17 @@ async function fetchBillComInvoices(session: BillComSession, customerId: string)
 
   const data = await response.json();
   console.log('Bill.com API response for customer', customerId, ':', JSON.stringify(data, null, 2));
+  
   // v3 API returns paginated results with a 'results' array
-  return data.results || [];
+  const allInvoices = data.results || [];
+  
+  // Filter to only include invoices for the requested customer
+  // (Bill.com API sometimes returns invoices for multiple customers)
+  const filteredInvoices = allInvoices.filter((invoice: any) => invoice.customerId === customerId);
+  
+  console.log(`Filtered ${filteredInvoices.length} of ${allInvoices.length} invoices for customer ${customerId}`);
+  
+  return filteredInvoices;
 }
 
 async function syncInvoice(supabase: any, organizationId: string, billcomInvoice: any) {
