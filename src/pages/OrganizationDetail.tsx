@@ -13,6 +13,8 @@ import { EditableCell } from "@/components/contacts/EditableCell";
 import { EditableAddressCell } from "@/components/contacts/EditableAddressCell";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { toast } from "sonner";
+import BillComActivityFeed from "@/components/billing/BillComActivityFeed";
+import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -195,6 +197,13 @@ function OrganizationDetail() {
                       </span>
                     </div>
                   </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Bill.com Link Status</div>
+                    <BillComStatusBadge 
+                      billcomCustomerId={organization.billcom_customer_id}
+                      billingEmail={organization.billing_email}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -347,6 +356,12 @@ function OrganizationDetail() {
                   </Button>
                 </div>
               )}
+            </Card>
+
+            {/* Bill.com Activity Feed */}
+            <Card className="p-6">
+              <h3 className="font-semibold mb-4">Bill.com Activity</h3>
+              <BillComActivityFeed organizationId={id!} />
             </Card>
           </div>
         </div>

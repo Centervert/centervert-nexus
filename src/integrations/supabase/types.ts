@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      billcom_sync_logs: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["billcom_activity_type"]
+          created_at: string | null
+          created_by: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          organization_id: string | null
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["billcom_activity_type"]
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          organization_id?: string | null
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["billcom_activity_type"]
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          organization_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billcom_sync_logs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billcom_sync_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           address: string | null
@@ -732,6 +777,16 @@ export type Database = {
           deleted_profile_id: string
         }[]
       }
+      create_billcom_sync_log: {
+        Args: {
+          p_activity_type: Database["public"]["Enums"]["billcom_activity_type"]
+          p_created_by?: string
+          p_message: string
+          p_metadata?: Json
+          p_organization_id: string
+        }
+        Returns: string
+      }
       extract_mentioned_users: { Args: { content: string }; Returns: string[] }
       get_available_agents: {
         Args: never
@@ -763,6 +818,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
+      billcom_activity_type:
+        | "customer_linked"
+        | "customer_auto_linked"
+        | "invoice_synced"
+        | "sync_completed"
+        | "sync_failed"
+        | "manual_link"
       client_access_level: "admin" | "member" | "viewer"
       client_type: "direct" | "agency" | "agency_managed"
       dev_build_environment: "development" | "staging" | "production"
@@ -967,6 +1029,14 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent", "user"],
+      billcom_activity_type: [
+        "customer_linked",
+        "customer_auto_linked",
+        "invoice_synced",
+        "sync_completed",
+        "sync_failed",
+        "manual_link",
+      ],
       client_access_level: ["admin", "member", "viewer"],
       client_type: ["direct", "agency", "agency_managed"],
       dev_build_environment: ["development", "staging", "production"],

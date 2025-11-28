@@ -19,6 +19,7 @@ interface Company {
   address: string | null;
   notes: string | null;
   is_active: boolean | null;
+  billcom_customer_id: string | null;
   contacts?: Array<{ count: number }>;
 }
 
@@ -79,6 +80,7 @@ export function CompaniesTable({ searchQuery, statusFilter }: CompaniesTableProp
               <TableHead>Organization Name</TableHead>
               <TableHead>Contact Info</TableHead>
               <TableHead>Website</TableHead>
+              <TableHead>Bill.com Status</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
