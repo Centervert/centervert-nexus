@@ -7,7 +7,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { LogOut, UserSquare2, Shield, Users } from 'lucide-react';
+import { LogOut, UserSquare2, Shield, Users, Briefcase } from 'lucide-react';
 import UnifiedSidebar from './UnifiedSidebar';
 import { NotificationBell } from './notifications/NotificationBell';
 import { DynamicBreadcrumbs } from './DynamicBreadcrumbs';
@@ -44,6 +44,7 @@ const UnifiedLayout = ({
 
   const getUserRoleLabel = () => {
     if (userRole?.isAdmin) return 'Admin';
+    if (userRole?.isSalesAgent) return 'Sales Agent';
     if (userRole?.isAgent) return 'Team Member';
     return 'User';
   };
@@ -88,6 +89,8 @@ const UnifiedLayout = ({
                   <div className="flex items-center gap-1.5 pt-1">
                     {userRole?.isAdmin ? (
                       <Shield className="h-3.5 w-3.5 text-primary" />
+                    ) : userRole?.isSalesAgent ? (
+                      <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
                     ) : (
                       <Users className="h-3.5 w-3.5 text-muted-foreground" />
                     )}
