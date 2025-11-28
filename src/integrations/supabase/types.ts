@@ -119,6 +119,80 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          amount_due: number
+          billcom_invoice_id: string | null
+          billcom_payment_link: string | null
+          billcom_pdf_url: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string | null
+          issue_date: string | null
+          line_items: Json | null
+          metadata: Json | null
+          organization_id: string
+          paid_date: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          synced_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          amount_due: number
+          billcom_invoice_id?: string | null
+          billcom_payment_link?: string | null
+          billcom_pdf_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string | null
+          line_items?: Json | null
+          metadata?: Json | null
+          organization_id: string
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_due?: number
+          billcom_invoice_id?: string | null
+          billcom_payment_link?: string | null
+          billcom_pdf_url?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string | null
+          issue_date?: string | null
+          line_items?: Json | null
+          metadata?: Json | null
+          organization_id?: string
+          paid_date?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           content: string | null
@@ -451,6 +525,50 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          billcom_payment_id: string | null
+          created_at: string | null
+          id: string
+          invoice_id: string
+          metadata: Json | null
+          payment_date: string
+          payment_method: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          billcom_payment_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_id: string
+          metadata?: Json | null
+          payment_date: string
+          payment_method?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          billcom_payment_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoice_id?: string
+          metadata?: Json | null
+          payment_date?: string
+          payment_method?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -492,6 +610,59 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      recurring_invoice_templates: {
+        Row: {
+          amount: number
+          billcom_recurring_id: string | null
+          created_at: string | null
+          description: string | null
+          frequency: Database["public"]["Enums"]["invoice_frequency"]
+          id: string
+          is_active: boolean | null
+          line_items: Json | null
+          name: string
+          next_invoice_date: string | null
+          organization_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          billcom_recurring_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          frequency: Database["public"]["Enums"]["invoice_frequency"]
+          id?: string
+          is_active?: boolean | null
+          line_items?: Json | null
+          name: string
+          next_invoice_date?: string | null
+          organization_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          billcom_recurring_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          frequency?: Database["public"]["Enums"]["invoice_frequency"]
+          id?: string
+          is_active?: boolean | null
+          line_items?: Json | null
+          name?: string
+          next_invoice_date?: string | null
+          organization_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_invoice_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_settings: {
         Row: {
@@ -633,6 +804,15 @@ export type Database = {
         | "documentation"
         | "testing"
         | "devops"
+      invoice_frequency: "weekly" | "monthly" | "quarterly" | "annually"
+      invoice_status:
+        | "draft"
+        | "sent"
+        | "viewed"
+        | "partial"
+        | "paid"
+        | "overdue"
+        | "void"
       opportunity_priority: "low" | "medium" | "high" | "critical"
       opportunity_status:
         | "new"
@@ -832,6 +1012,16 @@ export const Constants = {
         "documentation",
         "testing",
         "devops",
+      ],
+      invoice_frequency: ["weekly", "monthly", "quarterly", "annually"],
+      invoice_status: [
+        "draft",
+        "sent",
+        "viewed",
+        "partial",
+        "paid",
+        "overdue",
+        "void",
       ],
       opportunity_priority: ["low", "medium", "high", "critical"],
       opportunity_status: [
