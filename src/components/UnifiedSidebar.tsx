@@ -51,6 +51,10 @@ const UnifiedSidebar = () => {
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing' || location.pathname === '/users';
+  
+  // Sales agents have CRM access but not Back Office
+  const showCrm = isAdmin || isAgent || isSalesAgent;
+  const showBackOffice = isAdmin; // Only admins see Back Office
 
   // Navigation items based on role
   const navigation = [
@@ -181,7 +185,7 @@ const UnifiedSidebar = () => {
               })()}
 
               {/* CRM */}
-              {(isAdmin || isAgent) && (
+              {showCrm && (
                 <Collapsible open={crmOpen} onOpenChange={setCrmOpen} className="group/collapsible">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
@@ -260,7 +264,7 @@ const UnifiedSidebar = () => {
               )}
 
               {/* Back Office */}
-              {isAdmin && (
+              {showBackOffice && (
                 <Collapsible open={backOfficeOpen} onOpenChange={setBackOfficeOpen} className="group/collapsible">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
