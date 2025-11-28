@@ -85,13 +85,20 @@ export function OpportunitiesTable({ opportunities }: OpportunitiesTableProps) {
                 )}
               </TableCell>
               <TableCell>
-                {opportunity.contacts && (
+                {opportunity.organizations && opportunity.contacts ? (
+                  <div className="space-y-0.5">
+                    <div className="font-medium">{opportunity.organizations.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {opportunity.contacts.first_name} {opportunity.contacts.last_name}
+                    </div>
+                  </div>
+                ) : opportunity.organizations ? (
+                  <span>{opportunity.organizations.name}</span>
+                ) : opportunity.contacts ? (
                   <span>
                     {opportunity.contacts.first_name} {opportunity.contacts.last_name}
                   </span>
-                )}
-                {opportunity.organizations && <span>{opportunity.organizations.name}</span>}
-                {!opportunity.contacts && !opportunity.organizations && (
+                ) : (
                   <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
