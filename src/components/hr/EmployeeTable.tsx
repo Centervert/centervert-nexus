@@ -73,16 +73,11 @@ export const EmployeeTable = ({
 
   const formatSalary = (amount: number, type: string) => {
     const formatted = amount.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     });
-    return `$${formatted} ${type}`;
-  };
-
-  const formatEmploymentType = (type: string) => {
-    return type.split('-').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join('-');
+    const period = type === 'weekly' ? 'w' : type === 'monthly' ? 'm' : 'y';
+    return `$${formatted}/${period}`;
   };
 
   if (isLoading) {
@@ -105,7 +100,6 @@ export const EmployeeTable = ({
             <TableHead>Name</TableHead>
             <TableHead>Position</TableHead>
             <TableHead>Country</TableHead>
-            <TableHead>Type</TableHead>
             <TableHead>Salary</TableHead>
             <TableHead>Start Date</TableHead>
             <TableHead>Status</TableHead>
@@ -133,7 +127,6 @@ export const EmployeeTable = ({
                   {employee.country}
                 </span>
               </TableCell>
-              <TableCell>{formatEmploymentType(employee.employment_type)}</TableCell>
               <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
               <TableCell>{new Date(employee.start_date).toLocaleDateString()}</TableCell>
               <TableCell>
