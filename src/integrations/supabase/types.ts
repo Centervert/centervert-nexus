@@ -125,6 +125,63 @@ export type Database = {
           },
         ]
       }
+      employee_raises: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          current_salary: number
+          effective_date: string
+          employee_id: string
+          id: string
+          new_salary: number
+          notes: string | null
+          raise_amount: number
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          current_salary: number
+          effective_date: string
+          employee_id: string
+          id?: string
+          new_salary: number
+          notes?: string | null
+          raise_amount: number
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          current_salary?: number
+          effective_date?: string
+          employee_id?: string
+          id?: string
+          new_salary?: number
+          notes?: string | null
+          raise_amount?: number
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_raises_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_raises_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           address: string | null
