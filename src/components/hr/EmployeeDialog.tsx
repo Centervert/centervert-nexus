@@ -279,12 +279,16 @@ export const EmployeeDialog = ({
                   <SelectItem value="annual">Annual</SelectItem>
                 </SelectContent>
               </Select>
-              <Input
-                type="text"
-                value={displayAmount}
-                onChange={handleSalaryChange}
-                placeholder="0.00"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  type="text"
+                  value={displayAmount}
+                  onChange={handleSalaryChange}
+                  placeholder="0.00"
+                  className="pl-7"
+                />
+              </div>
             </div>
             {salaryAmount && (
               <div className="text-sm text-muted-foreground space-y-1 mt-2">
