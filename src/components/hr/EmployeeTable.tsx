@@ -246,7 +246,6 @@ export const EmployeeTable = ({
                 </span>
               </TableCell>
               <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
-              <TableCell>{new Date(employee.start_date).toLocaleDateString()}</TableCell>
               <TableCell>
                 <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
                   {employee.is_active ? 'Active' : 'Inactive'}
