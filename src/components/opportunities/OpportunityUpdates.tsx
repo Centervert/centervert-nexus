@@ -143,9 +143,37 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
     return variants[type] || "default";
   };
 
-  // Convert stored mention format @[Name](uuid) back to display format @Name
+  // Convert stored mention format @[Name](uuid) to display with blue styling
   const formatContentForDisplay = (content: string) => {
-    return content.replace(/@\[([^\]]+)\]\([a-f0-9-]{36}\)/g, '@$1');
+    const parts: (string | JSX.Element)[] = [];
+    let lastIndex = 0;
+    
+    // Find all mentions in format @[Name](uuid)
+    const mentionRegex = /@\[([^\]]+)\]\([a-f0-9-]{36}\)/g;
+    let match;
+    
+    while ((match = mentionRegex.exec(content)) !== null) {
+      // Add text before mention
+      if (match.index > lastIndex) {
+        parts.push(content.substring(lastIndex, match.index));
+      }
+      
+      // Add mention with blue styling
+      parts.push(
+        <span key={match.index} className="text-primary font-medium">
+          @{match[1]}
+        </span>
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text after last mention
+    if (lastIndex < content.length) {
+      parts.push(content.substring(lastIndex));
+    }
+    
+    return parts.length > 0 ? parts : content;
   };
 
   return (
@@ -209,9 +237,9 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
                         {getUpdateTypeLabel(update.update_type)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                    <div className="text-sm text-muted-foreground whitespace-pre-wrap">
                       {formatContentForDisplay(update.content)}
-                    </p>
+                    </div>
                   </div>
                   <time className="text-xs text-muted-foreground whitespace-nowrap">
                     {format(new Date(update.created_at), "MMM d, h:mm a")}
