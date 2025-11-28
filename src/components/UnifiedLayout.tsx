@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LogOut, UserSquare2 } from 'lucide-react';
 import UnifiedSidebar from './UnifiedSidebar';
+import { NotificationBell } from './notifications/NotificationBell';
 interface UnifiedLayoutProps {
   children: ReactNode;
 }
@@ -41,7 +42,8 @@ const UnifiedLayout = ({
       <div className="min-h-screen flex w-full">
         <UnifiedSidebar />
         <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: '#9c5126' }}>
-          <header className="h-12 flex items-center justify-end px-4">
+          <header className="h-12 flex items-center justify-end px-4 gap-2">
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-white hover:bg-white/10">
