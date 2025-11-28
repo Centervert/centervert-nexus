@@ -110,6 +110,16 @@ Deno.serve(async (req) => {
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        totalSyncedCount,
+        organizationsProcessed: organizations.length,
+        results,
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   } catch (error) {
     console.error('Error syncing invoices:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -234,4 +244,90 @@ async function syncInvoice(supabase: any, organizationId: string, billcomInvoice
   }
 
   console.log('Invoice synced:', billcomInvoice.invoiceNumber);
+}
+
+async function findOrganizationForInvoice(
+  supabase: any,
+  session: BillComSession,
+  billcomInvoice: any
+): Promise<string | null> {
+  const customerId = billcomInvoice.customerId;
+  
+  // First, try to find organization by billcom_customer_id
+  const { data: orgById } = await supabase
+    .from('organizations')
+    .select('id')
+    .eq('billcom_customer_id', customerId)
+    .maybeSingle();
+
+  if (orgById) {
+    return orgById.id;
+  }
+
+  // If not found, try to match by billing email
+  console.log(`No organization found with billcom_customer_id ${customerId}, attempting email match...`);
+  
+  // Fetch the customer details from Bill.com to get their email
+  const customer = await fetchBillComCustomer(session, customerId);
+  
+  if (!customer || !customer.email) {
+    console.log(`Could not fetch customer email for ${customerId}`);
+    return null;
+  }
+
+  // Find organization by billing email
+  const { data: orgByEmail } = await supabase
+    .from('organizations')
+    .select('id, name, billcom_customer_id')
+    .ilike('billing_email', customer.email)
+    .maybeSingle();
+
+  if (orgByEmail) {
+    // Auto-link by setting billcom_customer_id
+    if (!orgByEmail.billcom_customer_id) {
+      console.log(`✓ Auto-linking ${orgByEmail.name} to Bill.com customer ${customerId} via email match`);
+      
+      await supabase
+        .from('organizations')
+        .update({ 
+          billcom_customer_id: customerId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orgByEmail.id);
+    }
+    
+    return orgByEmail.id;
+  }
+
+  console.log(`No organization found for Bill.com customer ${customerId} (${customer.email})`);
+  return null;
+}
+
+async function fetchBillComCustomer(session: BillComSession, customerId: string): Promise<any> {
+  const devKey = Deno.env.get('BILLCOM_DEV_KEY')!;
+  const orgId = Deno.env.get('BILLCOM_ORG_ID')!;
+
+  const response = await fetch('https://api.bill.com/api/v3/Crud/Read/Customer.json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      devKey,
+      sessionId: session.sessionId,
+      data: {
+        orgId,
+        id: customerId,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('Bill.com fetch customer failed:', error);
+    return null;
+  }
+
+  const data = await response.json();
+  return data.response_data;
 }
