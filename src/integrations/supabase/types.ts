@@ -635,12 +635,13 @@ export type Database = {
         | "devops"
       opportunity_priority: "low" | "medium" | "high" | "critical"
       opportunity_status:
-        | "lead"
-        | "working_on_rfp"
-        | "submitted"
-        | "awarded"
-        | "lost"
-        | "on_hold"
+        | "new"
+        | "in_talks"
+        | "working_on_proposal"
+        | "proposal_submitted"
+        | "approved"
+        | "declined"
+        | "see_activity"
       opportunity_type: "private" | "government"
       opportunity_update_type:
         | "manual"
@@ -834,12 +835,13 @@ export const Constants = {
       ],
       opportunity_priority: ["low", "medium", "high", "critical"],
       opportunity_status: [
-        "lead",
-        "working_on_rfp",
-        "submitted",
-        "awarded",
-        "lost",
-        "on_hold",
+        "new",
+        "in_talks",
+        "working_on_proposal",
+        "proposal_submitted",
+        "approved",
+        "declined",
+        "see_activity",
       ],
       opportunity_type: ["private", "government"],
       opportunity_update_type: [
