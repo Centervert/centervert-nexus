@@ -49,7 +49,7 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
-  const isBackOfficeActive = location.pathname === '/hr';
+  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing';
 
   // Navigation items based on role
   const navigation = [
@@ -58,12 +58,6 @@ const UnifiedSidebar = () => {
       href: '/dashboard',
       icon: LayoutDashboard,
       show: true,
-    },
-    {
-      name: 'Billing',
-      href: '/billing',
-      icon: Receipt,
-      show: isAdmin, // Admin only
     },
     {
       name: 'Users',
@@ -95,7 +89,12 @@ const UnifiedSidebar = () => {
     {
       name: 'Human Resources',
       href: '/hr',
-      icon: Users,
+      icon: UserSquare2,
+    },
+    {
+      name: 'Billing',
+      href: '/billing',
+      icon: Receipt,
     },
   ];
 
@@ -336,44 +335,8 @@ const UnifiedSidebar = () => {
                 </Collapsible>
               )}
 
-              {/* Billing */}
-              {navigation[1] && (() => {
-                const item = navigation[1];
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => navigate(item.href)}
-                      className={`
-                        relative overflow-hidden select-none
-                        text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        transition-all duration-normal ease-smooth
-                        hover:shadow-lg hover:scale-[1.02]
-                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
-                        ${isCollapsed ? 'justify-center' : ''}
-                        group
-                      `}
-                      tooltip={isCollapsed ? item.name : undefined}
-                    >
-                      <Icon className={`
-                        h-5 w-5 transition-all duration-normal ease-smooth
-                        hover:scale-110
-                        ${isActive ? 'rotate-6' : ''}
-                      `} />
-                      {!isCollapsed && (
-                        <span className="transition-all duration-fast ease-smooth">
-                          {item.name}
-                        </span>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })()}
-
               {/* Users */}
-              {navigation[2] && (() => {
+              {navigation[1] && (() => {
                 const item = navigation[2];
                 const Icon = item.icon;
                 const isActive = location.pathname === item.href;
