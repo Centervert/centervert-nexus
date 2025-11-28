@@ -125,6 +125,74 @@ export type Database = {
           },
         ]
       }
+      employees: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          email: string
+          employment_type: string
+          end_date: string | null
+          first_name: string
+          gusto_employee_id: string | null
+          id: string
+          is_active: boolean
+          last_name: string
+          notes: string | null
+          phone: string | null
+          position: string
+          salary_amount: number
+          salary_type: string
+          start_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          employment_type: string
+          end_date?: string | null
+          first_name: string
+          gusto_employee_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_name: string
+          notes?: string | null
+          phone?: string | null
+          position: string
+          salary_amount: number
+          salary_type: string
+          start_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          employment_type?: string
+          end_date?: string | null
+          first_name?: string
+          gusto_employee_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_name?: string
+          notes?: string | null
+          phone?: string | null
+          position?: string
+          salary_amount?: number
+          salary_type?: string
+          start_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
