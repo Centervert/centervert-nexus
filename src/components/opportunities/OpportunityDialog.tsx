@@ -676,7 +676,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         )}
       </SheetContent>
     </Sheet>
-    
+
     {/* Contact Creation Dialog */}
     <ContactDialog
       open={showContactDialog}
@@ -688,7 +688,7 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         }
       }}
     />
-    
+
     {/* Organization Creation Dialog */}
     <CompanyDialog
       open={showOrgDialog}
@@ -700,6 +700,6 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
         }
       }}
     />
-  </>
+    </>
   );
 }
