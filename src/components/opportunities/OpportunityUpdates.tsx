@@ -31,6 +31,7 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [newUpdate, setNewUpdate] = useState("");
+  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: updates, isLoading } = useQuery({
@@ -60,11 +61,31 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
 
   const createUpdateMutation = useMutation({
     mutationFn: async (content: string) => {
+      // Convert mentions to format @[Name](user_id) for backend processing
+      let formattedContent = content;
+      
+      // Get user names for the mentioned user IDs
+      if (mentionedUserIds.length > 0) {
+        const { data: mentionedUsers } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", mentionedUserIds);
+
+        if (mentionedUsers) {
+          mentionedUsers.forEach((mentionedUser) => {
+            const displayName = mentionedUser.full_name || mentionedUser.email;
+            // Replace @DisplayName with @[DisplayName](user_id)
+            const regex = new RegExp(`@${displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\()`, 'g');
+            formattedContent = formattedContent.replace(regex, `@[${displayName}](${mentionedUser.id})`);
+          });
+        }
+      }
+
       const { data, error } = await supabase
         .from("opportunity_updates")
         .insert({
           opportunity_id: opportunityId,
-          content,
+          content: formattedContent,
           created_by: user?.id,
           update_type: "manual",
         })
@@ -77,6 +98,7 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["opportunity-updates", opportunityId] });
       setNewUpdate("");
+      setMentionedUserIds([]);
       toast.success("Update posted");
     },
     onError: (error) => {
@@ -84,6 +106,11 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
       toast.error("Failed to post update");
     },
   });
+
+  const handleUpdateChange = (value: string, mentions: string[]) => {
+    setNewUpdate(value);
+    setMentionedUserIds(mentions);
+  };
 
   const handleSubmit = async () => {
     if (!newUpdate.trim()) return;
@@ -116,6 +143,11 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
     return variants[type] || "default";
   };
 
+  // Convert stored mention format @[Name](uuid) back to display format @Name
+  const formatContentForDisplay = (content: string) => {
+    return content.replace(/@\[([^\]]+)\]\([a-f0-9-]{36}\)/g, '@$1');
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -129,7 +161,7 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
         <div className="space-y-2">
           <MentionTextarea
             value={newUpdate}
-            onChange={setNewUpdate}
+            onChange={handleUpdateChange}
             placeholder="Post an update, @mention team members..."
             disabled={isSubmitting}
             onSubmit={handleSubmit}
@@ -178,7 +210,7 @@ export const OpportunityUpdates = ({ opportunityId }: OpportunityUpdatesProps) =
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {update.content}
+                      {formatContentForDisplay(update.content)}
                     </p>
                   </div>
                   <time className="text-xs text-muted-foreground whitespace-nowrap">
