@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -85,6 +85,14 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const selectedType = form.watch("type");
   const selectedSubmissionType = form.watch("submission_location_type");
 
+  // Load data when dialog opens
+  useEffect(() => {
+    if (open) {
+      console.log("Dialog opened, loading data...");
+      loadData();
+    }
+  }, [open]);
+
   // Load all data when dialog opens
   const loadData = async () => {
     setIsLoading(true);
@@ -156,12 +164,12 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
     }
   };
 
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    if (!newOpen) {
+      // Reset form when closing
       form.reset();
-      loadData();
     }
-    onOpenChange(open);
   };
 
   const onSubmit = async (data: FormData) => {
