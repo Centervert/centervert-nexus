@@ -204,7 +204,7 @@ export const EmployeeDialog = ({
         employment_type: employmentType,
         salary_type: salaryType,
         salary_amount: parseFloat(salaryAmount),
-        start_date: data.start_date,
+        start_date: data.start_date || null,
         country: data.country,
         address: data.address || null,
         notes: data.notes || null,
