@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -19,10 +20,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
+import { Plus, Calendar } from 'lucide-react';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
+type EmployeeRaise = Database['public']['Tables']['employee_raises']['Row'];
 
 interface EmployeeDialogProps {
   open: boolean;
@@ -59,8 +64,32 @@ export const EmployeeDialog = ({
   const [salaryAmount, setSalaryAmount] = useState('');
   const [displayAmount, setDisplayAmount] = useState('');
   const [employmentType, setEmploymentType] = useState('');
+  const [showRaiseForm, setShowRaiseForm] = useState(false);
+  const [raiseData, setRaiseData] = useState({
+    raise_amount: '',
+    effective_date: '',
+    status: 'pending' as 'pending' | 'approved' | 'canceled',
+    notes: ''
+  });
 
   const { register, handleSubmit, reset, setValue } = useForm<EmployeeFormData>();
+
+  // Fetch raises for this employee
+  const { data: raises = [], refetch: refetchRaises } = useQuery({
+    queryKey: ['employee-raises', employee?.id],
+    queryFn: async () => {
+      if (!employee?.id) return [];
+      const { data, error } = await supabase
+        .from('employee_raises')
+        .select('*')
+        .eq('employee_id', employee.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as EmployeeRaise[];
+    },
+    enabled: !!employee?.id,
+  });
 
   useEffect(() => {
     if (employee) {
@@ -192,16 +221,66 @@ export const EmployeeDialog = ({
     }
   };
 
+  const handleAddRaise = async () => {
+    if (!employee || !raiseData.raise_amount || !raiseData.effective_date) {
+      toast.error('Please fill in all raise fields');
+      return;
+    }
+
+    try {
+      const currentSalary = Number(salaryAmount) || Number(employee.salary_amount);
+      const raiseAmount = Number(raiseData.raise_amount);
+      const newSalary = currentSalary + raiseAmount;
+
+      const { error } = await supabase
+        .from('employee_raises')
+        .insert([{
+          employee_id: employee.id,
+          current_salary: currentSalary,
+          raise_amount: raiseAmount,
+          new_salary: newSalary,
+          effective_date: raiseData.effective_date,
+          status: raiseData.status,
+          notes: raiseData.notes || null,
+          created_by: user!.id,
+        }]);
+
+      if (error) throw error;
+
+      toast.success('Raise added successfully');
+      setShowRaiseForm(false);
+      setRaiseData({
+        raise_amount: '',
+        effective_date: '',
+        status: 'pending',
+        notes: ''
+      });
+      refetchRaises();
+    } catch (error: any) {
+      console.error('Error adding raise:', error);
+      toast.error(error.message || 'Failed to add raise');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'approved': return 'text-green-600';
+      case 'pending': return 'text-yellow-600';
+      case 'canceled': return 'text-red-600';
+      default: return 'text-muted-foreground';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto animate-in slide-in-from-right duration-300">
         <DialogHeader>
           <DialogTitle>
             {employee ? 'Edit Employee' : 'Add Employee'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -378,6 +457,133 @@ export const EmployeeDialog = ({
               rows={3}
             />
           </div>
+
+          {/* Raise Tracking Section - Only for existing employees */}
+          {employee && (
+            <Card className="border-2">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Salary & Raises</CardTitle>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRaiseForm(!showRaiseForm)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Raise
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Current Salary Display */}
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">Current Salary</p>
+                  <p className="text-2xl font-bold">
+                    ${Number(salaryAmount || employee.salary_amount).toLocaleString()}/{salaryType.charAt(0)}
+                  </p>
+                </div>
+
+                {/* Add Raise Form */}
+                {showRaiseForm && (
+                  <div className="p-4 border rounded-lg space-y-3 bg-background">
+                    <h4 className="font-medium">New Raise</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Raise Amount</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                          <Input
+                            type="number"
+                            value={raiseData.raise_amount}
+                            onChange={(e) => setRaiseData({ ...raiseData, raise_amount: e.target.value })}
+                            placeholder="0.00"
+                            className="pl-7"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Effective Date</Label>
+                        <Input
+                          type="date"
+                          value={raiseData.effective_date}
+                          onChange={(e) => setRaiseData({ ...raiseData, effective_date: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Status</Label>
+                      <Select
+                        value={raiseData.status}
+                        onValueChange={(value: 'pending' | 'approved' | 'canceled') => 
+                          setRaiseData({ ...raiseData, status: value })
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="approved">Approved</SelectItem>
+                          <SelectItem value="canceled">Canceled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Notes (Optional)</Label>
+                      <Textarea
+                        value={raiseData.notes}
+                        onChange={(e) => setRaiseData({ ...raiseData, notes: e.target.value })}
+                        placeholder="Notes about this raise..."
+                        rows={2}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="button" onClick={handleAddRaise} size="sm">
+                        Save Raise
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setShowRaiseForm(false)} size="sm">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Raises History */}
+                {raises.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm">Raise History</h4>
+                    <div className="space-y-2">
+                      {raises.map((raise) => (
+                        <div key={raise.id} className="p-3 border rounded-lg text-sm">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {new Date(raise.effective_date).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <span className={`font-medium capitalize ${getStatusColor(raise.status)}`}>
+                              {raise.status}
+                            </span>
+                          </div>
+                          <div className="text-muted-foreground">
+                            ${raise.current_salary.toLocaleString()} → ${raise.new_salary.toLocaleString()}
+                            <span className="text-green-600 ml-2">
+                              (+${raise.raise_amount.toLocaleString()})
+                            </span>
+                          </div>
+                          {raise.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{raise.notes}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
