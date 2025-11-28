@@ -831,47 +831,6 @@ export type Database = {
         | "sync_completed"
         | "sync_failed"
         | "manual_link"
-      client_access_level: "admin" | "member" | "viewer"
-      client_type: "direct" | "agency" | "agency_managed"
-      dev_build_environment: "development" | "staging" | "production"
-      dev_build_status:
-        | "building"
-        | "success"
-        | "failed"
-        | "deploying"
-        | "deployed"
-      dev_project_status:
-        | "planning"
-        | "in_development"
-        | "testing"
-        | "staging"
-        | "production"
-        | "maintenance"
-        | "archived"
-      dev_project_type:
-        | "mobile_app"
-        | "web_app"
-        | "desktop_app"
-        | "api"
-        | "integration"
-        | "other"
-      dev_sprint_status: "planned" | "active" | "completed" | "cancelled"
-      dev_task_status:
-        | "backlog"
-        | "todo"
-        | "in_progress"
-        | "in_review"
-        | "testing"
-        | "done"
-        | "blocked"
-      dev_task_type:
-        | "feature"
-        | "bug"
-        | "enhancement"
-        | "refactor"
-        | "documentation"
-        | "testing"
-        | "devops"
       invoice_frequency: "weekly" | "monthly" | "quarterly" | "annually"
       invoice_status:
         | "draft"
@@ -897,16 +856,6 @@ export type Database = {
         | "assignment_change"
         | "resource_added"
       submission_location_type: "in_person" | "online" | "other"
-      ticket_priority: "low" | "medium" | "high" | "urgent"
-      ticket_status:
-        | "open"
-        | "in_progress"
-        | "awaiting_response"
-        | "resolved"
-        | "closed"
-        | "pending_acknowledgment"
-        | "awaiting_payment"
-        | "on_hold"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1043,52 +992,6 @@ export const Constants = {
         "sync_failed",
         "manual_link",
       ],
-      client_access_level: ["admin", "member", "viewer"],
-      client_type: ["direct", "agency", "agency_managed"],
-      dev_build_environment: ["development", "staging", "production"],
-      dev_build_status: [
-        "building",
-        "success",
-        "failed",
-        "deploying",
-        "deployed",
-      ],
-      dev_project_status: [
-        "planning",
-        "in_development",
-        "testing",
-        "staging",
-        "production",
-        "maintenance",
-        "archived",
-      ],
-      dev_project_type: [
-        "mobile_app",
-        "web_app",
-        "desktop_app",
-        "api",
-        "integration",
-        "other",
-      ],
-      dev_sprint_status: ["planned", "active", "completed", "cancelled"],
-      dev_task_status: [
-        "backlog",
-        "todo",
-        "in_progress",
-        "in_review",
-        "testing",
-        "done",
-        "blocked",
-      ],
-      dev_task_type: [
-        "feature",
-        "bug",
-        "enhancement",
-        "refactor",
-        "documentation",
-        "testing",
-        "devops",
-      ],
       invoice_frequency: ["weekly", "monthly", "quarterly", "annually"],
       invoice_status: [
         "draft",
@@ -1117,17 +1020,6 @@ export const Constants = {
         "resource_added",
       ],
       submission_location_type: ["in_person", "online", "other"],
-      ticket_priority: ["low", "medium", "high", "urgent"],
-      ticket_status: [
-        "open",
-        "in_progress",
-        "awaiting_response",
-        "resolved",
-        "closed",
-        "pending_acknowledgment",
-        "awaiting_payment",
-        "on_hold",
-      ],
     },
   },
 } as const
