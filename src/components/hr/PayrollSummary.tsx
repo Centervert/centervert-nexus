@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Calendar, DollarSign } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { TrendingUp, TrendingDown, Calendar, AlertTriangle } from 'lucide-react';
 import { addMonths, format, isSameMonth, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 
 interface Employee {
@@ -104,115 +105,86 @@ export const PayrollSummary = () => {
 
   const today = new Date();
   const months = [
-    today,
     addMonths(today, 1),
-    addMonths(today, 2)
+    addMonths(today, 2),
+    addMonths(today, 3)
   ];
 
   const currentMonthPayroll = calculateMonthlyPayroll(today);
-  const monthlyData = months.map(month => ({
-    month,
-    payroll: calculateMonthlyPayroll(month),
-    raises: getRaisesInMonth(month),
-  }));
+  
+  // Only get months that have actual changes
+  const upcomingChanges = months
+    .map(month => ({
+      month,
+      payroll: calculateMonthlyPayroll(month),
+      raises: getRaisesInMonth(month),
+    }))
+    .map((data, index) => {
+      const previousPayroll = index === 0 ? currentMonthPayroll : calculateMonthlyPayroll(addMonths(data.month, -1));
+      const change = data.payroll - previousPayroll;
+      return { ...data, change, previousPayroll };
+    })
+    .filter(data => data.raises.length > 0); // Only show months with raises
+
+  // If no upcoming changes, don't render anything
+  if (upcomingChanges.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Current Month Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Current Monthly Payroll
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold">
-            ${currentMonthPayroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {employees.length} active {employees.length === 1 ? 'employee' : 'employees'}
-          </p>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      {upcomingChanges.map(({ month, payroll, raises: monthRaises, change, previousPayroll }) => {
+        const percentChange = previousPayroll > 0 ? (change / previousPayroll) * 100 : 0;
+        const isIncrease = change > 0;
 
-      {/* 90-Day Timeline */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            90-Day Payroll Forecast
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {monthlyData.map(({ month, payroll, raises: monthRaises }, index) => {
-              const isCurrentMonth = isSameMonth(month, today);
-              const previousPayroll = index > 0 ? monthlyData[index - 1].payroll : currentMonthPayroll;
-              const change = payroll - previousPayroll;
-              const percentChange = previousPayroll > 0 ? (change / previousPayroll) * 100 : 0;
-              const hasChanges = monthRaises.length > 0;
-
-              return (
-                <div key={index} className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h4 className="font-semibold">
-                        {format(month, 'MMMM yyyy')}
-                      </h4>
-                      {isCurrentMonth && (
-                        <Badge variant="outline" className="text-xs">Current</Badge>
-                      )}
-                      {hasChanges && (
-                        <Badge variant="secondary" className="text-xs">
-                          {monthRaises.length} {monthRaises.length === 1 ? 'raise' : 'raises'}
-                        </Badge>
-                      )}
+        return (
+          <Alert key={month.toISOString()} className={`border-2 ${isIncrease ? 'border-orange-500 bg-orange-50' : 'border-green-500 bg-green-50'}`}>
+            <AlertTriangle className={`h-5 w-5 ${isIncrease ? 'text-orange-600' : 'text-green-600'}`} />
+            <AlertTitle className="flex items-center gap-2 text-base">
+              <span className="font-semibold">
+                {isIncrease ? 'Payroll Increase Detected' : 'Payroll Decrease Detected'}
+              </span>
+              <Badge variant="outline" className={`${isIncrease ? 'bg-orange-100 text-orange-800 border-orange-300' : 'bg-green-100 text-green-800 border-green-300'}`}>
+                {format(month, 'MMMM yyyy')}
+              </Badge>
+            </AlertTitle>
+            <AlertDescription className="mt-2 space-y-2">
+              <div className="flex items-center gap-3">
+                {isIncrease ? (
+                  <TrendingUp className="h-5 w-5 text-orange-600" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-green-600" />
+                )}
+                <span className={`text-lg font-semibold ${isIncrease ? 'text-orange-900' : 'text-green-900'}`}>
+                  {isIncrease ? '+' : '-'}${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} 
+                  <span className="text-base font-normal ml-1">
+                    ({percentChange > 0 ? '+' : ''}{percentChange.toFixed(1)}%)
+                  </span>
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  New monthly payroll: ${payroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              
+              <div className="text-sm space-y-1 mt-3">
+                <p className="font-medium text-foreground">Affected employees:</p>
+                {monthRaises.map((raise) => {
+                  const employee = employees.find(e => e.id === raise.employee_id);
+                  return (
+                    <div key={raise.id} className="flex items-center gap-2 text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name}
+                        {raise.status === 'pending' && <span className="text-yellow-600 font-medium"> (pending approval)</span>}
+                      </span>
                     </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="text-2xl font-bold">
-                        ${payroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </div>
-                      
-                      {!isCurrentMonth && change !== 0 && (
-                        <div className={`flex items-center gap-1 text-sm ${change > 0 ? 'text-orange-600' : 'text-green-600'}`}>
-                          {change > 0 ? (
-                            <TrendingUp className="h-4 w-4" />
-                          ) : (
-                            <TrendingDown className="h-4 w-4" />
-                          )}
-                          <span className="font-medium">
-                            ${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            ({percentChange > 0 ? '+' : ''}{percentChange.toFixed(1)}%)
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {monthRaises.length > 0 && (
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        {monthRaises.map((raise) => {
-                          const employee = employees.find(e => e.id === raise.employee_id);
-                          return (
-                            <div key={raise.id} className="flex items-center gap-2">
-                              <Calendar className="h-3 w-3" />
-                              <span>
-                                {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name}
-                                {raise.status === 'pending' && <span className="text-yellow-600"> (pending approval)</span>}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                  );
+                })}
+              </div>
+            </AlertDescription>
+          </Alert>
+        );
+      })}
     </div>
   );
 };
