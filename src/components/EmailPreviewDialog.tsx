@@ -25,7 +25,7 @@ interface EmailPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialEmail?: string;
-  initialRole?: 'admin' | 'agent';
+  initialRole?: 'admin' | 'agent' | 'sales_agent';
 }
 
 export const EmailPreviewDialog = ({ 
@@ -35,7 +35,7 @@ export const EmailPreviewDialog = ({
   initialRole = 'agent'
 }: EmailPreviewDialogProps) => {
   const [previewEmail, setPreviewEmail] = useState(initialEmail);
-  const [previewRole, setPreviewRole] = useState<'admin' | 'agent'>(initialRole);
+  const [previewRole, setPreviewRole] = useState<'admin' | 'agent' | 'sales_agent'>(initialRole);
   const [shouldFetch, setShouldFetch] = useState(false);
   const { toast } = useToast();
 
@@ -108,12 +108,13 @@ export const EmailPreviewDialog = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="preview-role">Role</Label>
-              <Select value={previewRole} onValueChange={(value: 'admin' | 'agent') => setPreviewRole(value)}>
+              <Select value={previewRole} onValueChange={(value: 'admin' | 'agent' | 'sales_agent') => setPreviewRole(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="sales_agent">Sales Agent</SelectItem>
                   <SelectItem value="agent">Team Member</SelectItem>
                 </SelectContent>
               </Select>

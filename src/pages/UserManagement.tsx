@@ -42,7 +42,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { UserPlus, Mail, X, RefreshCw, Loader2, Users, Shield, Eye } from 'lucide-react';
+import { UserPlus, Mail, X, RefreshCw, Loader2, Users, Shield, Eye, Briefcase } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { EmailPreviewDialog } from '@/components/EmailPreviewDialog';
 
@@ -70,7 +70,7 @@ const UserManagement = () => {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'admin' | 'agent'>('agent');
+  const [inviteRole, setInviteRole] = useState<'admin' | 'agent' | 'sales_agent'>('agent');
   const [userToToggle, setUserToToggle] = useState<{ id: string; name: string; currentStatus: boolean } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -101,7 +101,7 @@ const UserManagement = () => {
 
   // Update user role mutation
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin' | 'agent' }) => {
+    mutationFn: async ({ userId, newRole }: { userId: string; newRole: 'admin' | 'agent' | 'sales_agent' }) => {
       // Delete existing role
       const { error: deleteError } = await supabase
         .from('user_roles')
@@ -113,7 +113,7 @@ const UserManagement = () => {
       // Insert new role
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role: newRole });
+        .insert({ user_id: userId, role: newRole as any });
       
       if (insertError) throw insertError;
     },
@@ -162,7 +162,7 @@ const UserManagement = () => {
 
   // Send invitation mutation
   const sendInviteMutation = useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: 'admin' | 'agent' }) => {
+    mutationFn: async ({ email, role }: { email: string; role: 'admin' | 'agent' | 'sales_agent' }) => {
       // Generate invitation token
       const token = crypto.randomUUID();
       const expiresAt = new Date();
@@ -176,7 +176,7 @@ const UserManagement = () => {
         .from('invitations')
         .insert({
           email,
-          role,
+          role: role as any,
           token,
           expires_at: expiresAt.toISOString(),
           invited_by: user.id,
@@ -298,12 +298,14 @@ const UserManagement = () => {
 
   const getRoleLabel = (roles: string[]) => {
     if (roles.includes('admin')) return 'Admin';
+    if (roles.includes('sales_agent')) return 'Sales Agent';
     if (roles.includes('agent')) return 'Team Member';
     return 'User';
   };
 
   const getRoleDescription = (role: string) => {
     if (role === 'admin') return 'Full system access to all features and settings';
+    if (role === 'sales_agent') return 'Access to CRM features: Contacts, Organizations, and Opportunities';
     if (role === 'agent') return 'Access to Dashboard, Companies, and Contacts';
     return '';
   };
@@ -361,7 +363,7 @@ const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">Role</Label>
-                <Select value={inviteRole} onValueChange={(value: 'admin' | 'agent') => setInviteRole(value)}>
+                <Select value={inviteRole} onValueChange={(value: 'admin' | 'agent' | 'sales_agent') => setInviteRole(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -374,6 +376,17 @@ const UserManagement = () => {
                         </div>
                         <span className="text-xs text-muted-foreground">
                           {getRoleDescription('admin')}
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="sales_agent">
+                      <div className="flex flex-col items-start">
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="h-4 w-4" />
+                          <span className="font-medium">Sales Agent</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {getRoleDescription('sales_agent')}
                         </span>
                       </div>
                     </SelectItem>
@@ -456,7 +469,7 @@ const UserManagement = () => {
                     <TableCell>
                       <Select
                         value={user.roles[0]}
-                        onValueChange={(value: 'admin' | 'agent') =>
+                        onValueChange={(value: 'admin' | 'agent' | 'sales_agent') =>
                           updateRoleMutation.mutate({ userId: user.id, newRole: value })
                         }
                         disabled={updateRoleMutation.isPending}
@@ -469,6 +482,12 @@ const UserManagement = () => {
                             <div className="flex items-center gap-2">
                               <Shield className="h-4 w-4" />
                               Admin
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="sales_agent">
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4" />
+                              Sales Agent
                             </div>
                           </SelectItem>
                           <SelectItem value="agent">
