@@ -212,20 +212,6 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Welcome Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome to Your Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {isClient 
-                ? "View your billing information and account details all in one place."
-                : "Manage companies, contacts, and opportunities from your unified workspace."
-              }
-            </p>
-          </CardContent>
-        </Card>
       </div>
     </UnifiedLayout>
   );
