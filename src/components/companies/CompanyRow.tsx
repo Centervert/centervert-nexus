@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, Mail, Phone, Globe, Check, X } from "lucide-react";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
+import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
 
 interface Company {
   id: string;
@@ -29,6 +30,7 @@ interface Company {
   address: string | null;
   notes: string | null;
   is_active: boolean | null;
+  billcom_customer_id: string | null;
 }
 
 interface CompanyRowProps {
@@ -166,6 +168,12 @@ export function CompanyRow({ company }: CompanyRowProps) {
             />
           </TableCell>
           <TableCell>
+            <BillComStatusBadge 
+              billcomCustomerId={company.billcom_customer_id}
+              billingEmail={company.billing_email}
+            />
+          </TableCell>
+          <TableCell>
             <Badge variant={company.is_active ? "default" : "secondary"}>
               {company.is_active ? "Active" : "Inactive"}
             </Badge>
@@ -228,6 +236,12 @@ export function CompanyRow({ company }: CompanyRowProps) {
               Visit
             </a>
           )}
+        </TableCell>
+        <TableCell>
+          <BillComStatusBadge 
+            billcomCustomerId={company.billcom_customer_id}
+            billingEmail={company.billing_email}
+          />
         </TableCell>
         <TableCell>
           <Badge variant={company.is_active ? "default" : "secondary"}>

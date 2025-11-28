@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
         (c: any) => c.email?.toLowerCase() === org.billing_email?.toLowerCase()
       );
 
-      if (matchedCustomer) {
+  if (matchedCustomer) {
         const { error: updateError } = await supabase
           .from('organizations')
           .update({ 
@@ -66,6 +66,18 @@ Deno.serve(async (req) => {
         } else {
           console.log(`✓ Linked ${org.name} to Bill.com customer ${matchedCustomer.name}`);
           linkedCount++;
+          
+          // Create activity log
+          await supabase.rpc('create_billcom_sync_log', {
+            p_organization_id: org.id,
+            p_activity_type: 'customer_linked',
+            p_message: `Linked to Bill.com customer: ${matchedCustomer.name}`,
+            p_metadata: {
+              billcom_customer_id: matchedCustomer.id,
+              customer_name: matchedCustomer.name,
+              matched_by: 'email',
+            },
+          });
         }
       } else {
         console.log(`No Bill.com customer found for ${org.name} (${org.billing_email})`);

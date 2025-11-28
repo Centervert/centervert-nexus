@@ -91,9 +91,38 @@ Deno.serve(async (req) => {
           syncedCount: orgSyncedCount,
         });
 
+        // Create activity log for successful sync
+        if (orgSyncedCount > 0) {
+          await supabase.rpc('create_billcom_sync_log', {
+            p_organization_id: org.id,
+            p_activity_type: 'sync_completed',
+            p_message: `Synced ${orgSyncedCount} invoice${orgSyncedCount !== 1 ? 's' : ''} from Bill.com`,
+            p_metadata: {
+              invoice_count: orgSyncedCount,
+              billcom_customer_id: org.billcom_customer_id,
+            },
+          });
+        }
+
         console.log(`✓ Synced ${orgSyncedCount} invoices for ${org.name}`);
       } catch (error) {
         console.error(`Error syncing ${org.name}:`, error);
+        
+        // Create activity log for failed sync
+        const { error: logError } = await supabase.rpc('create_billcom_sync_log', {
+          p_organization_id: org.id,
+          p_activity_type: 'sync_failed',
+          p_message: `Failed to sync invoices: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          p_metadata: {
+            error: error instanceof Error ? error.message : 'Unknown error',
+            billcom_customer_id: org.billcom_customer_id,
+          },
+        });
+        
+        if (logError) {
+          console.error('Error creating log:', logError);
+        }
+        
         results.push({
           organization: org.name,
           error: error instanceof Error ? error.message : 'Unknown error',
@@ -294,6 +323,22 @@ async function findOrganizationForInvoice(
           updated_at: new Date().toISOString(),
         })
         .eq('id', orgByEmail.id);
+      
+      // Create activity log for auto-link
+      const { error: logError } = await supabase.rpc('create_billcom_sync_log', {
+        p_organization_id: orgByEmail.id,
+        p_activity_type: 'customer_auto_linked',
+        p_message: `Auto-linked to Bill.com customer via email match`,
+        p_metadata: {
+          billcom_customer_id: customerId,
+          customer_email: customer.email,
+          matched_by: 'email',
+        },
+      });
+      
+      if (logError) {
+        console.error('Error creating log:', logError);
+      }
     }
     
     return orgByEmail.id;
