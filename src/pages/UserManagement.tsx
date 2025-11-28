@@ -326,10 +326,10 @@ const UserManagement = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
             <Users className="h-8 w-8" />
-            User Management
+            Team Management
           </h1>
           <p className="text-muted-foreground">
-            Manage team members, assign roles, and send invitations
+            Manage your internal team members and their roles
           </p>
         </div>
 

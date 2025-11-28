@@ -49,7 +49,7 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
-  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing';
+  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing' || location.pathname === '/users';
 
   // Navigation items based on role
   const navigation = [
@@ -58,12 +58,6 @@ const UnifiedSidebar = () => {
       href: '/dashboard',
       icon: LayoutDashboard,
       show: true,
-    },
-    {
-      name: 'Users',
-      href: '/users',
-      icon: UserSquare2,
-      show: isAdmin, // Admin only
     },
   ].filter(item => item.show);
 
@@ -95,6 +89,11 @@ const UnifiedSidebar = () => {
       name: 'Billing',
       href: '/billing',
       icon: Receipt,
+    },
+    {
+      name: 'Team',
+      href: '/users',
+      icon: Users,
     },
   ];
 
@@ -334,42 +333,6 @@ const UnifiedSidebar = () => {
                   </SidebarMenuItem>
                 </Collapsible>
               )}
-
-              {/* Users */}
-              {navigation[1] && (() => {
-                const item = navigation[1];
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => navigate(item.href)}
-                      className={`
-                        relative overflow-hidden select-none
-                        text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                        transition-all duration-normal ease-smooth
-                        hover:shadow-lg hover:scale-[1.02]
-                        ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
-                        ${isCollapsed ? 'justify-center' : ''}
-                        group
-                      `}
-                      tooltip={isCollapsed ? item.name : undefined}
-                    >
-                      <Icon className={`
-                        h-5 w-5 transition-all duration-normal ease-smooth
-                        hover:scale-110
-                        ${isActive ? 'rotate-6' : ''}
-                      `} />
-                      {!isCollapsed && (
-                        <span className="transition-all duration-fast ease-smooth">
-                          {item.name}
-                        </span>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })()}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
