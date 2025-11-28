@@ -114,7 +114,8 @@ export const PayrollSummary = () => {
   const months = [
     addMonths(today, 1),
     addMonths(today, 2),
-    addMonths(today, 3)
+    addMonths(today, 3),
+    addMonths(today, 4) // Extended to match query range
   ];
 
   const currentMonthPayroll = calculateMonthlyPayroll(today);
