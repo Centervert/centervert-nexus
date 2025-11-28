@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,9 @@ import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
+
+type SortField = 'name' | 'position' | 'country' | 'salary' | 'start_date';
+type SortDirection = 'asc' | 'desc' | null;
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -41,6 +44,71 @@ export const EmployeeTable = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Cycle through: asc -> desc -> null
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortedEmployees = () => {
+    if (!sortField || !sortDirection) return employees;
+
+    return [...employees].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortField) {
+        case 'name':
+          aValue = `${a.first_name} ${a.last_name}`.toLowerCase();
+          bValue = `${b.first_name} ${b.last_name}`.toLowerCase();
+          break;
+        case 'position':
+          aValue = a.position.toLowerCase();
+          bValue = b.position.toLowerCase();
+          break;
+        case 'country':
+          aValue = a.country.toLowerCase();
+          bValue = b.country.toLowerCase();
+          break;
+        case 'salary':
+          aValue = Number(a.salary_amount);
+          bValue = Number(b.salary_amount);
+          break;
+        case 'start_date':
+          aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
+          bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+    }
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="ml-2 h-4 w-4" />;
+    }
+    return <ArrowDown className="ml-2 h-4 w-4" />;
+  };
 
   const handleDeleteClick = (employee: Employee) => {
     setEmployeeToDelete(employee);
@@ -96,17 +164,57 @@ export const EmployeeTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Position</TableHead>
-            <TableHead>Country</TableHead>
-            <TableHead>Salary</TableHead>
-            <TableHead>Start Date</TableHead>
+            <TableHead 
+              className="cursor-pointer select-none hover:bg-muted/50"
+              onClick={() => handleSort('name')}
+            >
+              <div className="flex items-center">
+                Name
+                <SortIcon field="name" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer select-none hover:bg-muted/50"
+              onClick={() => handleSort('position')}
+            >
+              <div className="flex items-center">
+                Position
+                <SortIcon field="position" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer select-none hover:bg-muted/50"
+              onClick={() => handleSort('country')}
+            >
+              <div className="flex items-center">
+                Country
+                <SortIcon field="country" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer select-none hover:bg-muted/50"
+              onClick={() => handleSort('salary')}
+            >
+              <div className="flex items-center">
+                Salary
+                <SortIcon field="salary" />
+              </div>
+            </TableHead>
+            <TableHead 
+              className="cursor-pointer select-none hover:bg-muted/50"
+              onClick={() => handleSort('start_date')}
+            >
+              <div className="flex items-center">
+                Start Date
+                <SortIcon field="start_date" />
+              </div>
+            </TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {employees.map((employee) => (
+          {getSortedEmployees().map((employee) => (
             <TableRow key={employee.id}>
               <TableCell className="font-medium">
                 {employee.first_name} {employee.last_name}
