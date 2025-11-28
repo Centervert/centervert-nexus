@@ -85,32 +85,66 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess }: Opportunity
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [contactsRes, orgsRes, managersRes, sessionRes] = await Promise.all([
-        supabase.from("contacts").select("id, first_name, last_name"),
-        supabase.from("organizations").select("id, name"),
-        supabase.rpc("get_users_with_roles"),
-        supabase.auth.getSession(),
-      ]);
+      console.log("Loading opportunity form data...");
 
-      if (contactsRes.data) setContacts(contactsRes.data);
-      if (orgsRes.data) setOrganizations(orgsRes.data);
+      // Load contacts
+      const { data: contactsData, error: contactsError } = await supabase
+        .from("contacts")
+        .select("id, first_name, last_name")
+        .order("first_name");
+      
+      if (contactsError) {
+        console.error("Error loading contacts:", contactsError);
+        throw contactsError;
+      }
+      console.log("Loaded contacts:", contactsData);
+      setContacts(contactsData || []);
+
+      // Load organizations
+      const { data: orgsData, error: orgsError } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .order("name");
+      
+      if (orgsError) {
+        console.error("Error loading organizations:", orgsError);
+        throw orgsError;
+      }
+      console.log("Loaded organizations:", orgsData);
+      setOrganizations(orgsData || []);
+
+      // Load managers using RPC
+      const { data: managersData, error: managersError } = await supabase
+        .rpc("get_users_with_roles");
+      
+      if (managersError) {
+        console.error("Error loading managers:", managersError);
+        throw managersError;
+      }
+      console.log("Loaded managers (raw):", managersData);
       
       // Filter to only admin and agent users
-      if (managersRes.data) {
-        const eligibleManagers = managersRes.data.filter((user: any) => 
-          user.roles?.some((role: string) => role === 'admin' || role === 'agent')
-        );
-        setManagers(eligibleManagers);
-      }
+      const eligibleManagers = managersData?.filter((user: any) => 
+        user.roles?.some((role: string) => role === 'admin' || role === 'agent')
+      ) || [];
+      
+      console.log("Eligible managers after filtering:", eligibleManagers);
+      setManagers(eligibleManagers);
 
       // Set current user as default manager
-      if (sessionRes.data?.session?.user) {
-        form.setValue("owner_id", sessionRes.data.session.user.id);
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session?.user) {
+        const userId = sessionData.session.user.id;
+        console.log("Setting default manager to current user:", userId);
+        form.setValue("owner_id", userId);
       }
+
+      console.log("Form data loaded successfully");
     } catch (error: any) {
+      console.error("Failed to load form data:", error);
       toast({
         title: "Error",
-        description: "Failed to load form data. Please try again.",
+        description: `Failed to load form data: ${error.message}`,
         variant: "destructive",
       });
     } finally {
