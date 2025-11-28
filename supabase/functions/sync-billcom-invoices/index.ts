@@ -20,41 +20,93 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { organization_id } = await req.json();
+    const body = await req.json();
+    const organizationId = body?.organization_id;
 
-    // Get organization
-    const { data: org, error: orgError } = await supabase
-      .from('organizations')
-      .select('*')
-      .eq('id', organization_id)
-      .single();
+    let organizations: any[] = [];
 
-    if (orgError || !org) {
-      throw new Error('Organization not found');
+    if (organizationId) {
+      // Sync specific organization
+      const { data: org, error: orgError } = await supabase
+        .from('organizations')
+        .select('*')
+        .eq('id', organizationId)
+        .single();
+
+      if (orgError || !org) {
+        throw new Error('Organization not found');
+      }
+
+      if (!org.billcom_customer_id) {
+        throw new Error('Organization not linked to Bill.com customer');
+      }
+
+      organizations = [org];
+    } else {
+      // Sync ALL organizations with Bill.com customer IDs
+      const { data: orgs, error: orgsError } = await supabase
+        .from('organizations')
+        .select('*')
+        .not('billcom_customer_id', 'is', null);
+
+      if (orgsError) throw orgsError;
+      organizations = orgs || [];
+      
+      console.log(`Found ${organizations.length} organizations with Bill.com customer IDs`);
     }
 
-    if (!org.billcom_customer_id) {
-      throw new Error('Organization not linked to Bill.com customer');
+    if (organizations.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          syncedCount: 0,
+          message: 'No organizations linked to Bill.com customers'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Get Bill.com session
+    // Get Bill.com session once for all organizations
     const session = await getBillComSession();
 
-    // Fetch invoices from Bill.com
-    const invoices = await fetchBillComInvoices(session, org.billcom_customer_id);
+    let totalSyncedCount = 0;
+    const results: any[] = [];
 
-    // Sync each invoice to local database
-    let syncedCount = 0;
-    for (const invoice of invoices) {
-      await syncInvoice(supabase, org.id, invoice);
-      syncedCount++;
+    // Sync invoices for each organization
+    for (const org of organizations) {
+      try {
+        console.log(`Syncing invoices for ${org.name} (${org.billcom_customer_id})`);
+        
+        const invoices = await fetchBillComInvoices(session, org.billcom_customer_id);
+        
+        let orgSyncedCount = 0;
+        for (const invoice of invoices) {
+          await syncInvoice(supabase, org.id, invoice);
+          orgSyncedCount++;
+        }
+
+        totalSyncedCount += orgSyncedCount;
+        results.push({
+          organization: org.name,
+          syncedCount: orgSyncedCount,
+        });
+
+        console.log(`✓ Synced ${orgSyncedCount} invoices for ${org.name}`);
+      } catch (error) {
+        console.error(`Error syncing ${org.name}:`, error);
+        results.push({
+          organization: org.name,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        syncedCount,
-        organization: org.name 
+        totalSyncedCount,
+        organizationsProcessed: organizations.length,
+        results,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
