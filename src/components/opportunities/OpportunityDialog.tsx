@@ -173,9 +173,9 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
       }
       console.log("Loaded managers (raw):", managersData);
       
-      // Filter to only admin and agent users
+      // Filter to only admin, agent, and sales agent users
       const eligibleManagers = managersData?.filter((user: any) => 
-        user.roles?.some((role: string) => role === 'admin' || role === 'agent')
+        user.roles?.some((role: string) => role === 'admin' || role === 'agent' || role === 'sales_agent')
       ) || [];
       
       console.log("Eligible managers after filtering:", eligibleManagers);
