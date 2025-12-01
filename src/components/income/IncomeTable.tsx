@@ -144,10 +144,10 @@ export function IncomeTable({ income, isLoading, onEdit, onRefetch, searchQuery,
               <TableCell>{inc.type}</TableCell>
               <TableCell>
                 <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  className={`text-sm font-medium ${
                     inc.status === 'verified'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                      : 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-orange-600 dark:text-orange-400'
                   }`}
                 >
                   {inc.status === 'verified' ? 'Verified' : 'Projected'}
