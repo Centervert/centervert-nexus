@@ -39,7 +39,6 @@ export function IncomeDialog({ open, onOpenChange, income, onSuccess }: IncomeDi
       status: 'projected',
       amount: 0,
       frequency: 'monthly',
-      is_active: true,
       projected_start_date: '',
       end_date: '',
       notes: '',
@@ -85,7 +84,6 @@ export function IncomeDialog({ open, onOpenChange, income, onSuccess }: IncomeDi
       setValue('status', income.status);
       setValue('amount', income.amount);
       setValue('frequency', income.frequency);
-      setValue('is_active', income.is_active ?? true);
       setValue('projected_start_date', income.projected_start_date || '');
       setValue('end_date', income.end_date || '');
       setValue('notes', income.notes || '');
@@ -257,17 +255,6 @@ export function IncomeDialog({ open, onOpenChange, income, onSuccess }: IncomeDi
               />
             </div>
 
-            <div className="space-y-2 flex items-end">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_active"
-                  {...register('is_active')}
-                  className="h-4 w-4"
-                />
-                <Label htmlFor="is_active">Active income source</Label>
-              </div>
-            </div>
           </div>
 
           <div className="space-y-2">
