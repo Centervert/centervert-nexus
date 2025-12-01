@@ -91,7 +91,7 @@ const UnifiedSidebar = () => {
       icon: UserSquare2,
     },
     {
-      name: 'Expense Tracking',
+      name: 'Finance Tracking',
       href: '/expenses',
       icon: Receipt,
     },
