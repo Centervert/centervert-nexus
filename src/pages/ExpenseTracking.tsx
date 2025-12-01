@@ -428,7 +428,6 @@ const ExpenseTracking = () => {
                 <IncomeTable
                   income={incomeList}
                   isLoading={incomeLoading}
-                  onEdit={handleEditIncome}
                   onRefetch={refetchIncome}
                   searchQuery={incomeSearchQuery}
                   statusFilter={statusFilter}
