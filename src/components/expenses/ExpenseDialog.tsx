@@ -46,6 +46,7 @@ interface ExpenseDialogProps {
 
 export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: ExpenseDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [amountDisplay, setAmountDisplay] = useState('');
   const { register, handleSubmit, setValue, watch, reset } = useForm<ExpenseInsert>({
     defaultValues: {
       name: '',
@@ -60,6 +61,34 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
 
   const frequency = watch('frequency');
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9.]/g, '');
+    const numValue = parseFloat(value) || 0;
+    setValue('amount', numValue);
+    setAmountDisplay(value);
+  };
+
+  const handleAmountBlur = () => {
+    const amount = watch('amount');
+    if (amount > 0) {
+      setAmountDisplay(formatCurrency(amount));
+    }
+  };
+
+  const handleAmountFocus = () => {
+    const amount = watch('amount');
+    if (amount > 0) {
+      setAmountDisplay(amount.toString());
+    }
+  };
+
   useEffect(() => {
     if (expense) {
       setValue('name', expense.name);
@@ -71,8 +100,10 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
       setValue('end_date', expense.end_date || '');
       setValue('vendor', expense.vendor || '');
       setValue('notes', expense.notes || '');
+      setAmountDisplay(formatCurrency(expense.amount));
     } else {
       reset();
+      setAmountDisplay('');
     }
   }, [expense, setValue, reset]);
 
@@ -149,13 +180,21 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="amount">Amount *</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                {...register('amount', { required: true, valueAsNumber: true })}
-                placeholder="0.00"
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  $
+                </span>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={amountDisplay}
+                  onChange={handleAmountChange}
+                  onBlur={handleAmountBlur}
+                  onFocus={handleAmountFocus}
+                  placeholder="0.00"
+                  className="pl-7"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
