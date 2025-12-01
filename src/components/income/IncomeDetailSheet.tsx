@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Income } from './IncomeTable';
 import { IncomeAssociatedCosts } from './IncomeAssociatedCosts';
 import { IncomeEmployeeCosts } from './IncomeEmployeeCosts';
-import { CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,27 +49,13 @@ export function IncomeDetailSheet({ income, open, onOpenChange, onUpdate }: Inco
     });
   };
 
-  const handleStatusToggle = async () => {
-    if (!income) return;
-    try {
-      const { error } = await supabase
-        .from('income' as any)
-        .update({ is_active: !income.is_active })
-        .eq('id', income.id);
-
-      if (error) throw error;
-      onUpdate();
-    } catch (error) {
-      console.error('Error toggling income status:', error);
-    }
-  };
-
   const handleDelete = async () => {
     if (!income) return;
     try {
+      // Soft delete by setting deleted_at timestamp
       const { error } = await supabase
         .from('income' as any)
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', income.id);
 
       if (error) throw error;
@@ -127,23 +113,6 @@ export function IncomeDetailSheet({ income, open, onOpenChange, onUpdate }: Inco
                   <p className="text-xs text-muted-foreground">End Date</p>
                   <p className="text-sm">{formatDate(income.end_date)}</p>
                 </div>
-              </div>
-              
-              <div 
-                className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity pt-2"
-                onClick={handleStatusToggle}
-              >
-                {income.is_active ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Active</span>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Inactive</span>
-                  </>
-                )}
               </div>
 
               {income.notes && (

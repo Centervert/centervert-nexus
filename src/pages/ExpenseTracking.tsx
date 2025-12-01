@@ -50,7 +50,7 @@ const ExpenseTracking = () => {
   const [incomeDetailOpen, setIncomeDetailOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'verified' | 'projected'>('all');
   const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
-
+  const [showDeletedIncome, setShowDeletedIncome] = useState(false);
   // Fetch expenses
   const { data: expenses = [], isLoading: expensesLoading, refetch: refetchExpenses } = useQuery({
     queryKey: ['expenses', categoryFilter],
@@ -143,8 +143,8 @@ const ExpenseTracking = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  // Income calculations
-  const activeIncome = incomeList.filter(i => i.is_active);
+  // Income calculations - exclude deleted items
+  const activeIncome = incomeList.filter(i => !i.deleted_at);
   const verifiedIncome = activeIncome.filter(i => i.status === 'verified');
   const projectedIncome = activeIncome.filter(i => i.status === 'projected');
   
@@ -321,27 +321,38 @@ const ExpenseTracking = () => {
           {/* Income Tab */}
           <TabsContent value="income" className="space-y-6">
             {/* Income Controls */}
-            <div className="flex justify-between items-center">
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Income</SelectItem>
-                  <SelectItem value="verified">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500" />
-                      Verified Only
-                    </span>
-                  </SelectItem>
-                  <SelectItem value="projected">
-                    <span className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-orange-500" />
-                      Projected Only
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex justify-between items-center gap-4">
+              <div className="flex items-center gap-4">
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Income</SelectItem>
+                    <SelectItem value="verified">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-green-500" />
+                        Verified Only
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="projected">
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-orange-500" />
+                        Projected Only
+                      </span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showDeletedIncome}
+                    onChange={(e) => setShowDeletedIncome(e.target.checked)}
+                    className="h-4 w-4 rounded border-muted-foreground"
+                  />
+                  <span className="text-muted-foreground">Show deleted</span>
+                </label>
+              </div>
               <Button onClick={() => setIncomeDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Income
@@ -433,6 +444,7 @@ const ExpenseTracking = () => {
                   onRefetch={refetchIncome}
                   searchQuery={incomeSearchQuery}
                   statusFilter={statusFilter}
+                  showDeleted={showDeletedIncome}
                   onSelectIncome={(income) => {
                     setSelectedIncome(income);
                     setIncomeDetailOpen(true);

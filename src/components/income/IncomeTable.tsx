@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,7 @@ export type Income = {
   projected_start_date?: string | null;
   end_date?: string | null;
   notes?: string | null;
-  is_active: boolean;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
   created_by?: string | null;
@@ -46,19 +46,21 @@ interface IncomeTableProps {
   onRefetch: () => void;
   searchQuery: string;
   statusFilter: 'all' | 'verified' | 'projected';
+  showDeleted: boolean;
   onSelectIncome: (income: Income) => void;
 }
 
-export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusFilter, onSelectIncome }: IncomeTableProps) {
+export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusFilter, showDeleted, onSelectIncome }: IncomeTableProps) {
   const [deleteIncome, setDeleteIncome] = useState<Income | null>(null);
 
   const handleDelete = async () => {
     if (!deleteIncome) return;
 
     try {
+      // Soft delete by setting deleted_at timestamp
       const { error } = await supabase
         .from('income' as any)
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('id', deleteIncome.id);
 
       if (error) throw error;
@@ -78,22 +80,11 @@ export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusF
     
     const matchesStatus = statusFilter === 'all' || inc.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    // Filter by deleted status
+    const matchesDeleted = showDeleted ? inc.deleted_at !== null : inc.deleted_at === null;
+    
+    return matchesSearch && matchesStatus && matchesDeleted;
   });
-
-  const handleStatusToggle = async (inc: Income) => {
-    try {
-      const { error } = await supabase
-        .from('income' as any)
-        .update({ is_active: !inc.is_active })
-        .eq('id', inc.id);
-
-      if (error) throw error;
-      onRefetch();
-    } catch (error) {
-      console.error('Error toggling income status:', error);
-    }
-  };
 
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
@@ -129,7 +120,6 @@ export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusF
             <TableHead>Amount</TableHead>
             <TableHead>Frequency</TableHead>
             <TableHead>Start Date</TableHead>
-            <TableHead>Active</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -180,29 +170,14 @@ export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusF
                 />
               </TableCell>
               <TableCell>{formatDate(inc.projected_start_date)}</TableCell>
-              <TableCell>
-                <div 
-                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => handleStatusToggle(inc)}
-                >
-                  {inc.is_active ? (
-                    <>
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Active</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Inactive</span>
-                    </>
-                  )}
-                </div>
-              </TableCell>
               <TableCell className="text-right">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setDeleteIncome(inc)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteIncome(inc);
+                  }}
                   title="Delete income"
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
