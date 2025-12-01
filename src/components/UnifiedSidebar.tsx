@@ -50,7 +50,7 @@ const UnifiedSidebar = () => {
   const isSalesAgent = userRole?.isSalesAgent || false;
 
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
-  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/billing' || location.pathname === '/users';
+  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
   // Sales agents have CRM access but not Back Office
   const showCrm = isAdmin || isAgent || isSalesAgent;
@@ -89,6 +89,11 @@ const UnifiedSidebar = () => {
       name: 'Human Resources',
       href: '/hr',
       icon: UserSquare2,
+    },
+    {
+      name: 'Expense Tracking',
+      href: '/expenses',
+      icon: Receipt,
     },
     {
       name: 'Billing',

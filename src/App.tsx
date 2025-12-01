@@ -15,6 +15,7 @@ import OpportunityDetail from "./pages/OpportunityDetail";
 import Billing from "@/pages/Billing";
 import UserManagement from "@/pages/UserManagement";
 import HumanResources from "@/pages/HumanResources";
+import ExpenseTracking from "@/pages/ExpenseTracking";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -118,6 +119,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <HumanResources />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/expenses"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <ExpenseTracking />
                   </ProtectedRoute>
                 }
               />
