@@ -64,8 +64,9 @@ const ExpenseTracking = () => {
   // Calculate expense totals
   const calculateAnnualExpense = (expense: Expense) => {
     const amount = Number(expense.amount);
+    const frequency = expense.frequency?.toLowerCase();
     
-    switch (expense.frequency) {
+    switch (frequency) {
       case 'weekly':
         return amount * 52;
       case 'monthly':
