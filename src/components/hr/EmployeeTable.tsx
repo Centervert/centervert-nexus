@@ -7,10 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
-import { format, isFuture, parseISO } from 'date-fns';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
 
@@ -199,15 +197,9 @@ export const EmployeeTable = ({
             <TableCell>{employee.position}</TableCell>
             <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
             <TableCell>
-              {employee.start_date && isFuture(parseISO(employee.start_date)) ? (
-                <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                  Starts {format(parseISO(employee.start_date), 'M/d')}
-                </Badge>
-              ) : (
-                <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
-                  {employee.is_active ? 'Active' : 'Inactive'}
-                </span>
-              )}
+              <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
+                {employee.is_active ? 'Active' : 'Inactive'}
+              </span>
             </TableCell>
             <TableCell>
               <span className={`inline-flex items-center gap-1 ${
