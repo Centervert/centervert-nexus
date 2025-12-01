@@ -20,6 +20,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { EditableCell } from './EditableCell';
+import { EditableSelectCell } from './EditableSelectCell';
+import { EditableCurrencyCell } from './EditableCurrencyCell';
 // Temporary type until DB types are regenerated
 type Expense = {
   id: string;
@@ -73,15 +76,18 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
     expense.vendor?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
+  const handleStatusToggle = async (expense: Expense) => {
+    try {
+      const { error } = await supabase
+        .from('expenses' as any)
+        .update({ is_active: !expense.is_active })
+        .eq('id', expense.id);
 
-  const formatFrequency = (frequency: string) => {
-    return frequency.charAt(0).toUpperCase() + frequency.slice(1);
+      if (error) throw error;
+      onRefetch();
+    } catch (error) {
+      console.error('Error toggling expense status:', error);
+    }
   };
 
   if (isLoading) {
@@ -113,13 +119,50 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
         <TableBody>
           {filteredExpenses.map((expense) => (
             <TableRow key={expense.id}>
-              <TableCell className="font-medium">{expense.name}</TableCell>
-              <TableCell>{expense.category}</TableCell>
-              <TableCell>{formatCurrency(expense.amount)}</TableCell>
-              <TableCell>{formatFrequency(expense.frequency)}</TableCell>
-              <TableCell>{expense.vendor || '-'}</TableCell>
+              <TableCell className="font-medium">
+                <EditableCell
+                  value={expense.name}
+                  expenseId={expense.id}
+                  field="name"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
+                <EditableSelectCell
+                  value={expense.category}
+                  expenseId={expense.id}
+                  field="category"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableCurrencyCell
+                  value={expense.amount}
+                  expenseId={expense.id}
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableSelectCell
+                  value={expense.frequency}
+                  expenseId={expense.id}
+                  field="frequency"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableCell
+                  value={expense.vendor || ''}
+                  expenseId={expense.id}
+                  field="vendor"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <div 
+                  className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => handleStatusToggle(expense)}
+                >
                   {expense.is_active ? (
                     <>
                       <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -139,6 +182,7 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
                     variant="ghost"
                     size="sm"
                     onClick={() => onEdit(expense)}
+                    title="Edit all fields"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -146,6 +190,7 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
                     variant="ghost"
                     size="sm"
                     onClick={() => setDeleteExpense(expense)}
+                    title="Delete expense"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
