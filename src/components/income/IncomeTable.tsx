@@ -46,9 +46,10 @@ interface IncomeTableProps {
   onRefetch: () => void;
   searchQuery: string;
   statusFilter: 'all' | 'verified' | 'projected';
+  onSelectIncome: (income: Income) => void;
 }
 
-export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusFilter }: IncomeTableProps) {
+export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusFilter, onSelectIncome }: IncomeTableProps) {
   const [deleteIncome, setDeleteIncome] = useState<Income | null>(null);
 
   const handleDelete = async () => {
@@ -134,7 +135,11 @@ export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusF
         </TableHeader>
         <TableBody>
           {filteredIncome.map((inc) => (
-            <TableRow key={inc.id}>
+            <TableRow 
+              key={inc.id} 
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => onSelectIncome(inc)}
+            >
               <TableCell className="font-medium">
                 <EditableCell
                   value={inc.name}

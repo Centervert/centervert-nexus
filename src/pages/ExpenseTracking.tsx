@@ -18,6 +18,7 @@ import { ExpenseDialog } from '@/components/expenses/ExpenseDialog';
 import { ExpenseTable } from '@/components/expenses/ExpenseTable';
 import { IncomeDialog } from '@/components/income/IncomeDialog';
 import { IncomeTable, type Income } from '@/components/income/IncomeTable';
+import { IncomeDetailSheet } from '@/components/income/IncomeDetailSheet';
 
 // Temporary type until DB types are regenerated
 type Expense = {
@@ -46,6 +47,7 @@ const ExpenseTracking = () => {
   // Income state
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState<Income | undefined>();
+  const [incomeDetailOpen, setIncomeDetailOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | 'verified' | 'projected'>('all');
   const [incomeSearchQuery, setIncomeSearchQuery] = useState('');
 
@@ -431,6 +433,10 @@ const ExpenseTracking = () => {
                   onRefetch={refetchIncome}
                   searchQuery={incomeSearchQuery}
                   statusFilter={statusFilter}
+                  onSelectIncome={(income) => {
+                    setSelectedIncome(income);
+                    setIncomeDetailOpen(true);
+                  }}
                 />
               </CardContent>
             </Card>
@@ -450,6 +456,20 @@ const ExpenseTracking = () => {
         onOpenChange={handleCloseIncomeDialog}
         income={selectedIncome}
         onSuccess={handleIncomeSuccess}
+      />
+
+      <IncomeDetailSheet
+        income={selectedIncome || null}
+        open={incomeDetailOpen}
+        onOpenChange={setIncomeDetailOpen}
+        onUpdate={() => {
+          refetchIncome();
+          // Update selectedIncome with fresh data
+          if (selectedIncome) {
+            const updated = incomeList.find(i => i.id === selectedIncome.id);
+            if (updated) setSelectedIncome(updated);
+          }
+        }}
       />
     </UnifiedLayout>
   );
