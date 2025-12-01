@@ -107,7 +107,7 @@ const ExpenseTracking = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Expense Tracking</h1>
+            <h1 className="text-3xl font-bold text-foreground">Finance Tracking</h1>
             <p className="text-muted-foreground">Manage recurring business expenses</p>
           </div>
           <div className="flex items-center gap-3">
