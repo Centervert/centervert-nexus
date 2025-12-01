@@ -4,8 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown, Calendar, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
-import { addMonths, format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { TrendingUp, TrendingDown, Calendar, AlertTriangle, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
+import { addMonths, format, startOfMonth, endOfMonth, isWithinInterval, parseISO, isAfter } from 'date-fns';
 
 interface Employee {
   id: string;
@@ -14,6 +14,7 @@ interface Employee {
   salary_amount: number;
   salary_type: string;
   is_active: boolean;
+  start_date: string | null;
 }
 
 interface Raise {
@@ -24,17 +25,29 @@ interface Raise {
   status: string;
 }
 
+interface FutureHire {
+  id: string;
+  first_name: string;
+  last_name: string;
+  salary_amount: number;
+  salary_type: string;
+  start_date: string;
+}
+
 export const PayrollSummary = () => {
+  const today = new Date();
+  const ninetyDaysOut = addMonths(today, 4);
+
+  // Fetch all active employees (including future-dated ones that are marked active)
   const { data: employees = [] } = useQuery({
     queryKey: ['employees-payroll'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, first_name, last_name, salary_amount, salary_type, is_active')
+        .select('id, first_name, last_name, salary_amount, salary_type, is_active, start_date')
         .eq('is_active', true);
       
       if (error) throw error;
-      console.log('Payroll Summary - Active Employees:', data?.length || 0);
       return data as Employee[];
     },
   });
@@ -42,11 +55,6 @@ export const PayrollSummary = () => {
   const { data: raises = [] } = useQuery({
     queryKey: ['raises-payroll'],
     queryFn: async () => {
-      const today = new Date();
-      const ninetyDaysOut = addMonths(today, 4); // Extended to 4 months to capture full quarter
-      
-      console.log('Querying raises from', format(today, 'yyyy-MM-dd'), 'to', format(ninetyDaysOut, 'yyyy-MM-dd'));
-      
       const { data, error } = await supabase
         .from('employee_raises')
         .select('*')
@@ -55,10 +63,21 @@ export const PayrollSummary = () => {
         .eq('status', 'approved');
       
       if (error) throw error;
-      console.log('Payroll Summary - Upcoming Raises:', data?.length || 0, data);
       return data as Raise[];
     },
   });
+
+  // Separate current employees from future hires
+  const currentEmployees = employees.filter(e => {
+    if (!e.start_date) return true; // No start date = already employed
+    return !isAfter(parseISO(e.start_date), today);
+  });
+
+  const futureHires = employees.filter(e => {
+    if (!e.start_date) return false;
+    const startDate = parseISO(e.start_date);
+    return isAfter(startDate, today) && startDate <= ninetyDaysOut;
+  }) as FutureHire[];
 
   // Normalize salary to monthly amount
   const normalizeToMonthly = (amount: number, type: string): number => {
@@ -75,12 +94,17 @@ export const PayrollSummary = () => {
     }
   };
 
-  // Calculate payroll for a specific month considering raises
+  // Calculate payroll for a specific month considering raises AND future hires
   const calculateMonthlyPayroll = (monthDate: Date) => {
-    const monthStart = startOfMonth(monthDate);
     const monthEnd = endOfMonth(monthDate);
     
-    return employees.reduce((total, employee) => {
+    // Include employees who have started by this month
+    const activeEmployeesInMonth = employees.filter(e => {
+      if (!e.start_date) return true; // No start date = already employed
+      return parseISO(e.start_date) <= monthEnd;
+    });
+
+    return activeEmployeesInMonth.reduce((total, employee) => {
       // Find if there's an approved raise effective in or before this month
       const applicableRaise = raises
         .filter(r => r.employee_id === employee.id && r.status === 'approved')
@@ -109,49 +133,65 @@ export const PayrollSummary = () => {
     });
   };
 
+  // Get new hires starting in a specific month
+  const getHiresInMonth = (monthDate: Date) => {
+    const monthStart = startOfMonth(monthDate);
+    const monthEnd = endOfMonth(monthDate);
+    
+    return futureHires.filter(e => {
+      const startDate = parseISO(e.start_date);
+      return isWithinInterval(startDate, { start: monthStart, end: monthEnd });
+    });
+  };
+
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const today = new Date();
   const months = [
     addMonths(today, 1),
     addMonths(today, 2),
     addMonths(today, 3),
-    addMonths(today, 4) // Extended to match query range
+    addMonths(today, 4)
   ];
 
   const currentMonthPayroll = calculateMonthlyPayroll(today);
   
-  // Only get months that have actual changes
+  // Only get months that have actual changes (raises OR new hires)
   const upcomingChanges = months
     .map(month => ({
       month,
       payroll: calculateMonthlyPayroll(month),
       raises: getRaisesInMonth(month),
+      hires: getHiresInMonth(month),
     }))
     .map((data, index) => {
       const previousPayroll = index === 0 ? currentMonthPayroll : calculateMonthlyPayroll(addMonths(data.month, -1));
       const monthlyChange = data.payroll - previousPayroll;
-      const annualChange = monthlyChange * 12; // Convert monthly change to annual for display
+      const annualChange = monthlyChange * 12;
       return { ...data, monthlyChange, annualChange, previousPayroll };
     })
-    .filter(data => data.raises.length > 0); // Only show months with raises
+    .filter(data => data.raises.length > 0 || data.hires.length > 0); // Show months with raises OR new hires
 
   // If no upcoming changes, don't render anything
-  console.log('Payroll Summary - Upcoming Changes:', upcomingChanges.length, upcomingChanges);
   if (upcomingChanges.length === 0) {
     return null;
   }
 
   // Get the earliest change
   const firstChange = upcomingChanges[0];
-  const totalAffectedEmployees = upcomingChanges.reduce((sum, change) => sum + change.raises.length, 0);
+  const totalAffectedEmployees = upcomingChanges.reduce((sum, change) => sum + change.raises.length + change.hires.length, 0);
   const isIncrease = firstChange.monthlyChange > 0;
   
-  // Calculate new totals after the first raise takes effect
+  // Calculate new totals after the first change takes effect
   const newMonthlyPayroll = firstChange.payroll;
   const newAnnualPayroll = newMonthlyPayroll * 12;
-  const activeEmployeesCount = employees.filter(e => e.is_active).length;
-  const newAverageSalary = activeEmployeesCount > 0 ? newAnnualPayroll / activeEmployeesCount : 0;
+  
+  // Count employees after the first change
+  const firstMonthEnd = endOfMonth(firstChange.month);
+  const employeesAfterChange = employees.filter(e => {
+    if (!e.start_date) return true;
+    return parseISO(e.start_date) <= firstMonthEnd;
+  }).length;
+  const newAverageSalary = employeesAfterChange > 0 ? newAnnualPayroll / employeesAfterChange : 0;
 
   return (
     <Alert className={`border-l-4 ${isIncrease ? 'border-l-orange-500 bg-orange-50/50' : 'border-l-green-500 bg-green-50/50'}`}>
@@ -184,7 +224,7 @@ export const PayrollSummary = () => {
           <div className="mt-4 pt-4 border-t space-y-4">
             {/* New Totals Summary */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-              <div className="text-sm font-medium text-foreground mb-3">New Payroll Totals (After Raises)</div>
+              <div className="text-sm font-medium text-foreground mb-3">New Payroll Totals (After Changes)</div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <div className="text-xs text-muted-foreground">New Monthly Payroll</div>
@@ -209,7 +249,7 @@ export const PayrollSummary = () => {
 
             {/* Monthly Breakdown */}
             <div className="space-y-3">
-              {upcomingChanges.map(({ month, payroll, raises: monthRaises, monthlyChange, annualChange, previousPayroll }) => {
+              {upcomingChanges.map(({ month, payroll, raises: monthRaises, hires: monthHires, monthlyChange, annualChange, previousPayroll }) => {
                 const percentChange = previousPayroll > 0 ? (monthlyChange / previousPayroll) * 100 : 0;
                 const monthIsIncrease = monthlyChange > 0;
 
@@ -235,22 +275,27 @@ export const PayrollSummary = () => {
                     </div>
                     
                     <div className="ml-4 space-y-1">
+                      {/* Show raises */}
                       {monthRaises.map((raise) => {
                         const employee = employees.find(e => e.id === raise.employee_id);
                         return (
                           <div key={raise.id} className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             <span>
-                              {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name}
-                              {raise.status === 'pending' && (
-                                <Badge variant="outline" className="ml-2 text-xs bg-yellow-50 text-yellow-700 border-yellow-300">
-                                  Pending
-                                </Badge>
-                              )}
+                              {format(parseISO(raise.effective_date), 'MMM d')} - {employee?.first_name} {employee?.last_name} (Raise)
                             </span>
                           </div>
                         );
                       })}
+                      {/* Show new hires */}
+                      {monthHires.map((hire) => (
+                        <div key={hire.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <UserPlus className="h-3 w-3" />
+                          <span>
+                            {format(parseISO(hire.start_date), 'MMM d')} - {hire.first_name} {hire.last_name} (New Hire)
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
