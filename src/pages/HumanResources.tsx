@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Users, DollarSign, TrendingUp, Search } from 'lucide-react';
+import { Plus, Users, DollarSign, TrendingUp, Search, Calendar } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -17,6 +17,7 @@ import { EmployeeDialog } from '@/components/hr/EmployeeDialog';
 import { EmployeeTable } from '@/components/hr/EmployeeTable';
 import { PayrollSummary } from '@/components/hr/PayrollSummary';
 import { Database } from '@/integrations/supabase/types';
+import { isFuture, parseISO, format } from 'date-fns';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
 
@@ -84,7 +85,16 @@ const HumanResources = () => {
     }
   };
 
-  const activeEmployees = employees.filter(e => e.is_active);
+  // Separate current employees from future hires
+  const today = new Date();
+  const currentEmployees = employees.filter(e => 
+    e.is_active && (!e.start_date || !isFuture(parseISO(e.start_date)))
+  );
+  const futureHires = employees.filter(e => 
+    e.is_active && e.start_date && isFuture(parseISO(e.start_date))
+  );
+
+  const activeEmployees = currentEmployees;
   const totalAnnualPayroll = activeEmployees.reduce((sum, emp) => sum + calculateAnnualSalary(emp), 0);
   const totalMonthlyPayroll = totalAnnualPayroll / 12;
   const usEmployees = activeEmployees.filter(e => e.country === 'United States').length;
@@ -219,7 +229,7 @@ const HumanResources = () => {
           </CardHeader>
           <CardContent>
             <EmployeeTable
-              employees={employees}
+              employees={currentEmployees}
               isLoading={isLoading}
               onEdit={handleEdit}
               onRefetch={refetch}
@@ -227,6 +237,52 @@ const HumanResources = () => {
             />
           </CardContent>
         </Card>
+
+        {/* Upcoming Hires Section */}
+        {futureHires.length > 0 && (
+          <Card className="border-amber-200 bg-amber-50/50">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-amber-600" />
+                <CardTitle className="text-base text-amber-900">Upcoming Hires</CardTitle>
+                <span className="text-sm text-amber-700">({futureHires.length})</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {futureHires.map((employee) => (
+                  <button
+                    key={employee.id}
+                    onClick={() => handleEdit(employee)}
+                    className="w-full flex items-center justify-between p-3 rounded-lg bg-white border border-amber-200 hover:border-amber-300 transition-colors text-left"
+                  >
+                    <div>
+                      <span className="font-medium text-foreground">
+                        {employee.first_name} {employee.last_name}
+                      </span>
+                      {employee.nickname && (
+                        <span className="text-sm text-muted-foreground ml-2">
+                          ({employee.nickname})
+                        </span>
+                      )}
+                      <span className="text-muted-foreground mx-2">•</span>
+                      <span className="text-sm text-muted-foreground">{employee.position}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-muted-foreground">
+                        {employee.country === 'Philippines' && '🇵🇭'}
+                        {employee.country === 'United States' && '🇺🇸'}
+                      </span>
+                      <span className="text-amber-700 font-medium">
+                        Starts {format(parseISO(employee.start_date!), 'MMM d, yyyy')}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       <EmployeeDialog
