@@ -355,6 +355,105 @@ export type Database = {
         }
         Relationships: []
       }
+      income_associated_expenses: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expense_id: string | null
+          id: string
+          income_id: string
+          is_projected: boolean | null
+          notes: string | null
+          projected_expense_amount: number | null
+          projected_expense_frequency: string | null
+          projected_expense_name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          income_id: string
+          is_projected?: boolean | null
+          notes?: string | null
+          projected_expense_amount?: number | null
+          projected_expense_frequency?: string | null
+          projected_expense_name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expense_id?: string | null
+          id?: string
+          income_id?: string
+          is_projected?: boolean | null
+          notes?: string | null
+          projected_expense_amount?: number | null
+          projected_expense_frequency?: string | null
+          projected_expense_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_associated_expenses_expense_id_fkey"
+            columns: ["expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_associated_expenses_income_id_fkey"
+            columns: ["income_id"]
+            isOneToOne: false
+            referencedRelation: "income"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      income_employee_costs: {
+        Row: {
+          allocation_percentage: number | null
+          created_at: string | null
+          created_by: string | null
+          employee_id: string
+          id: string
+          income_id: string
+          notes: string | null
+        }
+        Insert: {
+          allocation_percentage?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          income_id: string
+          notes?: string | null
+        }
+        Update: {
+          allocation_percentage?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          income_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_employee_costs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_employee_costs_income_id_fkey"
+            columns: ["income_id"]
+            isOneToOne: false
+            referencedRelation: "income"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
