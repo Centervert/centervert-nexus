@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, CheckCircle2, XCircle } from 'lucide-react';
+import { Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +20,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { EditableCell } from './EditableCell';
+import { EditableCurrencyCell } from './EditableCurrencyCell';
+import { EditableSelectCell } from './EditableSelectCell';
 
 export type Income = {
   id: string;
@@ -40,13 +43,12 @@ export type Income = {
 interface IncomeTableProps {
   income: Income[];
   isLoading: boolean;
-  onEdit: (income: Income) => void;
   onRefetch: () => void;
   searchQuery: string;
   statusFilter: 'all' | 'verified' | 'projected';
 }
 
-export function IncomeTable({ income, isLoading, onEdit, onRefetch, searchQuery, statusFilter }: IncomeTableProps) {
+export function IncomeTable({ income, isLoading, onRefetch, searchQuery, statusFilter }: IncomeTableProps) {
   const [deleteIncome, setDeleteIncome] = useState<Income | null>(null);
 
   const handleDelete = async () => {
@@ -92,13 +94,6 @@ export function IncomeTable({ income, isLoading, onEdit, onRefetch, searchQuery,
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
-  };
-
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -140,21 +135,45 @@ export function IncomeTable({ income, isLoading, onEdit, onRefetch, searchQuery,
         <TableBody>
           {filteredIncome.map((inc) => (
             <TableRow key={inc.id}>
-              <TableCell className="font-medium">{inc.name}</TableCell>
-              <TableCell>{inc.type}</TableCell>
-              <TableCell>
-                <span
-                  className={`text-sm font-medium ${
-                    inc.status === 'verified'
-                      ? 'text-green-600 dark:text-green-400'
-                      : 'text-orange-600 dark:text-orange-400'
-                  }`}
-                >
-                  {inc.status === 'verified' ? 'Verified' : 'Projected'}
-                </span>
+              <TableCell className="font-medium">
+                <EditableCell
+                  value={inc.name}
+                  incomeId={inc.id}
+                  field="name"
+                  onUpdate={onRefetch}
+                />
               </TableCell>
-              <TableCell>{formatCurrency(inc.amount)}</TableCell>
-              <TableCell className="capitalize">{inc.frequency}</TableCell>
+              <TableCell>
+                <EditableSelectCell
+                  value={inc.type}
+                  incomeId={inc.id}
+                  field="type"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableSelectCell
+                  value={inc.status}
+                  incomeId={inc.id}
+                  field="status"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableCurrencyCell
+                  value={inc.amount}
+                  incomeId={inc.id}
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableSelectCell
+                  value={inc.frequency}
+                  incomeId={inc.id}
+                  field="frequency"
+                  onUpdate={onRefetch}
+                />
+              </TableCell>
               <TableCell>{formatDate(inc.projected_start_date)}</TableCell>
               <TableCell>
                 <div 
@@ -175,24 +194,14 @@ export function IncomeTable({ income, isLoading, onEdit, onRefetch, searchQuery,
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(inc)}
-                    title="Edit income"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDeleteIncome(inc)}
-                    title="Delete income"
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setDeleteIncome(inc)}
+                  title="Delete income"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}
