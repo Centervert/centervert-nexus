@@ -1,6 +1,5 @@
 import { useState, useRef, DragEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +17,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink } from "lucide-react";
+import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Resource {
   id: string;
@@ -28,6 +44,7 @@ interface Resource {
   file_path: string;
   attachment_type: string;
   created_at: string;
+  position?: number;
 }
 
 interface ResourceManagerProps {
@@ -38,6 +55,73 @@ interface ResourceManagerProps {
   disabled?: boolean;
 }
 
+interface SortableResourceItemProps {
+  resource: Resource;
+  disabled: boolean;
+  onDelete: (resource: Resource) => void;
+  onClick: (resource: Resource) => void;
+  getIcon: (type: string) => React.ReactNode;
+}
+
+function SortableResourceItem({ resource, disabled, onDelete, onClick, getIcon }: SortableResourceItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: resource.id, disabled });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className={cn(isDragging && "shadow-lg")}>
+      <CardContent className="p-4 flex items-center gap-2">
+        <button
+          {...attributes}
+          {...listeners}
+          className={cn(
+            "cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted transition-colors",
+            disabled && "opacity-50 cursor-not-allowed"
+          )}
+          disabled={disabled}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </button>
+        <button
+          onClick={() => onClick(resource)}
+          className="flex items-center gap-3 flex-1 text-left hover:text-primary transition-colors"
+        >
+          {getIcon(resource.attachment_type)}
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">{resource.file_name}</p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {resource.attachment_type.replace("_", " ")}
+            </p>
+          </div>
+          {resource.attachment_type === "link" && (
+            <ExternalLink className="h-4 w-4 text-muted-foreground" />
+          )}
+        </button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(resource)}
+          disabled={disabled}
+          className="ml-2"
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ResourceManager({
   opportunityId,
   opportunityType,
@@ -45,34 +129,69 @@ export function ResourceManager({
   onResourcesChange,
   disabled = false,
 }: ResourceManagerProps) {
-  const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [resourceType, setResourceType] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Sort resources by position
+  const sortedResources = [...resources].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+
+  const handleFileDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    setIsDraggingFile(true);
   };
 
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+  const handleFileDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    setIsDraggingFile(false);
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(false);
+    setIsDraggingFile(false);
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
       setDroppedFile(files[0]);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = sortedResources.findIndex((r) => r.id === active.id);
+      const newIndex = sortedResources.findIndex((r) => r.id === over.id);
+
+      const reordered = arrayMove(sortedResources, oldIndex, newIndex);
+
+      // Update positions in database
+      const updates = reordered.map((resource, index) => ({
+        id: resource.id,
+        position: index,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("opportunity_attachments")
+          .update({ position: update.position })
+          .eq("id", update.id);
+      }
+
+      onResourcesChange();
     }
   };
 
@@ -82,9 +201,12 @@ export function ResourceManager({
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
-        toast({ title: "Error", description: "You must be logged in", variant: "destructive" });
+        console.error("You must be logged in");
         return;
       }
+
+      // Get max position for new resource
+      const maxPosition = Math.max(...sortedResources.map(r => r.position ?? 0), -1) + 1;
 
       // Upload to storage
       const fileExt = file.name.split(".").pop();
@@ -103,17 +225,17 @@ export function ResourceManager({
         file_type: file.type,
         attachment_type: resourceType,
         created_by: session.session.user.id,
+        position: maxPosition,
       });
 
       if (dbError) throw dbError;
 
-      toast({ title: "Success", description: "File uploaded successfully" });
       setShowAddDialog(false);
       setResourceType("");
       setDroppedFile(null);
       onResourcesChange();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Upload error:", error.message);
     } finally {
       setIsUploading(false);
     }
@@ -144,9 +266,11 @@ export function ResourceManager({
     try {
       const { data: session } = await supabase.auth.getSession();
       if (!session?.session?.user) {
-        toast({ title: "Error", description: "You must be logged in", variant: "destructive" });
+        console.error("You must be logged in");
         return;
       }
+
+      const maxPosition = Math.max(...sortedResources.map(r => r.position ?? 0), -1) + 1;
 
       const { error } = await supabase.from("opportunity_attachments").insert({
         opportunity_id: opportunityId,
@@ -154,15 +278,15 @@ export function ResourceManager({
         file_path: linkUrl,
         attachment_type: "link",
         created_by: session.session.user.id,
+        position: maxPosition,
       });
 
       if (error) throw error;
 
-      toast({ title: "Success", description: "Link added successfully" });
       setShowAddDialog(false);
       onResourcesChange();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Error adding link:", error.message);
     }
   };
 
@@ -171,7 +295,7 @@ export function ResourceManager({
     const file = droppedFile || (e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement)?.files?.[0];
     
     if (!file) {
-      toast({ title: "Error", description: "Please select a file", variant: "destructive" });
+      console.error("Please select a file");
       return;
     }
     
@@ -204,10 +328,9 @@ export function ResourceManager({
 
       if (dbError) throw dbError;
 
-      toast({ title: "Success", description: "Resource deleted successfully" });
       onResourcesChange();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Delete error:", error.message);
     }
   };
 
@@ -254,41 +377,32 @@ export function ResourceManager({
         </Button>
       </div>
 
-      {resources.length === 0 ? (
+      {sortedResources.length === 0 ? (
         <p className="text-sm text-muted-foreground">No resources added yet</p>
       ) : (
-        <div className="grid gap-2">
-          {resources.map((resource) => (
-            <Card key={resource.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <button
-                  onClick={() => handleResourceClick(resource)}
-                  className="flex items-center gap-3 flex-1 text-left hover:text-primary transition-colors"
-                >
-                  {getResourceIcon(resource.attachment_type)}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{resource.file_name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {resource.attachment_type.replace("_", " ")}
-                    </p>
-                  </div>
-                  {resource.attachment_type === "link" && (
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDelete(resource)}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sortedResources.map((r) => r.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="grid gap-2">
+              {sortedResources.map((resource) => (
+                <SortableResourceItem
+                  key={resource.id}
+                  resource={resource}
                   disabled={disabled}
-                  className="ml-2"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  onDelete={handleDelete}
+                  onClick={handleResourceClick}
+                  getIcon={getResourceIcon}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -353,13 +467,13 @@ export function ResourceManager({
                       : "Upload File"}
                   </Label>
                   <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
+                    onDragOver={handleFileDragOver}
+                    onDragLeave={handleFileDragLeave}
+                    onDrop={handleFileDrop}
                     onClick={() => fileInputRef.current?.click()}
                     className={cn(
                       "mt-2 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                      isDragging
+                      isDraggingFile
                         ? "border-primary bg-primary/5"
                         : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
                       droppedFile && "border-primary bg-primary/5"

@@ -728,6 +728,7 @@ export type Database = {
           file_type: string | null
           id: string
           opportunity_id: string
+          position: number | null
         }
         Insert: {
           attachment_type?: string | null
@@ -738,6 +739,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           opportunity_id: string
+          position?: number | null
         }
         Update: {
           attachment_type?: string | null
@@ -748,6 +750,7 @@ export type Database = {
           file_type?: string | null
           id?: string
           opportunity_id?: string
+          position?: number | null
         }
         Relationships: [
           {
