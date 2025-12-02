@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Save, User } from 'lucide-react';
+import { formatPhoneNumber } from '@/lib/phoneUtils';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -187,7 +188,7 @@ const Profile = () => {
 
                   <div className="space-y-2">
                     <Label className="text-muted-foreground">Phone</Label>
-                    <p className="font-medium">{profile?.phone || 'Not set'}</p>
+                    <p className="font-medium">{profile?.phone ? formatPhoneNumber(profile.phone) : 'Not set'}</p>
                   </div>
 
                   <div className="space-y-2">
