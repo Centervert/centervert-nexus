@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, DragEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface Resource {
   id: string;
@@ -48,6 +49,75 @@ export function ResourceManager({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [resourceType, setResourceType] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [droppedFile, setDroppedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      setDroppedFile(files[0]);
+    }
+  };
+
+  const uploadFile = async (file: File) => {
+    setIsUploading(true);
+
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session?.user) {
+        toast({ title: "Error", description: "You must be logged in", variant: "destructive" });
+        return;
+      }
+
+      // Upload to storage
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${opportunityId}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("opportunity-attachments")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      // Save metadata to database
+      const { error: dbError } = await supabase.from("opportunity_attachments").insert({
+        opportunity_id: opportunityId,
+        file_name: file.name,
+        file_path: fileName,
+        file_type: file.type,
+        attachment_type: resourceType,
+        created_by: session.session.user.id,
+      });
+
+      if (dbError) throw dbError;
+
+      toast({ title: "Success", description: "File uploaded successfully" });
+      setShowAddDialog(false);
+      setResourceType("");
+      setDroppedFile(null);
+      onResourcesChange();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   // Resource type options based on opportunity type
   const resourceTypes =
@@ -98,52 +168,20 @@ export function ResourceManager({
 
   const handleFileUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsUploading(true);
+    const file = droppedFile || (e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement)?.files?.[0];
+    
+    if (!file) {
+      toast({ title: "Error", description: "Please select a file", variant: "destructive" });
+      return;
+    }
+    
+    await uploadFile(file);
+  };
 
-    try {
-      const formData = new FormData(e.currentTarget);
-      const file = formData.get("file") as File;
-
-      if (!file) {
-        toast({ title: "Error", description: "Please select a file", variant: "destructive" });
-        return;
-      }
-
-      const { data: session } = await supabase.auth.getSession();
-      if (!session?.session?.user) {
-        toast({ title: "Error", description: "You must be logged in", variant: "destructive" });
-        return;
-      }
-
-      // Upload to storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${opportunityId}/${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("opportunity-attachments")
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      // Save metadata to database
-      const { error: dbError } = await supabase.from("opportunity_attachments").insert({
-        opportunity_id: opportunityId,
-        file_name: file.name,
-        file_path: fileName,
-        file_type: file.type,
-        attachment_type: resourceType,
-        created_by: session.session.user.id,
-      });
-
-      if (dbError) throw dbError;
-
-      toast({ title: "Success", description: "File uploaded successfully" });
-      setShowAddDialog(false);
-      setResourceType("");
-      onResourcesChange();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } finally {
-      setIsUploading(false);
+  const clearDroppedFile = () => {
+    setDroppedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -307,26 +345,77 @@ export function ResourceManager({
             {resourceType && resourceType !== "link" && (
               <form onSubmit={handleFileUpload} className="space-y-4">
                 <div>
-                  <Label htmlFor="file">
+                  <Label>
                     {resourceType === "rfp"
                       ? "Upload RFP Document"
                       : resourceType === "supporting_doc"
                       ? "Upload Supporting Document"
                       : "Upload File"}
                   </Label>
-                  <Input id="file" name="file" type="file" required />
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={cn(
+                      "mt-2 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+                      isDragging
+                        ? "border-primary bg-primary/5"
+                        : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50",
+                      droppedFile && "border-primary bg-primary/5"
+                    )}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          setDroppedFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    {droppedFile ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <FileText className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium">{droppedFile.name}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearDroppedFile();
+                          }}
+                          className="h-6 w-6 p-0 ml-2"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Drag and drop a file here, or click to browse
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setShowAddDialog(false)}
+                    onClick={() => {
+                      setShowAddDialog(false);
+                      clearDroppedFile();
+                    }}
                     disabled={isUploading}
                     className="flex-1"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isUploading} className="flex-1">
+                  <Button type="submit" disabled={isUploading || !droppedFile} className="flex-1">
                     {isUploading ? "Uploading..." : "Upload"}
                   </Button>
                 </div>
