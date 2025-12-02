@@ -125,6 +125,57 @@ export type Database = {
           },
         ]
       }
+      employee_attachments: {
+        Row: {
+          attachment_type: string | null
+          created_at: string | null
+          created_by: string | null
+          employee_id: string
+          file_name: string
+          file_path: string
+          file_type: string | null
+          id: string
+          position: number | null
+        }
+        Insert: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id: string
+          file_name: string
+          file_path: string
+          file_type?: string | null
+          id?: string
+          position?: number | null
+        }
+        Update: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          employee_id?: string
+          file_name?: string
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_attachments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_attachments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_raises: {
         Row: {
           created_at: string | null
