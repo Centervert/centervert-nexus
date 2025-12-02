@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { formatPhoneNumber } from "@/lib/phoneUtils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trash2, Pencil } from "lucide-react";
@@ -247,14 +248,14 @@ export default function OpportunityDetail() {
                     {opportunity.contacts.first_name} {opportunity.contacts.last_name}
                   </p>
                   {opportunity.contacts.email && <p className="text-sm">{opportunity.contacts.email}</p>}
-                  {opportunity.contacts.phone && <p className="text-sm">{opportunity.contacts.phone}</p>}
+                  {opportunity.contacts.phone && <p className="text-sm">{formatPhoneNumber(opportunity.contacts.phone)}</p>}
                 </div>
               )}
               {opportunity.organizations && (
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Organization</p>
                   <p className="mt-1 font-medium">{opportunity.organizations.name}</p>
-                  {opportunity.organizations.phone && <p className="text-sm">{opportunity.organizations.phone}</p>}
+                  {opportunity.organizations.phone && <p className="text-sm">{formatPhoneNumber(opportunity.organizations.phone)}</p>}
                   {opportunity.organizations.website && (
                     <a
                       href={opportunity.organizations.website}
