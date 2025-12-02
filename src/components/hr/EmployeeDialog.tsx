@@ -27,9 +27,11 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 import { Plus, Calendar } from 'lucide-react';
+import { EmployeeResourceManager } from './EmployeeResourceManager';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
 type EmployeeRaise = Database['public']['Tables']['employee_raises']['Row'];
+type EmployeeAttachment = Database['public']['Tables']['employee_attachments']['Row'];
 
 interface EmployeeDialogProps {
   open: boolean;
@@ -92,6 +94,23 @@ export const EmployeeDialog = ({
       
       if (error) throw error;
       return data as EmployeeRaise[];
+    },
+    enabled: !!employee?.id,
+  });
+
+  // Fetch resources/attachments for this employee
+  const { data: resources = [], refetch: refetchResources } = useQuery({
+    queryKey: ['employee-resources', employee?.id],
+    queryFn: async () => {
+      if (!employee?.id) return [];
+      const { data, error } = await supabase
+        .from('employee_attachments')
+        .select('*')
+        .eq('employee_id', employee.id)
+        .order('position', { ascending: true });
+      
+      if (error) throw error;
+      return data as EmployeeAttachment[];
     },
     enabled: !!employee?.id,
   });
@@ -683,6 +702,19 @@ export const EmployeeDialog = ({
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resources Section - Only for existing employees */}
+          {employee && (
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <EmployeeResourceManager
+                  employeeId={employee.id}
+                  resources={resources}
+                  onResourcesChange={() => refetchResources()}
+                />
               </CardContent>
             </Card>
           )}
