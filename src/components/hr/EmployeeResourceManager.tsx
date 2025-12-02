@@ -41,11 +41,10 @@ import {
   Link as LinkIcon, 
   Upload, 
   Trash2, 
-  ExternalLink,
   GripVertical,
   File,
-  X
 } from 'lucide-react';
+import { PdfViewerDialog, usePdfViewer } from '@/components/ui/pdf-viewer-dialog';
 
 interface Resource {
   id: string;
@@ -154,10 +153,8 @@ export const EmployeeResourceManager = ({
   const [sortedResources, setSortedResources] = useState<Resource[]>([]);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   
-  // PDF Viewer state
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [pdfName, setPdfName] = useState<string>('');
+  // PDF Viewer
+  const { pdfViewerOpen, setPdfViewerOpen, pdfUrl, pdfName, openPdf } = usePdfViewer();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -309,9 +306,7 @@ export const EmployeeResourceManager = ({
       if (data?.signedUrl) {
         // Check if it's a PDF - open in viewer
         if (resource.file_type?.includes('pdf')) {
-          setPdfUrl(data.signedUrl);
-          setPdfName(resource.file_name);
-          setPdfViewerOpen(true);
+          openPdf(data.signedUrl, resource.file_name);
         } else {
           // For other files, open in new tab
           window.open(data.signedUrl, '_blank');
@@ -471,42 +466,12 @@ export const EmployeeResourceManager = ({
         </DialogContent>
       </Dialog>
 
-      {/* PDF Viewer Dialog */}
-      <Dialog open={pdfViewerOpen} onOpenChange={setPdfViewerOpen}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 border-b flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="truncate pr-4">{pdfName}</DialogTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => pdfUrl && window.open(pdfUrl, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  Open in New Tab
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setPdfViewerOpen(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden">
-            {pdfUrl && (
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full border-0"
-                title={pdfName}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PdfViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={pdfUrl}
+        fileName={pdfName}
+      />
     </div>
   );
 };
