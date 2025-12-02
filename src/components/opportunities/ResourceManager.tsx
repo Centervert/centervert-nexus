@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink, GripVertical } from "lucide-react";
+import { PdfViewerDialog, usePdfViewer } from "@/components/ui/pdf-viewer-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
@@ -135,6 +136,9 @@ export function ResourceManager({
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [droppedFile, setDroppedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // PDF Viewer
+  const { pdfViewerOpen, setPdfViewerOpen, pdfUrl, pdfName, openPdf } = usePdfViewer();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -350,13 +354,19 @@ export function ResourceManager({
     if (resource.attachment_type === "link") {
       window.open(resource.file_path, "_blank");
     } else {
-      // Get signed URL for file download
+      // Get signed URL for file
       const { data } = await supabase.storage
         .from("opportunity-attachments")
         .createSignedUrl(resource.file_path, 3600);
 
       if (data?.signedUrl) {
-        window.open(data.signedUrl, "_blank");
+        // Check if it's a PDF - open in viewer
+        const isPdf = resource.file_path.toLowerCase().endsWith('.pdf');
+        if (isPdf) {
+          openPdf(data.signedUrl, resource.file_name);
+        } else {
+          window.open(data.signedUrl, "_blank");
+        }
       }
     }
   };
@@ -538,6 +548,13 @@ export function ResourceManager({
           </div>
         </DialogContent>
       </Dialog>
+
+      <PdfViewerDialog
+        open={pdfViewerOpen}
+        onOpenChange={setPdfViewerOpen}
+        pdfUrl={pdfUrl}
+        fileName={pdfName}
+      />
     </div>
   );
 }
