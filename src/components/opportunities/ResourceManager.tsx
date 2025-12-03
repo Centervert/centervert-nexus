@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink, GripVertical } from "lucide-react";
+import { Plus, Link as LinkIcon, Upload, FileText, Trash2, ExternalLink, GripVertical, Pencil } from "lucide-react";
 import { PdfViewerDialog, usePdfViewer } from "@/components/ui/pdf-viewer-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -60,11 +60,12 @@ interface SortableResourceItemProps {
   resource: Resource;
   disabled: boolean;
   onDelete: (resource: Resource) => void;
+  onEdit: (resource: Resource) => void;
   onClick: (resource: Resource) => void;
   getIcon: (type: string) => React.ReactNode;
 }
 
-function SortableResourceItem({ resource, disabled, onDelete, onClick, getIcon }: SortableResourceItemProps) {
+function SortableResourceItem({ resource, disabled, onDelete, onEdit, onClick, getIcon }: SortableResourceItemProps) {
   const {
     attributes,
     listeners,
@@ -112,9 +113,16 @@ function SortableResourceItem({ resource, disabled, onDelete, onClick, getIcon }
         <Button
           variant="ghost"
           size="icon"
+          onClick={() => onEdit(resource)}
+          disabled={disabled}
+        >
+          <Pencil className="h-4 w-4 text-muted-foreground" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => onDelete(resource)}
           disabled={disabled}
-          className="ml-2"
         >
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
@@ -131,6 +139,10 @@ export function ResourceManager({
   disabled = false,
 }: ResourceManagerProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editUrl, setEditUrl] = useState("");
   const [resourceType, setResourceType] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
@@ -338,6 +350,42 @@ export function ResourceManager({
     }
   };
 
+  const handleEdit = (resource: Resource) => {
+    setEditingResource(resource);
+    setEditName(resource.file_name);
+    setEditUrl(resource.attachment_type === "link" ? resource.file_path : "");
+    setShowEditDialog(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingResource || !editName.trim()) return;
+
+    try {
+      const updateData: { file_name: string; file_path?: string } = {
+        file_name: editName.trim(),
+      };
+
+      // Only update file_path for links
+      if (editingResource.attachment_type === "link" && editUrl.trim()) {
+        updateData.file_path = editUrl.trim();
+      }
+
+      const { error } = await supabase
+        .from("opportunity_attachments")
+        .update(updateData)
+        .eq("id", editingResource.id);
+
+      if (error) throw error;
+
+      setShowEditDialog(false);
+      setEditingResource(null);
+      onResourcesChange();
+    } catch (error: any) {
+      console.error("Edit error:", error.message);
+    }
+  };
+
   const getResourceIcon = (type: string) => {
     switch (type) {
       case "link":
@@ -406,6 +454,7 @@ export function ResourceManager({
                   resource={resource}
                   disabled={disabled}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                   onClick={handleResourceClick}
                   getIcon={getResourceIcon}
                 />
@@ -546,6 +595,53 @@ export function ResourceManager({
               </form>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Resource</DialogTitle>
+            <DialogDescription>
+              {editingResource?.attachment_type === "link" 
+                ? "Update the name and URL for this link" 
+                : "Update the display name for this resource"}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="edit_name">Name</Label>
+              <Input
+                id="edit_name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                required
+                placeholder="Resource name"
+              />
+            </div>
+            {editingResource?.attachment_type === "link" && (
+              <div>
+                <Label htmlFor="edit_url">URL</Label>
+                <Input
+                  id="edit_url"
+                  type="url"
+                  value={editUrl}
+                  onChange={(e) => setEditUrl(e.target.value)}
+                  required
+                  placeholder="https://example.com"
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" className="flex-1">
+                Save Changes
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
 
