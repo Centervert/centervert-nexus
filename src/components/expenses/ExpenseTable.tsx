@@ -19,10 +19,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { EditableCell } from './EditableCell';
 import { EditableSelectCell } from './EditableSelectCell';
 import { EditableCurrencyCell } from './EditableCurrencyCell';
+import { BulkActionBar } from './BulkActionBar';
+
 // Temporary type until DB types are regenerated
 type Expense = {
   id: string;
@@ -50,6 +53,7 @@ interface ExpenseTableProps {
 
 export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQuery }: ExpenseTableProps) {
   const [deleteExpense, setDeleteExpense] = useState<Expense | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDelete = async () => {
     if (!deleteExpense) return;
@@ -75,6 +79,22 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
     expense.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     expense.vendor?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredExpenses.map(e => e.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id));
+    }
+  };
 
   const handleStatusToggle = async (expense: Expense) => {
     try {
@@ -102,11 +122,31 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
     );
   }
 
+  const allSelected = filteredExpenses.length > 0 && selectedIds.length === filteredExpenses.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < filteredExpenses.length;
+
   return (
     <>
+      {selectedIds.length > 0 && (
+        <BulkActionBar
+          selectedCount={selectedIds.length}
+          selectedIds={selectedIds}
+          onClear={() => setSelectedIds([])}
+          onUpdate={onRefetch}
+        />
+      )}
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[40px]">
+              <Checkbox
+                checked={allSelected}
+                ref={(el) => {
+                  if (el) (el as any).indeterminate = someSelected;
+                }}
+                onCheckedChange={handleSelectAll}
+              />
+            </TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Amount</TableHead>
@@ -118,7 +158,13 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
         </TableHeader>
         <TableBody>
           {filteredExpenses.map((expense) => (
-            <TableRow key={expense.id}>
+            <TableRow key={expense.id} data-state={selectedIds.includes(expense.id) ? 'selected' : undefined}>
+              <TableCell>
+                <Checkbox
+                  checked={selectedIds.includes(expense.id)}
+                  onCheckedChange={(checked) => handleSelectOne(expense.id, !!checked)}
+                />
+              </TableCell>
               <TableCell className="font-medium">
                 <EditableCell
                   value={expense.name}
