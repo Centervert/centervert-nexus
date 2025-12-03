@@ -35,7 +35,8 @@ const Dashboard = () => {
         supabase.from('organizations').select('id', { count: 'exact', head: true }),
         supabase.from('contacts').select('id', { count: 'exact', head: true }),
         supabase.from('opportunities').select('id', { count: 'exact', head: true })
-          .or(`owner_id.eq.${user?.id},created_by.eq.${user?.id}`),
+          .or(`owner_id.eq.${user?.id},created_by.eq.${user?.id}`)
+          .not('status', 'in', '(approved,declined,passed)'),
       ]);
       return {
         totalCompanies: organizationsRes.count || 0,
@@ -63,6 +64,7 @@ const Dashboard = () => {
           organizations (name)
         `)
         .or(`owner_id.eq.${user.id},created_by.eq.${user.id}`)
+        .not('status', 'in', '(approved,declined,passed)')
         .order('due_date', { ascending: true, nullsFirst: false })
         .limit(5);
       
