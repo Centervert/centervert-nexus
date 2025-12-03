@@ -202,6 +202,7 @@ export default function OpportunityDetail() {
                   <SelectItem value="proposal_submitted">Proposal submitted</SelectItem>
                   <SelectItem value="approved">Approved</SelectItem>
                   <SelectItem value="declined">Declined</SelectItem>
+                  <SelectItem value="passed">Passed</SelectItem>
                   <SelectItem value="see_activity">See Activity</SelectItem>
                 </SelectContent>
               </Select>
