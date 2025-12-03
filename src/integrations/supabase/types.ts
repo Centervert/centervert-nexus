@@ -1233,6 +1233,7 @@ export type Database = {
         | "approved"
         | "declined"
         | "see_activity"
+        | "passed"
       opportunity_type: "private" | "government"
       opportunity_update_type:
         | "manual"
@@ -1395,6 +1396,7 @@ export const Constants = {
         "approved",
         "declined",
         "see_activity",
+        "passed",
       ],
       opportunity_type: ["private", "government"],
       opportunity_update_type: [
