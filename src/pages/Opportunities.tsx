@@ -9,6 +9,8 @@ import { Plus, Search } from "lucide-react";
 import { OpportunitiesTable } from "@/components/opportunities/OpportunitiesTable";
 import { OpportunityDialog } from "@/components/opportunities/OpportunityDialog";
 
+const CLOSED_STATUSES = ["approved", "declined", "passed"];
+
 export default function Opportunities() {
   const { toast } = useToast();
   const [opportunities, setOpportunities] = useState<any[]>([]);
@@ -16,6 +18,7 @@ export default function Opportunities() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeView, setActiveView] = useState<"all" | "my">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "closed">("active");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -25,7 +28,7 @@ export default function Opportunities() {
 
   useEffect(() => {
     filterOpportunities();
-  }, [opportunities, searchQuery, activeView, currentUserId]);
+  }, [opportunities, searchQuery, activeView, statusFilter, currentUserId]);
 
   const loadOpportunities = async () => {
     setIsLoading(true);
@@ -63,6 +66,13 @@ export default function Opportunities() {
   const filterOpportunities = () => {
     let filtered = [...opportunities];
 
+    // Filter by status (active vs closed)
+    if (statusFilter === "active") {
+      filtered = filtered.filter((opp) => !CLOSED_STATUSES.includes(opp.status));
+    } else {
+      filtered = filtered.filter((opp) => CLOSED_STATUSES.includes(opp.status));
+    }
+
     // Filter by view
     if (activeView === "my" && currentUserId) {
       filtered = filtered.filter(
@@ -85,6 +95,10 @@ export default function Opportunities() {
     setFilteredOpportunities(filtered);
   };
 
+  // Count opportunities for tab labels
+  const activeCount = opportunities.filter((opp) => !CLOSED_STATUSES.includes(opp.status)).length;
+  const closedCount = opportunities.filter((opp) => CLOSED_STATUSES.includes(opp.status)).length;
+
   return (
     <UnifiedLayout>
       <div className="container mx-auto p-6 space-y-6">
@@ -99,23 +113,32 @@ export default function Opportunities() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search opportunities..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "all" | "my")}>
+        <div className="flex flex-col gap-4">
+          <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as "active" | "closed")}>
             <TabsList>
-              <TabsTrigger value="all">All Opportunities</TabsTrigger>
-              <TabsTrigger value="my">My Opportunities</TabsTrigger>
+              <TabsTrigger value="active">Active ({activeCount})</TabsTrigger>
+              <TabsTrigger value="closed">Closed ({closedCount})</TabsTrigger>
             </TabsList>
           </Tabs>
+
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search opportunities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as "all" | "my")}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="my">My Opportunities</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
         {isLoading ? (
