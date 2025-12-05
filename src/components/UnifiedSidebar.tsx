@@ -13,6 +13,8 @@ import {
   UserCircle,
   Target,
   Briefcase,
+  FolderKanban,
+  ClipboardList,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -39,6 +41,7 @@ const UnifiedSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: userRole } = useUserRole();
+  const [activeWorkOpen, setActiveWorkOpen] = useState(true);
   const [crmOpen, setCrmOpen] = useState(true);
   const [backOfficeOpen, setBackOfficeOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -49,9 +52,12 @@ const UnifiedSidebar = () => {
   const isAgent = userRole?.isAgent || false;
   const isSalesAgent = userRole?.isSalesAgent || false;
 
+  const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
+  // All authenticated users can see Active Work (Projects)
+  const showActiveWork = isAdmin || isAgent || isSalesAgent;
   // Sales agents have CRM access but not Back Office
   const showCrm = isAdmin || isAgent || isSalesAgent;
   const showBackOffice = isAdmin; // Only admins see Back Office
@@ -65,6 +71,14 @@ const UnifiedSidebar = () => {
       show: true,
     },
   ].filter(item => item.show);
+
+  const activeWorkItems = [
+    {
+      name: 'Projects',
+      href: '/projects',
+      icon: ClipboardList,
+    },
+  ];
 
   const crmItems = [
     {
@@ -188,6 +202,82 @@ const UnifiedSidebar = () => {
                   </SidebarMenuItem>
                 );
               })()}
+
+              {/* Active Work */}
+              {showActiveWork && (
+                <Collapsible open={activeWorkOpen} onOpenChange={setActiveWorkOpen} className="group/collapsible">
+                  <SidebarMenuItem>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton
+                        isActive={isActiveWorkActive}
+                        className={`
+                          relative overflow-hidden select-none
+                          text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+                          transition-all duration-normal ease-smooth
+                          hover:shadow-lg hover:scale-[1.02]
+                          ${isActiveWorkActive ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-md' : ''}
+                          ${isCollapsed ? 'justify-center' : ''}
+                          group
+                        `}
+                        tooltip={isCollapsed ? 'Active Work' : undefined}
+                      >
+                        <FolderKanban className={`
+                          h-5 w-5 transition-all duration-normal ease-smooth
+                          hover:scale-110
+                          ${isActiveWorkActive ? 'rotate-12' : ''}
+                        `} />
+                        {!isCollapsed && (
+                          <>
+                            <span className="transition-all duration-fast ease-smooth">
+                              Active Work
+                            </span>
+                            <ChevronRight className="ml-auto h-4 w-4 transition-transform duration-normal ease-smooth group-data-[state=open]/collapsible:rotate-90" />
+                          </>
+                        )}
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                    {!isCollapsed && (
+                        <CollapsibleContent className="overflow-hidden transition-all duration-normal ease-smooth data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                        <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
+                          {activeWorkItems.map((item, index) => {
+                            const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
+                            return (
+                              <SidebarMenuSubItem 
+                                key={item.name}
+                                className="animate-fade-in"
+                                style={{ 
+                                  animationDelay: `${index * 50}ms`,
+                                }}
+                              >
+                                <SidebarMenuSubButton
+                                  isActive={isActive}
+                                  onClick={() => navigate(item.href)}
+                                  className={`
+                                    relative overflow-hidden select-none
+                                    text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground
+                                    transition-all duration-normal ease-smooth hover:translate-x-2 hover:shadow-md
+                                    ${isActive ? 'bg-sidebar-accent/70 text-sidebar-accent-foreground shadow-sm' : ''}
+                                    group/sub
+                                  `}
+                                >
+                                  <item.icon className={`
+                                    h-4 w-4 transition-all duration-normal ease-smooth
+                                    hover:scale-125
+                                    ${isActive ? 'rotate-12' : ''}
+                                  `} />
+                                  <span className="transition-all duration-fast ease-smooth">
+                                    {item.name}
+                                  </span>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              )}
 
               {/* CRM */}
               {showCrm && (
