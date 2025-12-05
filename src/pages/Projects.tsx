@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search } from "lucide-react";
 import { ProjectsTable } from "@/components/projects/ProjectsTable";
+import { ProjectDialog } from "@/components/projects/ProjectDialog";
 
 const COMPLETED_STATUSES = ["completed", "cancelled", "on_hold"];
 
@@ -33,6 +34,7 @@ export default function Projects() {
   const [statusFilter, setStatusFilter] = useState<"active" | "completed">("active");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -130,11 +132,17 @@ export default function Projects() {
               Manage and track your active work
             </p>
           </div>
-          <Button size="sm" onClick={() => toast({ title: "Coming soon", description: "Project creation dialog will be implemented next" })}>
+          <Button size="sm" onClick={() => setShowCreateDialog(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Project
           </Button>
         </div>
+
+        <ProjectDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSuccess={loadProjects}
+        />
 
         <div className="flex flex-col gap-4">
           <Tabs
