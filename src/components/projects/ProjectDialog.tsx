@@ -254,8 +254,8 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
         toast({ title: "Project created successfully" });
       }
 
-      handleOpenChange(false);
       onSuccess?.();
+      handleOpenChange(false);
     } catch (error: any) {
       toast({
         title: "Error",
