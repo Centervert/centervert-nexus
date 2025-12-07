@@ -700,42 +700,46 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
       </SheetContent>
     </Sheet>
 
-    {/* Create Contact Dialog */}
-    <ContactDialog
-      open={showContactDialog}
-      onOpenChange={(isOpen) => {
-        setShowContactDialog(isOpen);
-        if (!isOpen) {
-          // Reload contacts when dialog closes
-          supabase
-            .from("contacts")
-            .select("id, first_name, last_name, organization_id")
-            .order("first_name")
-            .then(({ data }) => {
-              if (data) setContacts(data);
-            });
-        }
-      }}
-    />
+    {/* Create Contact Dialog - rendered outside the Sheet for proper stacking */}
+    {showContactDialog && (
+      <ContactDialog
+        open={showContactDialog}
+        onOpenChange={(isOpen) => {
+          setShowContactDialog(isOpen);
+          if (!isOpen) {
+            // Reload contacts when dialog closes
+            supabase
+              .from("contacts")
+              .select("id, first_name, last_name, organization_id")
+              .order("first_name")
+              .then(({ data }) => {
+                if (data) setContacts(data);
+              });
+          }
+        }}
+      />
+    )}
 
-    {/* Create Organization Dialog */}
-    <CompanyDialog
-      open={showOrgDialog}
-      onOpenChange={(isOpen) => {
-        setShowOrgDialog(isOpen);
-        if (!isOpen) {
-          // Reload organizations when dialog closes
-          supabase
-            .from("organizations")
-            .select("id, name")
-            .eq("is_active", true)
-            .order("name")
-            .then(({ data }) => {
-              if (data) setOrganizations(data);
-            });
-        }
-      }}
-    />
+    {/* Create Organization Dialog - rendered outside the Sheet for proper stacking */}
+    {showOrgDialog && (
+      <CompanyDialog
+        open={showOrgDialog}
+        onOpenChange={(isOpen) => {
+          setShowOrgDialog(isOpen);
+          if (!isOpen) {
+            // Reload organizations when dialog closes
+            supabase
+              .from("organizations")
+              .select("id, name")
+              .eq("is_active", true)
+              .order("name")
+              .then(({ data }) => {
+                if (data) setOrganizations(data);
+              });
+          }
+        }}
+      />
+    )}
     </>
   );
 }
