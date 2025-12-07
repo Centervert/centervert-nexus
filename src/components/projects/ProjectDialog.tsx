@@ -44,9 +44,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react";
+import { CalendarIcon, Check, ChevronsUpDown, Plus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { ContactDialog } from "@/components/contacts/ContactDialog";
+import { CompanyDialog } from "@/components/companies/CompanyDialog";
 
 const formSchema = z.object({
   project_type_id: z.string().min(1, "Project type is required"),
@@ -90,6 +92,8 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
   const [owners, setOwners] = useState<any[]>([]);
   const [orgOpen, setOrgOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [showOrgDialog, setShowOrgDialog] = useState(false);
   const isEditMode = !!project;
 
   const form = useForm<FormData>({
@@ -264,6 +268,7 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
   };
 
   return (
+    <>
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
@@ -380,6 +385,16 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
                                   <CommandInput placeholder="Search organizations..." />
                                   <CommandEmpty>No organization found.</CommandEmpty>
                                   <CommandGroup className="max-h-64 overflow-auto">
+                                    <CommandItem
+                                      onSelect={() => {
+                                        setOrgOpen(false);
+                                        setShowOrgDialog(true);
+                                      }}
+                                      className="text-primary"
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Create Organization
+                                    </CommandItem>
                                     {organizations.map((org) => (
                                       <CommandItem
                                         key={org.id}
@@ -449,6 +464,16 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
                                   <CommandInput placeholder="Search contacts..." />
                                   <CommandEmpty>No contact found.</CommandEmpty>
                                   <CommandGroup className="max-h-64 overflow-auto">
+                                    <CommandItem
+                                      onSelect={() => {
+                                        setContactOpen(false);
+                                        setShowContactDialog(true);
+                                      }}
+                                      className="text-primary"
+                                    >
+                                      <Plus className="mr-2 h-4 w-4" />
+                                      Create Contact
+                                    </CommandItem>
                                     {filteredContacts.map((contact) => (
                                       <CommandItem
                                         key={contact.id}
@@ -674,5 +699,43 @@ export function ProjectDialog({ open, onOpenChange, onSuccess, project }: Projec
         )}
       </SheetContent>
     </Sheet>
+
+    {/* Create Contact Dialog */}
+    <ContactDialog
+      open={showContactDialog}
+      onOpenChange={(isOpen) => {
+        setShowContactDialog(isOpen);
+        if (!isOpen) {
+          // Reload contacts when dialog closes
+          supabase
+            .from("contacts")
+            .select("id, first_name, last_name, organization_id")
+            .order("first_name")
+            .then(({ data }) => {
+              if (data) setContacts(data);
+            });
+        }
+      }}
+    />
+
+    {/* Create Organization Dialog */}
+    <CompanyDialog
+      open={showOrgDialog}
+      onOpenChange={(isOpen) => {
+        setShowOrgDialog(isOpen);
+        if (!isOpen) {
+          // Reload organizations when dialog closes
+          supabase
+            .from("organizations")
+            .select("id, name")
+            .eq("is_active", true)
+            .order("name")
+            .then(({ data }) => {
+              if (data) setOrganizations(data);
+            });
+        }
+      }}
+    />
+    </>
   );
 }
