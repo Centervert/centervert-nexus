@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -122,9 +123,12 @@ export function IncomeDialog({ open, onOpenChange, income, onSuccess }: IncomeDi
         if (error) throw error;
       }
 
+      toast.success(income ? 'Income updated successfully' : 'Income created successfully');
+      onOpenChange(false);
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving income:', error);
+      toast.error(error?.message || 'Failed to save income. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
