@@ -36,7 +36,7 @@ type Expense = {
   is_active: boolean;
   start_date?: string | null;
   end_date?: string | null;
-  vendor?: string | null;
+  payment_account?: string | null;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -77,7 +77,7 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
   const filteredExpenses = expenses.filter(expense =>
     expense.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     expense.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    expense.vendor?.toLowerCase().includes(searchQuery.toLowerCase())
+    expense.payment_account?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleSelectAll = (checked: boolean) => {
@@ -151,7 +151,7 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
             <TableHead>Category</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Frequency</TableHead>
-            <TableHead>Vendor</TableHead>
+            <TableHead>Account</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -197,10 +197,10 @@ export function ExpenseTable({ expenses, isLoading, onEdit, onRefetch, searchQue
                 />
               </TableCell>
               <TableCell>
-                <EditableCell
-                  value={expense.vendor || ''}
+                <EditableSelectCell
+                  value={expense.payment_account || ''}
                   expenseId={expense.id}
-                  field="vendor"
+                  field="payment_account"
                   onUpdate={onRefetch}
                 />
               </TableCell>
