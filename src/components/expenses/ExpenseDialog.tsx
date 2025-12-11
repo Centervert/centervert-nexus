@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -122,24 +123,35 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Convert empty date strings to null
+      const submitData = {
+        ...data,
+        start_date: data.start_date || null,
+        end_date: data.end_date || null,
+        payment_account: data.payment_account || null,
+      };
+
       if (expense) {
         const { error } = await supabase
           .from('expenses' as any)
-          .update(data)
+          .update(submitData)
           .eq('id', expense.id);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('expenses' as any)
-          .insert([{ ...data, created_by: user.id }]);
+          .insert([{ ...submitData, created_by: user.id }]);
 
         if (error) throw error;
       }
 
+      toast.success(expense ? 'Expense updated successfully' : 'Expense created successfully');
+      onOpenChange(false);
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving expense:', error);
+      toast.error(error?.message || 'Failed to save expense. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
