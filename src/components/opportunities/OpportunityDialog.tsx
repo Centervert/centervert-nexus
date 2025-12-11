@@ -63,6 +63,8 @@ const formSchema = z.object({
   submission_address: z.string().optional(),
   submission_link: z.string().optional(),
   submission_notes: z.string().optional(),
+  estimated_value: z.number().optional(),
+  value_type: z.enum(["one-time", "monthly", "annually", "income_source"]).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -98,6 +100,8 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
       requestor_contact_id: "",
       requestor_organization_id: "",
       submission_location_type: undefined,
+      estimated_value: undefined,
+      value_type: undefined,
     },
   });
 
@@ -126,6 +130,8 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
           submission_address: opportunity.submission_address || "",
           submission_link: opportunity.submission_link || "",
           submission_notes: opportunity.submission_notes || "",
+          estimated_value: opportunity.estimated_value || undefined,
+          value_type: opportunity.value_type || undefined,
         });
       }
     }
@@ -237,6 +243,8 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
         submission_address: data.submission_address || null,
         submission_link: data.submission_link || null,
         submission_notes: data.submission_notes || null,
+        estimated_value: data.estimated_value || null,
+        value_type: data.value_type || null,
       };
 
       let opportunityId = opportunity?.id;
@@ -542,6 +550,60 @@ export function OpportunityDialog({ open, onOpenChange, onSuccess, opportunity }
                                 </SelectItem>
                               ))
                             )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Value Fields */}
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="estimated_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Value</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                            <Input
+                              type="text"
+                              disabled={!selectedType}
+                              placeholder="0.00"
+                              className="pl-7"
+                              value={field.value ? new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(field.value) : ''}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                field.onChange(parseFloat(val) || undefined);
+                              }}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="value_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Value Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedType}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="one-time">One-Time</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                            <SelectItem value="annually">Annually</SelectItem>
+                            <SelectItem value="income_source">Income Source</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />

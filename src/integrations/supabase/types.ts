@@ -692,6 +692,7 @@ export type Database = {
           submission_notes: string | null
           type: Database["public"]["Enums"]["opportunity_type"]
           updated_at: string | null
+          value_type: string | null
         }
         Insert: {
           award_date?: string | null
@@ -716,6 +717,7 @@ export type Database = {
           submission_notes?: string | null
           type: Database["public"]["Enums"]["opportunity_type"]
           updated_at?: string | null
+          value_type?: string | null
         }
         Update: {
           award_date?: string | null
@@ -740,6 +742,7 @@ export type Database = {
           submission_notes?: string | null
           type?: Database["public"]["Enums"]["opportunity_type"]
           updated_at?: string | null
+          value_type?: string | null
         }
         Relationships: [
           {
