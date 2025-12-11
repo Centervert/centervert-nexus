@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 import Organizations from "./pages/Organizations";
 import OrganizationDetail from "./pages/OrganizationDetail";
 import Contacts from "./pages/Contacts";
@@ -111,7 +112,7 @@ const App = () => {
                 path="/projects/:id"
                 element={
                   <ProtectedRoute>
-                    <Projects />
+                    <ProjectDetail />
                   </ProtectedRoute>
                 }
               />
