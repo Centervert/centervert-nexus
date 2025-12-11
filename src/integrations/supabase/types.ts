@@ -322,6 +322,7 @@ export type Database = {
           is_active: boolean | null
           name: string
           notes: string | null
+          payment_account: string | null
           start_date: string | null
           updated_at: string | null
           vendor: string | null
@@ -337,6 +338,7 @@ export type Database = {
           is_active?: boolean | null
           name: string
           notes?: string | null
+          payment_account?: string | null
           start_date?: string | null
           updated_at?: string | null
           vendor?: string | null
@@ -352,6 +354,7 @@ export type Database = {
           is_active?: boolean | null
           name?: string
           notes?: string | null
+          payment_account?: string | null
           start_date?: string | null
           updated_at?: string | null
           vendor?: string | null

@@ -28,7 +28,7 @@ type Expense = {
   is_active: boolean;
   start_date?: string | null;
   end_date?: string | null;
-  vendor?: string | null;
+  payment_account?: string | null;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -36,6 +36,14 @@ type Expense = {
 };
 
 type ExpenseInsert = Omit<Expense, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+
+const PAYMENT_ACCOUNTS = [
+  'Ramp Credit Card',
+  'Divvy Credit Card',
+  'Bluevine Checking 1712',
+  'Bluevine Payroll 8279',
+  'Navy Federal Checking',
+];
 
 interface ExpenseDialogProps {
   open: boolean;
@@ -54,7 +62,7 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
       amount: 0,
       frequency: 'monthly',
       is_active: true,
-      vendor: '',
+      payment_account: '',
       notes: '',
     },
   });
@@ -98,7 +106,7 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
       setValue('is_active', expense.is_active ?? true);
       setValue('start_date', expense.start_date || '');
       setValue('end_date', expense.end_date || '');
-      setValue('vendor', expense.vendor || '');
+      setValue('payment_account', expense.payment_account || '');
       setValue('notes', expense.notes || '');
       setAmountDisplay(formatCurrency(expense.amount));
     } else {
@@ -237,12 +245,22 @@ export function ExpenseDialog({ open, onOpenChange, expense, onSuccess }: Expens
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="vendor">Vendor</Label>
-            <Input
-              id="vendor"
-              {...register('vendor')}
-              placeholder="e.g., Microsoft, AWS"
-            />
+            <Label htmlFor="payment_account">Payment Account</Label>
+            <Select
+              value={watch('payment_account') || ''}
+              onValueChange={(value) => setValue('payment_account', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_ACCOUNTS.map((account) => (
+                  <SelectItem key={account} value={account}>
+                    {account}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

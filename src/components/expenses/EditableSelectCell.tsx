@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface EditableSelectCellProps {
   value: string;
   expenseId: string;
-  field: 'category' | 'frequency';
+  field: 'category' | 'frequency' | 'payment_account';
   onUpdate: () => void;
 }
 
@@ -30,6 +30,14 @@ const frequencyOptions = [
   { value: 'monthly', label: 'Monthly' },
   { value: 'quarterly', label: 'Quarterly' },
   { value: 'annually', label: 'Annually' },
+];
+
+const paymentAccountOptions = [
+  'Ramp Credit Card',
+  'Divvy Credit Card',
+  'Bluevine Checking 1712',
+  'Bluevine Payroll 8279',
+  'Navy Federal Checking',
 ];
 
 export function EditableSelectCell({ value, expenseId, field, onUpdate }: EditableSelectCellProps) {
@@ -64,7 +72,7 @@ export function EditableSelectCell({ value, expenseId, field, onUpdate }: Editab
     if (field === 'frequency') {
       return frequencyOptions.find(opt => opt.value === val)?.label || val;
     }
-    return val;
+    return val || '-';
   };
 
   if (isEditing) {
@@ -86,6 +94,11 @@ export function EditableSelectCell({ value, expenseId, field, onUpdate }: Editab
           {field === 'frequency' && frequencyOptions.map(option => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
+            </SelectItem>
+          ))}
+          {field === 'payment_account' && paymentAccountOptions.map(option => (
+            <SelectItem key={option} value={option}>
+              {option}
             </SelectItem>
           ))}
         </SelectContent>
