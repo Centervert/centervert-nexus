@@ -65,6 +65,20 @@ export const DynamicBreadcrumbs = () => {
     enabled: !!params.id && location.pathname.startsWith('/opportunities/'),
   });
 
+  const { data: projectName } = useQuery({
+    queryKey: ['project-name', params.id],
+    queryFn: async () => {
+      if (!params.id || !location.pathname.startsWith('/projects/')) return null;
+      const { data } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', params.id)
+        .single();
+      return data?.name || null;
+    },
+    enabled: !!params.id && location.pathname.startsWith('/projects/'),
+  });
+
   const generateBreadcrumbs = (): BreadcrumbSegment[] => {
     const pathSegments = location.pathname.split('/').filter(Boolean);
     const breadcrumbs: BreadcrumbSegment[] = [];
@@ -136,6 +150,12 @@ export const DynamicBreadcrumbs = () => {
           path: '/settings',
           isCurrentPage: isLastSegment,
         });
+      } else if (segment === 'projects') {
+        breadcrumbs.push({
+          label: 'Projects',
+          path: '/projects',
+          isCurrentPage: isLastSegment,
+        });
       }
       // Handle detail pages (IDs)
       else if (isLastSegment && params.id) {
@@ -147,6 +167,8 @@ export const DynamicBreadcrumbs = () => {
           entityName = organizationName || 'Loading...';
         } else if (location.pathname.startsWith('/opportunities/')) {
           entityName = opportunityName || 'Loading...';
+        } else if (location.pathname.startsWith('/projects/')) {
+          entityName = projectName || 'Loading...';
         }
 
         breadcrumbs.push({
