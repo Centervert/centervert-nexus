@@ -123,7 +123,7 @@ function SortableResourceItem({ resource, onDelete, onClick }: SortableResourceI
         )}
         <span className="text-sm truncate">{resource.file_name}</span>
         {resource.attachment_type && resource.attachment_type !== "link" && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
             ({DOCUMENT_TYPES.find(t => t.value === resource.attachment_type)?.label || resource.attachment_type})
           </span>
         )}
