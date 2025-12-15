@@ -920,6 +920,50 @@ export type Database = {
           },
         ]
       }
+      organization_attachments: {
+        Row: {
+          attachment_type: string | null
+          created_at: string | null
+          created_by: string | null
+          file_name: string
+          file_path: string
+          file_type: string | null
+          id: string
+          organization_id: string
+          position: number | null
+        }
+        Insert: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name: string
+          file_path: string
+          file_type?: string | null
+          id?: string
+          organization_id: string
+          position?: number | null
+        }
+        Update: {
+          attachment_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_name?: string
+          file_path?: string
+          file_type?: string | null
+          id?: string
+          organization_id?: string
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_attachments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           address: string | null
