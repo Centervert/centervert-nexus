@@ -70,7 +70,7 @@ interface SortableResourceItemProps {
 
 const DOCUMENT_TYPES = [
   { value: "nda", label: "NDA" },
-  { value: "msa", label: "Master Service Agreement (MSA)" },
+  { value: "msa", label: "Master Service Agreement" },
   { value: "sow", label: "Statement of Work (SOW)" },
   { value: "contract", label: "Contract" },
   { value: "proposal", label: "Proposal" },
