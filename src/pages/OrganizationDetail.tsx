@@ -17,6 +17,7 @@ import BillComActivityFeed from "@/components/billing/BillComActivityFeed";
 import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
 import OrganizationBillingSummary from "@/components/billing/OrganizationBillingSummary";
 import InvoiceTable from "@/components/billing/InvoiceTable";
+import OrganizationResourceManager from "@/components/organizations/OrganizationResourceManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +69,19 @@ function OrganizationDetail() {
         .order("first_name", { ascending: true });
       if (error) throw error;
       return data as Contact[];
+    },
+  });
+
+  const { data: resources = [], refetch: refetchResources } = useQuery({
+    queryKey: ["organization-resources", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("organization_attachments")
+        .select("*")
+        .eq("organization_id", id)
+        .order("position", { ascending: true });
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -271,6 +285,15 @@ function OrganizationDetail() {
                   </div>
                 </div>
               </div>
+
+              <Separator className="my-6" />
+
+              {/* Resources */}
+              <OrganizationResourceManager
+                organizationId={id!}
+                resources={resources}
+                onResourcesChange={() => refetchResources()}
+              />
 
               <Separator className="my-6" />
 
