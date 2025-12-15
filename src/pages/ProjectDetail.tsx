@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectDialog } from "@/components/projects/ProjectDialog";
 import { ProjectResourceManager } from "@/components/projects/ProjectResourceManager";
+import { ProjectActivityFeed } from "@/components/projects/ProjectActivityFeed";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -265,6 +266,9 @@ const ProjectDetail = () => {
             </div>
           )}
         </div>
+
+        {/* Activity & Logs - Full Width */}
+        <ProjectActivityFeed projectId={project.id} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Info */}

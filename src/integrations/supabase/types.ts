@@ -1159,6 +1159,7 @@ export type Database = {
           is_recurring: boolean | null
           location: string | null
           meeting_type: string | null
+          notes: string | null
           project_id: string
           recurrence_rule: string | null
           start_time: string
@@ -1173,6 +1174,7 @@ export type Database = {
           is_recurring?: boolean | null
           location?: string | null
           meeting_type?: string | null
+          notes?: string | null
           project_id: string
           recurrence_rule?: string | null
           start_time: string
@@ -1187,6 +1189,7 @@ export type Database = {
           is_recurring?: boolean | null
           location?: string | null
           meeting_type?: string | null
+          notes?: string | null
           project_id?: string
           recurrence_rule?: string | null
           start_time?: string
@@ -1517,6 +1520,51 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      project_updates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          metadata: Json | null
+          project_id: string
+          update_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          update_type?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          update_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_updates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
