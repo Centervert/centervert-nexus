@@ -28,8 +28,9 @@ interface Decision {
   id: string;
   title: string;
   description: string | null;
+  decision: string | null;
   status: string;
-  decision_date: string | null;
+  decided_at: string | null;
   created_at: string | null;
 }
 
@@ -45,8 +46,9 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    decision: "",
     status: "pending",
-    decision_date: ""
+    decided_at: ""
   });
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
     setLoading(true);
     const { data, error } = await supabase
       .from("project_decisions")
-      .select("*")
+      .select("id, title, description, decision, status, decided_at, created_at")
       .eq("project_id", projectId)
       .order("created_at", { ascending: false });
 
@@ -83,8 +85,9 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
           .update({
             title: formData.title,
             description: formData.description || null,
+            decision: formData.decision || null,
             status: formData.status,
-            decision_date: formData.decision_date || null
+            decided_at: formData.decided_at || null
           })
           .eq("id", editingDecision.id);
 
@@ -97,8 +100,9 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
             project_id: projectId,
             title: formData.title,
             description: formData.description || null,
+            decision: formData.decision || null,
             status: formData.status,
-            decision_date: formData.decision_date || null
+            decided_at: formData.decided_at || null
           });
 
         if (error) throw error;
@@ -134,8 +138,9 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
     setFormData({
       title: "",
       description: "",
+      decision: "",
       status: "pending",
-      decision_date: ""
+      decided_at: ""
     });
     setEditingDecision(null);
   };
@@ -145,8 +150,9 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
     setFormData({
       title: decision.title,
       description: decision.description || "",
+      decision: decision.decision || "",
       status: decision.status,
-      decision_date: decision.decision_date || ""
+      decided_at: decision.decided_at ? decision.decided_at.split('T')[0] : ""
     });
     setDialogOpen(true);
   };
@@ -195,9 +201,14 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
                     {decision.description && (
                       <p className="text-sm text-muted-foreground mt-1">{decision.description}</p>
                     )}
-                    {decision.decision_date && (
+                    {decision.decision && (
+                      <p className="text-sm mt-2 p-2 bg-muted/50 rounded">
+                        <strong>Decision:</strong> {decision.decision}
+                      </p>
+                    )}
+                    {decision.decided_at && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Decision date: {format(new Date(decision.decision_date), "MMM d, yyyy")}
+                        Decided: {format(new Date(decision.decided_at), "MMM d, yyyy")}
                       </p>
                     )}
                   </div>
@@ -232,7 +243,16 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Decision details and rationale"
+                placeholder="Context and background"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="decision">Decision</Label>
+              <Textarea
+                id="decision"
+                value={formData.decision}
+                onChange={(e) => setFormData({ ...formData, decision: e.target.value })}
+                placeholder="The final decision made"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -251,12 +271,12 @@ export function ProjectDecisionsTab({ projectId }: ProjectDecisionsTabProps) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="decision_date">Decision Date</Label>
+                <Label htmlFor="decided_at">Decision Date</Label>
                 <Input
-                  id="decision_date"
+                  id="decided_at"
                   type="date"
-                  value={formData.decision_date}
-                  onChange={(e) => setFormData({ ...formData, decision_date: e.target.value })}
+                  value={formData.decided_at}
+                  onChange={(e) => setFormData({ ...formData, decided_at: e.target.value })}
                 />
               </div>
             </div>
