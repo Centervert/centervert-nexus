@@ -1149,6 +1149,109 @@ export type Database = {
           },
         ]
       }
+      project_decisions: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision: string | null
+          description: string | null
+          id: string
+          project_id: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          description?: string | null
+          id?: string
+          project_id: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: string | null
+          description?: string | null
+          id?: string
+          project_id?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_decisions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_features: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          position: number | null
+          priority: string | null
+          project_id: string
+          status: string
+          target_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          position?: number | null
+          priority?: string | null
+          project_id: string
+          status?: string
+          target_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          position?: number | null
+          priority?: string | null
+          project_id?: string
+          status?: string
+          target_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_features_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_meetings: {
         Row: {
           created_at: string | null
@@ -1269,6 +1372,59 @@ export type Database = {
           },
         ]
       }
+      project_risks: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          likelihood: string
+          mitigation: string | null
+          owner_id: string | null
+          project_id: string
+          severity: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          likelihood?: string
+          mitigation?: string | null
+          owner_id?: string | null
+          project_id: string
+          severity?: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          likelihood?: string
+          mitigation?: string | null
+          owner_id?: string | null
+          project_id?: string
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_risks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_sprints: {
         Row: {
           created_at: string | null
@@ -1377,13 +1533,16 @@ export type Database = {
           description: string | null
           due_date: string | null
           estimated_hours: number | null
+          feature_id: string | null
           id: string
+          is_pending: boolean
           position: number | null
           priority: string | null
           project_id: string
           sprint_id: string | null
           status: string
           story_points: number | null
+          task_type: string
           title: string
           updated_at: string | null
         }
@@ -1394,13 +1553,16 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          feature_id?: string | null
           id?: string
+          is_pending?: boolean
           position?: number | null
           priority?: string | null
           project_id: string
           sprint_id?: string | null
           status?: string
           story_points?: number | null
+          task_type?: string
           title: string
           updated_at?: string | null
         }
@@ -1411,13 +1573,16 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           estimated_hours?: number | null
+          feature_id?: string | null
           id?: string
+          is_pending?: boolean
           position?: number | null
           priority?: string | null
           project_id?: string
           sprint_id?: string | null
           status?: string
           story_points?: number | null
+          task_type?: string
           title?: string
           updated_at?: string | null
         }
@@ -1427,6 +1592,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "project_features"
             referencedColumns: ["id"]
           },
           {
