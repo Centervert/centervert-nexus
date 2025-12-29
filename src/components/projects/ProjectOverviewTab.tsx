@@ -45,13 +45,7 @@ interface Decision {
   id: string;
   title: string;
   status: string;
-  decision_date: string | null;
-}
-
-interface Deliberation {
-  id: string;
-  title: string;
-  status: string;
+  decided_at: string | null;
 }
 
 interface ProjectOverviewTabProps {
@@ -64,7 +58,6 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
   const [features, setFeatures] = useState<Feature[]>([]);
   const [risks, setRisks] = useState<Risk[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
-  const [deliberations, setDeliberations] = useState<Deliberation[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,8 +66,7 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
       await Promise.all([
         loadFeatures(),
         loadRisks(),
-        loadDecisions(),
-        loadDeliberations()
+        loadDecisions()
       ]);
       setLoading(false);
     };
@@ -104,22 +96,11 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
   const loadDecisions = async () => {
     const { data } = await supabase
       .from("project_decisions")
-      .select("id, title, status, decision_date")
+      .select("id, title, status, decided_at")
       .eq("project_id", project.id)
       .order("created_at", { ascending: false })
       .limit(5);
     setDecisions(data || []);
-  };
-
-  const loadDeliberations = async () => {
-    const { data } = await supabase
-      .from("project_deliberations")
-      .select("id, title, status")
-      .eq("project_id", project.id)
-      .eq("status", "open")
-      .order("created_at", { ascending: false })
-      .limit(5);
-    setDeliberations(data || []);
   };
 
   const getStatusBadge = (status: string) => {
@@ -142,7 +123,6 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
   const upcomingFeatures = features.filter(f => f.status === "planned" || f.status === "backlog");
   const openRisks = risks.filter(r => r.status === "open");
   const recentDecisions = decisions.filter(d => d.status === "approved" || d.status === "decided");
-  const openDeliberations = deliberations.filter(d => d.status === "open");
 
   return (
     <div className="space-y-6">
@@ -275,54 +255,29 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
         </Card>
       </div>
 
-      {/* Deliberations & Stakeholders Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-500" />
-              Open Deliberations ({openDeliberations.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {openDeliberations.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No open deliberations</p>
-            ) : (
-              <ul className="space-y-2">
-                {openDeliberations.map((deliberation) => (
-                  <li key={deliberation.id} className="text-sm flex items-start gap-2">
-                    <span className="text-orange-500 mt-1">•</span>
-                    {deliberation.title}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Key Stakeholders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {teamMembers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No team members assigned</p>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {teamMembers.slice(0, 6).map((member) => (
-                  <div key={member.id} className="text-sm">
-                    <span className="font-medium">{member.full_name || member.email.split('@')[0]}</span>
-                    <span className="text-muted-foreground"> – {member.role}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Stakeholders Row */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Key Stakeholders
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {teamMembers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No team members assigned</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {teamMembers.slice(0, 6).map((member) => (
+                <div key={member.id} className="text-sm">
+                  <span className="font-medium">{member.full_name || member.email.split('@')[0]}</span>
+                  <span className="text-muted-foreground"> – {member.role}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
