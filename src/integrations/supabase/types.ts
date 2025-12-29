@@ -1753,6 +1753,7 @@ export type Database = {
           opportunity_id: string | null
           organization_id: string | null
           owner_id: string | null
+          phase_target: string | null
           project_type_id: string | null
           start_date: string | null
           status: string
@@ -1773,6 +1774,7 @@ export type Database = {
           opportunity_id?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          phase_target?: string | null
           project_type_id?: string | null
           start_date?: string | null
           status?: string
@@ -1793,6 +1795,7 @@ export type Database = {
           opportunity_id?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          phase_target?: string | null
           project_type_id?: string | null
           start_date?: string | null
           status?: string
