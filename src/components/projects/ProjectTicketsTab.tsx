@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Ticket, User } from "lucide-react";
+import { Plus, Ticket, Layers } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -32,6 +32,12 @@ interface Task {
   task_type: string;
   story_points: number | null;
   due_date: string | null;
+  feature_id: string | null;
+}
+
+interface Feature {
+  id: string;
+  name: string;
 }
 
 interface ProjectTicketsTabProps {
@@ -40,6 +46,7 @@ interface ProjectTicketsTabProps {
 
 export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -50,15 +57,21 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
     priority: "medium",
     task_type: "todo",
     story_points: "",
-    due_date: ""
+    due_date: "",
+    feature_id: ""
   });
 
   useEffect(() => {
-    loadTasks();
+    loadData();
   }, [projectId]);
 
-  const loadTasks = async () => {
+  const loadData = async () => {
     setLoading(true);
+    await Promise.all([loadTasks(), loadFeatures()]);
+    setLoading(false);
+  };
+
+  const loadTasks = async () => {
     const { data, error } = await supabase
       .from("project_tasks")
       .select("*")
@@ -71,7 +84,25 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
     } else {
       setTasks(data || []);
     }
-    setLoading(false);
+  };
+
+  const loadFeatures = async () => {
+    const { data, error } = await supabase
+      .from("project_features")
+      .select("id, name")
+      .eq("project_id", projectId)
+      .order("position", { ascending: true });
+
+    if (error) {
+      console.error("Error loading features:", error);
+    } else {
+      setFeatures(data || []);
+    }
+  };
+
+  const getFeatureName = (featureId: string | null) => {
+    if (!featureId) return null;
+    return features.find(f => f.id === featureId)?.name || null;
   };
 
   const handleSubmit = async () => {
@@ -91,7 +122,8 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
             priority: formData.priority,
             task_type: formData.task_type,
             story_points: formData.story_points ? parseInt(formData.story_points) : null,
-            due_date: formData.due_date || null
+            due_date: formData.due_date || null,
+            feature_id: formData.feature_id || null
           })
           .eq("id", editingTask.id);
 
@@ -109,6 +141,7 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
             task_type: formData.task_type,
             story_points: formData.story_points ? parseInt(formData.story_points) : null,
             due_date: formData.due_date || null,
+            feature_id: formData.feature_id || null,
             position: tasks.length
           });
 
@@ -149,7 +182,8 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
       priority: "medium",
       task_type: "todo",
       story_points: "",
-      due_date: ""
+      due_date: "",
+      feature_id: ""
     });
     setEditingTask(null);
   };
@@ -163,7 +197,8 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
       priority: task.priority || "medium",
       task_type: task.task_type,
       story_points: task.story_points?.toString() || "",
-      due_date: task.due_date || ""
+      due_date: task.due_date || "",
+      feature_id: task.feature_id || ""
     });
     setDialogOpen(true);
   };
@@ -216,39 +251,48 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
         </Card>
       ) : (
         <div className="space-y-2">
-          {tasks.map((task) => (
-            <Card 
-              key={task.id} 
-              className="cursor-pointer hover:bg-muted/50 transition-colors"
-              onClick={() => openEditDialog(task)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                  <Ticket className="h-5 w-5 text-muted-foreground mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-medium">{task.title}</p>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
-                    )}
+          {tasks.map((task) => {
+            const featureName = getFeatureName(task.feature_id);
+            return (
+              <Card 
+                key={task.id} 
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => openEditDialog(task)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-4">
+                    <Ticket className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="font-medium">{task.title}</p>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+                      )}
+                      {featureName && (
+                        <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                          <Layers className="h-3 w-3" />
+                          {featureName}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 flex-wrap justify-end">
+                      <Badge className={getTypeColor(task.task_type)}>
+                        {task.task_type}
+                      </Badge>
+                      <Badge className={getStatusColor(task.status)}>
+                        {task.status.replace(/_/g, " ")}
+                      </Badge>
+                      <Badge className={getPriorityColor(task.priority)}>
+                        {task.priority || "medium"}
+                      </Badge>
+                      {task.story_points && (
+                        <Badge variant="outline">{task.story_points} pts</Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-2 flex-wrap justify-end">
-                    <Badge className={getTypeColor(task.task_type)}>
-                      {task.task_type}
-                    </Badge>
-                    <Badge className={getStatusColor(task.status)}>
-                      {task.status.replace(/_/g, " ")}
-                    </Badge>
-                    <Badge className={getPriorityColor(task.priority)}>
-                      {task.priority || "medium"}
-                    </Badge>
-                    {task.story_points && (
-                      <Badge variant="outline">{task.story_points} pts</Badge>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -276,6 +320,25 @@ export function ProjectTicketsTab({ projectId }: ProjectTicketsTabProps) {
                 placeholder="Ticket description"
               />
             </div>
+            
+            {/* Feature Link */}
+            <div className="space-y-2">
+              <Label>Link to Feature</Label>
+              <Select value={formData.feature_id} onValueChange={(v) => setFormData({ ...formData, feature_id: v === "none" ? "" : v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="No feature" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No feature</SelectItem>
+                  {features.map((feature) => (
+                    <SelectItem key={feature.id} value={feature.id}>
+                      {feature.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Type</Label>
