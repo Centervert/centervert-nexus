@@ -17,6 +17,7 @@ import { ProjectMeetingsTab } from "@/components/projects/ProjectMeetingsTab";
 import { ProjectReleasesTab } from "@/components/projects/ProjectReleasesTab";
 import { ProjectDocsTab } from "@/components/projects/ProjectDocsTab";
 import { ProjectTicketsTab } from "@/components/projects/ProjectTicketsTab";
+import { ProjectRoadmapTab } from "@/components/projects/ProjectRoadmapTab";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -27,7 +28,8 @@ import {
   Users,
   Rocket,
   FolderOpen,
-  Ticket
+  Ticket,
+  GanttChart
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
@@ -248,6 +250,13 @@ const ProjectDetail = () => {
               <Ticket className="h-4 w-4 mr-2" />
               Tickets
             </TabsTrigger>
+            <TabsTrigger 
+              value="roadmap"
+              className="data-[state=active]:bg-muted data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-b-none px-4 py-2"
+            >
+              <GanttChart className="h-4 w-4 mr-2" />
+              Roadmap
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -284,6 +293,14 @@ const ProjectDetail = () => {
 
           <TabsContent value="tickets" className="mt-6">
             <ProjectTicketsTab projectId={project.id} />
+          </TabsContent>
+
+          <TabsContent value="roadmap" className="mt-6">
+            <ProjectRoadmapTab 
+              projectId={project.id} 
+              projectStartDate={project.start_date}
+              projectEndDate={project.target_end_date}
+            />
           </TabsContent>
         </Tabs>
       </div>
