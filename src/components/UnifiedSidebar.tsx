@@ -56,7 +56,7 @@ const UnifiedSidebar = () => {
   const hasRoleInfo = isFetched && userRole !== null && userRole !== undefined;
 
   const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname === '/deals' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/') || location.pathname.startsWith('/deals/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
   // Show menus while loading OR if we don't have role info yet
