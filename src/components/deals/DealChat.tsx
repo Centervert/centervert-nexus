@@ -9,6 +9,7 @@ import { MentionTextarea } from "@/components/messages/MentionTextarea";
 import { MessageContent } from "./MessageContent";
 import { MessageReactions } from "./MessageReactions";
 import { ChatToolbar } from "./ChatToolbar";
+import { TypingIndicator } from "./TypingIndicator";
 
 interface Message {
   id: string;
@@ -42,6 +43,9 @@ export function DealChat({ dealId }: DealChatProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<{ focus: () => void; insertText: (text: string) => void }>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<{ userId: string; name: string }[]>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const loadReactions = useCallback(async (messageIds: string[]) => {
     if (messageIds.length === 0) return;
@@ -132,6 +136,82 @@ export function DealChat({ dealId }: DealChatProps) {
     }
   };
 
+  // Setup presence channel for typing indicator
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const presenceChannel = supabase.channel(`typing-${dealId}`, {
+      config: { presence: { key: currentUserId } },
+    });
+
+    presenceChannel
+      .on("presence", { event: "sync" }, () => {
+        const state = presenceChannel.presenceState();
+        const users: { userId: string; name: string }[] = [];
+        
+        Object.entries(state).forEach(([userId, presences]) => {
+          if (userId !== currentUserId && Array.isArray(presences)) {
+            const presence = presences[0] as { isTyping?: boolean; name?: string };
+            if (presence?.isTyping) {
+              users.push({ userId, name: presence.name || "Someone" });
+            }
+          }
+        });
+        
+        setTypingUsers(users);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          // Get current user's profile for name
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, email")
+            .eq("id", currentUserId)
+            .single();
+          
+          await presenceChannel.track({
+            isTyping: false,
+            name: profile?.full_name || profile?.email || "Someone",
+          });
+        }
+      });
+
+    presenceChannelRef.current = presenceChannel;
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [dealId, currentUserId]);
+
+  const updateTypingStatus = useCallback(async (isTyping: boolean) => {
+    if (!presenceChannelRef.current || !currentUserId) return;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", currentUserId)
+      .single();
+
+    await presenceChannelRef.current.track({
+      isTyping,
+      name: profile?.full_name || profile?.email || "Someone",
+    });
+  }, [currentUserId]);
+
+  const handleTyping = useCallback(() => {
+    updateTypingStatus(true);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set new timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      updateTypingStatus(false);
+    }, 2000);
+  }, [updateTypingStatus]);
+
   const loadMessages = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -185,6 +265,10 @@ export function DealChat({ dealId }: DealChatProps) {
       });
     } else {
       setNewMessage("");
+      updateTypingStatus(false);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     }
     setSending(false);
   };
@@ -317,12 +401,18 @@ export function DealChat({ dealId }: DealChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Typing Indicator */}
+      <TypingIndicator typingUsers={typingUsers} />
+
       {/* Input Area */}
       <div className="mt-4 border rounded-lg overflow-hidden bg-background">
         <div className="p-2">
           <MentionTextarea
             value={newMessage}
-            onChange={setNewMessage}
+            onChange={(value) => {
+              setNewMessage(value);
+              handleTyping();
+            }}
             placeholder="Type a message... Use @ to mention someone"
             onSubmit={handleSend}
           />
