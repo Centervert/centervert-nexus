@@ -40,7 +40,7 @@ import { Button } from '@/components/ui/button';
 const UnifiedSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: userRole, isLoading: isRoleLoading } = useUserRole();
+  const { data: userRole, isLoading: isRoleLoading, isFetched } = useUserRole();
   const [activeWorkOpen, setActiveWorkOpen] = useState(true);
   const [crmOpen, setCrmOpen] = useState(true);
   const [backOfficeOpen, setBackOfficeOpen] = useState(true);
@@ -51,16 +51,19 @@ const UnifiedSidebar = () => {
   const isAdmin = userRole?.isAdmin || false;
   const isAgent = userRole?.isAgent || false;
   const isSalesAgent = userRole?.isSalesAgent || false;
+  
+  // Check if we have definitive role info - if not fetched yet, show all menus
+  const hasRoleInfo = isFetched && userRole !== null && userRole !== undefined;
 
   const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
-  // Show menus while loading to prevent flash of empty sidebar
-  // Once loaded, apply role-based visibility
-  const showActiveWork = isRoleLoading || isAdmin || isAgent || isSalesAgent;
-  const showCrm = isRoleLoading || isAdmin || isAgent || isSalesAgent;
-  const showBackOffice = isRoleLoading || isAdmin; // Only admins see Back Office (but show while loading)
+  // Show menus while loading OR if we don't have role info yet
+  // Once we have confirmed role data, apply role-based visibility
+  const showActiveWork = !hasRoleInfo || isAdmin || isAgent || isSalesAgent;
+  const showCrm = !hasRoleInfo || isAdmin || isAgent || isSalesAgent;
+  const showBackOffice = !hasRoleInfo || isAdmin; // Only admins see Back Office
 
   // Navigation items based on role
   const navigation = [
