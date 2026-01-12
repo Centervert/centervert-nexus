@@ -14,6 +14,8 @@ import Contacts from "./pages/Contacts";
 import ContactDetail from "./pages/ContactDetail";
 import Opportunities from "./pages/Opportunities";
 import OpportunityDetail from "./pages/OpportunityDetail";
+import DealsNew from "./pages/DealsNew";
+import DealDetail from "./pages/DealDetail";
 import Billing from "@/pages/Billing";
 import UserManagement from "@/pages/UserManagement";
 import HumanResources from "@/pages/HumanResources";
@@ -101,6 +103,21 @@ const App = () => {
                 }
               />
               <Route
+                path="/deals"
+                element={
+                  <ProtectedRoute>
+                    <DealsNew />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/deals/:id"
+                element={
+                  <ProtectedRoute>
+                    <DealDetail />
+                  </ProtectedRoute>
+                }
+              />
                 path="/projects"
                 element={
                   <ProtectedRoute>
