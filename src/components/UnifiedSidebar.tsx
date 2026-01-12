@@ -40,7 +40,7 @@ import { Button } from '@/components/ui/button';
 const UnifiedSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: userRole } = useUserRole();
+  const { data: userRole, isLoading: isRoleLoading } = useUserRole();
   const [activeWorkOpen, setActiveWorkOpen] = useState(true);
   const [crmOpen, setCrmOpen] = useState(true);
   const [backOfficeOpen, setBackOfficeOpen] = useState(true);
@@ -56,11 +56,11 @@ const UnifiedSidebar = () => {
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
-  // All authenticated users can see Active Work (Projects)
-  const showActiveWork = isAdmin || isAgent || isSalesAgent;
-  // Sales agents have CRM access but not Back Office
-  const showCrm = isAdmin || isAgent || isSalesAgent;
-  const showBackOffice = isAdmin; // Only admins see Back Office
+  // Show menus while loading to prevent flash of empty sidebar
+  // Once loaded, apply role-based visibility
+  const showActiveWork = isRoleLoading || isAdmin || isAgent || isSalesAgent;
+  const showCrm = isRoleLoading || isAdmin || isAgent || isSalesAgent;
+  const showBackOffice = isRoleLoading || isAdmin; // Only admins see Back Office (but show while loading)
 
   // Navigation items based on role
   const navigation = [
