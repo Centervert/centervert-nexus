@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send } from "lucide-react";
-import { format } from "date-fns";
+import { format, isToday, isYesterday, isSameDay } from "date-fns";
 import { MentionTextarea } from "@/components/messages/MentionTextarea";
+import { MessageContent } from "./MessageContent";
+import { MessageReactions } from "./MessageReactions";
+import { ChatToolbar } from "./ChatToolbar";
 
 interface Message {
   id: string;
@@ -19,6 +22,12 @@ interface Message {
   };
 }
 
+interface Reaction {
+  emoji: string;
+  count: number;
+  hasReacted: boolean;
+}
+
 interface DealChatProps {
   dealId: string;
 }
@@ -26,17 +35,57 @@ interface DealChatProps {
 export function DealChat({ dealId }: DealChatProps) {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<{ focus: () => void; insertText: (text: string) => void }>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  const loadReactions = useCallback(async (messageIds: string[]) => {
+    if (messageIds.length === 0) return;
+
+    const { data, error } = await supabase
+      .from("deal_message_reactions")
+      .select("*")
+      .in("message_id", messageIds);
+
+    if (error) {
+      console.error("Error loading reactions:", error);
+      return;
+    }
+
+    const reactionsByMessage: Record<string, Reaction[]> = {};
+    
+    messageIds.forEach(id => {
+      const messageReactions = data?.filter(r => r.message_id === id) || [];
+      const emojiCounts: Record<string, { count: number; hasReacted: boolean }> = {};
+      
+      messageReactions.forEach(r => {
+        if (!emojiCounts[r.emoji]) {
+          emojiCounts[r.emoji] = { count: 0, hasReacted: false };
+        }
+        emojiCounts[r.emoji].count++;
+        if (r.user_id === currentUserId) {
+          emojiCounts[r.emoji].hasReacted = true;
+        }
+      });
+
+      reactionsByMessage[id] = Object.entries(emojiCounts).map(([emoji, data]) => ({
+        emoji,
+        count: data.count,
+        hasReacted: data.hasReacted,
+      }));
+    });
+
+    setReactions(reactionsByMessage);
+  }, [currentUserId]);
 
   useEffect(() => {
     loadMessages();
     getCurrentUser();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel(`deal-messages-${dealId}`)
       .on(
@@ -48,7 +97,6 @@ export function DealChat({ dealId }: DealChatProps) {
           filter: `deal_id=eq.${dealId}`,
         },
         async (payload) => {
-          // Fetch the full message with profile data
           const { data } = await supabase
             .from("deal_messages")
             .select("*, profiles:author_id(full_name, email, avatar_url)")
@@ -70,6 +118,12 @@ export function DealChat({ dealId }: DealChatProps) {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (messages.length > 0 && currentUserId) {
+      loadReactions(messages.map(m => m.id));
+    }
+  }, [messages, currentUserId, loadReactions]);
 
   const getCurrentUser = async () => {
     const { data } = await supabase.auth.getUser();
@@ -147,6 +201,42 @@ export function DealChat({ dealId }: DealChatProps) {
     return email[0].toUpperCase();
   };
 
+  const formatDateDivider = (date: Date) => {
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "EEEE, MMMM d");
+  };
+
+  const shouldShowDateDivider = (index: number) => {
+    if (index === 0) return true;
+    const currentDate = new Date(messages[index].created_at);
+    const previousDate = new Date(messages[index - 1].created_at);
+    return !isSameDay(currentDate, previousDate);
+  };
+
+  const shouldShowAvatar = (index: number) => {
+    if (index === 0) return true;
+    const currentMessage = messages[index];
+    const previousMessage = messages[index - 1];
+    
+    // Show avatar if different author or if there's a date divider
+    if (currentMessage.author_id !== previousMessage.author_id) return true;
+    if (shouldShowDateDivider(index)) return true;
+    
+    // Show avatar if more than 5 minutes apart
+    const currentTime = new Date(currentMessage.created_at).getTime();
+    const previousTime = new Date(previousMessage.created_at).getTime();
+    return (currentTime - previousTime) > 5 * 60 * 1000;
+  };
+
+  const handleInsertText = (text: string) => {
+    setNewMessage(prev => prev + text);
+  };
+
+  const handleTriggerMention = () => {
+    setNewMessage(prev => prev + "@");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground">
@@ -158,49 +248,66 @@ export function DealChat({ dealId }: DealChatProps) {
   return (
     <div className="flex flex-col h-[500px]">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-muted/30 rounded-lg">
+      <div className="flex-1 overflow-y-auto space-y-1 p-4 bg-muted/20 rounded-lg">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             No messages yet. Start the conversation!
           </div>
         ) : (
-          messages.map((message) => {
-            const isOwnMessage = message.author_id === currentUserId;
+          messages.map((message, index) => {
+            const showDateDivider = shouldShowDateDivider(index);
+            const showAvatar = shouldShowAvatar(index);
+            const messageDate = new Date(message.created_at);
+
             return (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${isOwnMessage ? "flex-row-reverse" : ""}`}
-              >
-                <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarImage src={message.profiles?.avatar_url || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(
-                      message.profiles?.full_name || null,
-                      message.profiles?.email || ""
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div
-                  className={`max-w-[70%] ${
-                    isOwnMessage ? "items-end" : "items-start"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-medium">
-                      {message.profiles?.full_name || message.profiles?.email}
+              <div key={message.id}>
+                {/* Date Divider */}
+                {showDateDivider && (
+                  <div className="flex items-center gap-3 my-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-xs font-medium text-muted-foreground px-2">
+                      {formatDateDivider(messageDate)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
-                      {format(new Date(message.created_at), "MMM d, h:mm a")}
-                    </span>
+                    <div className="flex-1 h-px bg-border" />
                   </div>
-                  <div
-                    className={`rounded-lg px-3 py-2 ${
-                      isOwnMessage
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background border"
-                    }`}
-                  >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                )}
+
+                {/* Message */}
+                <div className="group flex gap-3 px-2 py-1 hover:bg-muted/50 rounded transition-colors">
+                  {/* Avatar or spacer */}
+                  <div className="w-9 shrink-0">
+                    {showAvatar && (
+                      <Avatar className="h-9 w-9">
+                        <AvatarImage src={message.profiles?.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {getInitials(
+                            message.profiles?.full_name || null,
+                            message.profiles?.email || ""
+                          )}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    {showAvatar && (
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="font-semibold text-sm">
+                          {message.profiles?.full_name || message.profiles?.email}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(messageDate, "h:mm a")}
+                        </span>
+                      </div>
+                    )}
+                    <MessageContent content={message.content} />
+                    <MessageReactions
+                      messageId={message.id}
+                      reactions={reactions[message.id] || []}
+                      currentUserId={currentUserId}
+                      onReactionChange={() => loadReactions(messages.map(m => m.id))}
+                    />
                   </div>
                 </div>
               </div>
@@ -210,9 +317,9 @@ export function DealChat({ dealId }: DealChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="flex gap-2 mt-4">
-        <div className="flex-1">
+      {/* Input Area */}
+      <div className="mt-4 border rounded-lg overflow-hidden bg-background">
+        <div className="p-2">
           <MentionTextarea
             value={newMessage}
             onChange={setNewMessage}
@@ -220,14 +327,23 @@ export function DealChat({ dealId }: DealChatProps) {
             onSubmit={handleSend}
           />
         </div>
-        <Button
-          onClick={handleSend}
-          disabled={!newMessage.trim() || sending}
-          size="icon"
-          className="shrink-0"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center justify-between">
+          <ChatToolbar 
+            onInsertText={handleInsertText}
+            onTriggerMention={handleTriggerMention}
+          />
+          <div className="pr-2 pb-1">
+            <Button
+              onClick={handleSend}
+              disabled={!newMessage.trim() || sending}
+              size="sm"
+              className="h-8"
+            >
+              <Send className="h-4 w-4 mr-1" />
+              Send
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
