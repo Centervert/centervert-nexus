@@ -1,11 +1,22 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useUserRole = () => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Invalidate role query when auth state changes
+  useEffect(() => {
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ['user-role', user.id] });
+    }
+  }, [user?.id, queryClient]);
+
   return useQuery({
-    queryKey: ['user-role'],
+    queryKey: ['user-role', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
       const { data: roles } = await supabase
@@ -24,6 +35,7 @@ export const useUserRole = () => {
         roles: roles?.map(r => r.role) || []
       };
     },
+    enabled: !!user, // Only run query when user is authenticated
     staleTime: 1000 * 60 * 10, // 10 minutes - roles don't change often
     gcTime: 1000 * 60 * 30, // 30 minutes cache
   });
