@@ -131,6 +131,7 @@ export type Database = {
           created_at: string
           deal_id: string
           id: string
+          message_id: string | null
           name: string
           storage_path: string | null
           uploaded_by: string | null
@@ -141,6 +142,7 @@ export type Database = {
           created_at?: string
           deal_id: string
           id?: string
+          message_id?: string | null
           name: string
           storage_path?: string | null
           uploaded_by?: string | null
@@ -151,6 +153,7 @@ export type Database = {
           created_at?: string
           deal_id?: string
           id?: string
+          message_id?: string | null
           name?: string
           storage_path?: string | null
           uploaded_by?: string | null
@@ -162,6 +165,13 @@ export type Database = {
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "deal_messages"
             referencedColumns: ["id"]
           },
           {

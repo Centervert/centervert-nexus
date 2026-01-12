@@ -1,25 +1,52 @@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Bold, Italic, Strikethrough, AtSign, Smile, Paperclip } from "lucide-react";
-import { useState } from "react";
+import { Bold, Italic, Strikethrough, AtSign, Smile, Paperclip, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
 
 interface ChatToolbarProps {
   onInsertText: (text: string) => void;
   onTriggerMention: () => void;
+  onFileSelect?: (files: FileList) => void;
+  uploading?: boolean;
 }
 
 const EMOJI_OPTIONS = ["😀", "😂", "😍", "🤔", "👍", "👏", "🎉", "🔥", "❤️", "✅", "🚀", "💯"];
 
-export function ChatToolbar({ onInsertText, onTriggerMention }: ChatToolbarProps) {
+export function ChatToolbar({ onInsertText, onTriggerMention, onFileSelect, uploading }: ChatToolbarProps) {
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEmoji = (emoji: string) => {
     onInsertText(emoji);
     setEmojiOpen(false);
   };
 
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && onFileSelect) {
+      onFileSelect(files);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="flex items-center gap-0.5 p-1 border-t border-border bg-muted/30">
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+      />
+      
       <Button
         type="button"
         variant="ghost"
@@ -97,11 +124,16 @@ export function ChatToolbar({ onInsertText, onTriggerMention }: ChatToolbarProps
         type="button"
         variant="ghost"
         size="sm"
-        className="h-7 w-7 p-0 opacity-50 cursor-not-allowed"
-        title="Attach file (coming soon)"
-        disabled
+        className="h-7 w-7 p-0"
+        title="Attach file"
+        onClick={handleFileClick}
+        disabled={uploading}
       >
-        <Paperclip className="h-4 w-4" />
+        {uploading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Paperclip className="h-4 w-4" />
+        )}
       </Button>
     </div>
   );

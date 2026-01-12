@@ -10,6 +10,15 @@ import { MessageContent } from "./MessageContent";
 import { MessageReactions } from "./MessageReactions";
 import { ChatToolbar } from "./ChatToolbar";
 import { TypingIndicator } from "./TypingIndicator";
+import { ChatAttachment, PendingAttachment } from "./ChatAttachment";
+
+interface Attachment {
+  id: string;
+  name: string;
+  attachment_type: string;
+  storage_path: string | null;
+  url: string | null;
+}
 
 interface Message {
   id: string;
@@ -21,6 +30,7 @@ interface Message {
     email: string;
     avatar_url: string | null;
   };
+  attachments?: Attachment[];
 }
 
 interface Reaction {
@@ -40,6 +50,8 @@ export function DealChat({ dealId }: DealChatProps) {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<{ focus: () => void; insertText: (text: string) => void }>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -86,6 +98,32 @@ export function DealChat({ dealId }: DealChatProps) {
     setReactions(reactionsByMessage);
   }, [currentUserId]);
 
+  const loadAttachmentsForMessages = useCallback(async (messageIds: string[]) => {
+    if (messageIds.length === 0) return {};
+
+    const { data, error } = await supabase
+      .from("deal_attachments")
+      .select("*")
+      .in("message_id", messageIds);
+
+    if (error) {
+      console.error("Error loading attachments:", error);
+      return {};
+    }
+
+    const attachmentsByMessage: Record<string, Attachment[]> = {};
+    data?.forEach(att => {
+      if (att.message_id) {
+        if (!attachmentsByMessage[att.message_id]) {
+          attachmentsByMessage[att.message_id] = [];
+        }
+        attachmentsByMessage[att.message_id].push(att);
+      }
+    });
+
+    return attachmentsByMessage;
+  }, []);
+
   useEffect(() => {
     loadMessages();
     getCurrentUser();
@@ -108,7 +146,13 @@ export function DealChat({ dealId }: DealChatProps) {
             .single();
           
           if (data) {
-            setMessages((prev) => [...prev, data as Message]);
+            // Load attachments for the new message
+            const attachments = await loadAttachmentsForMessages([payload.new.id]);
+            const messageWithAttachments = {
+              ...data,
+              attachments: attachments[payload.new.id] || []
+            } as Message;
+            setMessages((prev) => [...prev, messageWithAttachments]);
           }
         }
       )
@@ -117,7 +161,7 @@ export function DealChat({ dealId }: DealChatProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [dealId]);
+  }, [dealId, loadAttachmentsForMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -227,7 +271,16 @@ export function DealChat({ dealId }: DealChatProps) {
         variant: "destructive",
       });
     } else {
-      setMessages(data as Message[]);
+      // Load attachments for all messages
+      const messageIds = data.map(m => m.id);
+      const attachments = await loadAttachmentsForMessages(messageIds);
+      
+      const messagesWithAttachments = data.map(msg => ({
+        ...msg,
+        attachments: attachments[msg.id] || []
+      })) as Message[];
+      
+      setMessages(messagesWithAttachments);
     }
     setLoading(false);
   };
@@ -236,10 +289,54 @@ export function DealChat({ dealId }: DealChatProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleFileSelect = (files: FileList) => {
+    const newFiles = Array.from(files);
+    setPendingFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (messageId: string, userId: string) => {
+    for (const file of pendingFiles) {
+      const filePath = `${userId}/${dealId}/${Date.now()}_${file.name}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("deal-attachments")
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      const { error: dbError } = await supabase.from("deal_attachments").insert({
+        deal_id: dealId,
+        message_id: messageId,
+        name: file.name,
+        attachment_type: "file",
+        storage_path: filePath,
+        uploaded_by: userId,
+      });
+
+      if (dbError) {
+        console.error("DB error:", dbError);
+      }
+    }
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && pendingFiles.length === 0) return;
 
     setSending(true);
+    setUploading(pendingFiles.length > 0);
+    
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       toast({
@@ -248,14 +345,22 @@ export function DealChat({ dealId }: DealChatProps) {
         variant: "destructive",
       });
       setSending(false);
+      setUploading(false);
       return;
     }
 
-    const { error } = await supabase.from("deal_messages").insert({
-      deal_id: dealId,
-      content: newMessage.trim(),
-      author_id: userData.user.id,
-    });
+    // Create message (even if empty, if we have files)
+    const messageContent = newMessage.trim() || (pendingFiles.length > 0 ? "📎 Shared files" : "");
+    
+    const { data: messageData, error } = await supabase
+      .from("deal_messages")
+      .insert({
+        deal_id: dealId,
+        content: messageContent,
+        author_id: userData.user.id,
+      })
+      .select()
+      .single();
 
     if (error) {
       toast({
@@ -263,13 +368,30 @@ export function DealChat({ dealId }: DealChatProps) {
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      setNewMessage("");
-      updateTypingStatus(false);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+      setSending(false);
+      setUploading(false);
+      return;
     }
+
+    // Upload files if any
+    if (pendingFiles.length > 0 && messageData) {
+      await uploadFiles(messageData.id, userData.user.id);
+    }
+
+    setNewMessage("");
+    setPendingFiles([]);
+    setUploading(false);
+    updateTypingStatus(false);
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Reload messages to show attachments
+    if (pendingFiles.length > 0) {
+      await loadMessages();
+    }
+    
     setSending(false);
   };
 
@@ -386,6 +508,16 @@ export function DealChat({ dealId }: DealChatProps) {
                       </div>
                     )}
                     <MessageContent content={message.content} />
+                    
+                    {/* Attachments */}
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {message.attachments.map((att) => (
+                          <ChatAttachment key={att.id} attachment={att} />
+                        ))}
+                      </div>
+                    )}
+                    
                     <MessageReactions
                       messageId={message.id}
                       reactions={reactions[message.id] || []}
@@ -404,6 +536,19 @@ export function DealChat({ dealId }: DealChatProps) {
       {/* Typing Indicator */}
       <TypingIndicator typingUsers={typingUsers} />
 
+      {/* Pending Files Preview */}
+      {pendingFiles.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-4 py-2 bg-muted/30 border-t">
+          {pendingFiles.map((file, index) => (
+            <PendingAttachment
+              key={`${file.name}-${index}`}
+              file={file}
+              onRemove={() => removePendingFile(index)}
+            />
+          ))}
+        </div>
+      )}
+
       {/* Input Area */}
       <div className="mt-4 border rounded-lg overflow-hidden bg-background">
         <div className="p-2">
@@ -421,11 +566,13 @@ export function DealChat({ dealId }: DealChatProps) {
           <ChatToolbar 
             onInsertText={handleInsertText}
             onTriggerMention={handleTriggerMention}
+            onFileSelect={handleFileSelect}
+            uploading={uploading}
           />
           <div className="pr-2 pb-1">
             <Button
               onClick={handleSend}
-              disabled={!newMessage.trim() || sending}
+              disabled={(!newMessage.trim() && pendingFiles.length === 0) || sending}
               size="sm"
               className="h-8"
             >
