@@ -118,6 +118,7 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route
                 path="/projects"
                 element={
                   <ProtectedRoute>
