@@ -125,6 +125,167 @@ export type Database = {
           },
         ]
       }
+      deal_attachments: {
+        Row: {
+          attachment_type: string
+          created_at: string
+          deal_id: string
+          id: string
+          name: string
+          storage_path: string | null
+          uploaded_by: string | null
+          url: string | null
+        }
+        Insert: {
+          attachment_type?: string
+          created_at?: string
+          deal_id: string
+          id?: string
+          name: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+          url?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+          name?: string
+          storage_path?: string | null
+          uploaded_by?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_attachments_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_messages: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          deal_id: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          deal_id: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          deal_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_messages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_messages_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expected_value: number | null
+          id: string
+          name: string
+          organization_id: string | null
+          owner_id: string | null
+          status: string
+          temperature: number
+          updated_at: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_value?: number | null
+          id?: string
+          name: string
+          organization_id?: string | null
+          owner_id?: string | null
+          status?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expected_value?: number | null
+          id?: string
+          name?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          status?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_attachments: {
         Row: {
           attachment_type: string | null
