@@ -43,6 +43,7 @@ interface EmployeeDialogProps {
 interface EmployeeFormData {
   first_name: string;
   last_name: string;
+  legal_name: string;
   nickname: string;
   email: string;
   phone: string;
@@ -158,6 +159,7 @@ export const EmployeeDialog = ({
     if (employee) {
       setValue('first_name', employee.first_name);
       setValue('last_name', employee.last_name);
+      setValue('legal_name', employee.legal_name || '');
       setValue('nickname', employee.nickname || '');
       setValue('email', employee.email);
       setValue('phone', employee.phone || '');
@@ -232,6 +234,7 @@ export const EmployeeDialog = ({
       const employeeData = {
         first_name: data.first_name,
         last_name: data.last_name,
+        legal_name: data.legal_name || null,
         nickname: data.nickname || null,
         email: data.email,
         phone: data.phone || null,
@@ -392,13 +395,23 @@ export const EmployeeDialog = ({
             </div>
           </div>
 
-          {/* Nickname Field */}
+          {/* Legal Name */}
           <div className="space-y-2">
-            <Label htmlFor="nickname">Nickname</Label>
+            <Label htmlFor="legal_name">Legal Name</Label>
+            <Input
+              id="legal_name"
+              {...register('legal_name')}
+              placeholder="Full legal name as on tax/payroll documents, e.g. Michael Friar Dixon"
+            />
+          </div>
+
+          {/* Preferred Name Field */}
+          <div className="space-y-2">
+            <Label htmlFor="nickname">Preferred Name</Label>
             <Input
               id="nickname"
               {...register('nickname')}
-              placeholder="Preferred name or alias"
+              placeholder="What they go by, e.g. Friar"
             />
           </div>
 
