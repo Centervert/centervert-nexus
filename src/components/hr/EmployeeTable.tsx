@@ -12,7 +12,7 @@ import { Database } from '@/integrations/supabase/types';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
 
-type SortField = 'name' | 'position' | 'country' | 'salary' | 'start_date';
+type SortField = 'name' | 'position' | 'country' | 'per_paycheck' | 'start_date';
 type SortDirection = 'asc' | 'desc' | null;
 
 interface EmployeeTableProps {
@@ -32,8 +32,8 @@ export const EmployeeTable = ({
   searchQuery,
   perPaycheckMap,
 }: EmployeeTableProps) => {
-  const [sortField, setSortField] = useState<SortField | null>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortField, setSortField] = useState<SortField | null>('per_paycheck');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const getFilteredEmployees = () => {
     if (!searchQuery.trim()) return employees;
@@ -88,10 +88,16 @@ export const EmployeeTable = ({
           aValue = a.country.toLowerCase();
           bValue = b.country.toLowerCase();
           break;
-        case 'salary':
-          aValue = Number(a.salary_amount);
-          bValue = Number(b.salary_amount);
+        case 'per_paycheck': {
+          const aHas = perPaycheckMap?.has(a.id) ?? false;
+          const bHas = perPaycheckMap?.has(b.id) ?? false;
+          if (!aHas && !bHas) return 0;
+          if (!aHas) return 1;
+          if (!bHas) return -1;
+          aValue = Number(perPaycheckMap!.get(a.id) || 0);
+          bValue = Number(perPaycheckMap!.get(b.id) || 0);
           break;
+        }
         case 'start_date':
           aValue = a.start_date ? new Date(a.start_date).getTime() : 0;
           bValue = b.start_date ? new Date(b.start_date).getTime() : 0;
@@ -159,16 +165,15 @@ export const EmployeeTable = ({
               <SortIcon field="position" />
             </div>
           </TableHead>
-          <TableHead 
+          <TableHead
             className="cursor-pointer select-none hover:bg-muted/50"
-            onClick={() => handleSort('salary')}
+            onClick={() => handleSort('per_paycheck')}
           >
             <div className="flex items-center">
-              Salary
-              <SortIcon field="salary" />
+              Per Paycheck
+              <SortIcon field="per_paycheck" />
             </div>
           </TableHead>
-          <TableHead>Per Paycheck</TableHead>
           <TableHead>Status</TableHead>
           <TableHead 
             className="cursor-pointer select-none hover:bg-muted/50"
@@ -198,7 +203,6 @@ export const EmployeeTable = ({
               </button>
             </TableCell>
             <TableCell>{employee.position}</TableCell>
-            <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
             <TableCell>
               {perPaycheckMap?.has(employee.id)
                 ? `$${(perPaycheckMap.get(employee.id) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
