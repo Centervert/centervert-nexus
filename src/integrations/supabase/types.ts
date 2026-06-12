@@ -859,7 +859,6 @@ export type Database = {
           id: string
           is_read: boolean | null
           metadata: Json | null
-          related_opportunity_id: string | null
           title: string
           type: string
           user_id: string
@@ -871,7 +870,6 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           metadata?: Json | null
-          related_opportunity_id?: string | null
           title: string
           type: string
           user_id: string
@@ -883,271 +881,11 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           metadata?: Json | null
-          related_opportunity_id?: string | null
           title?: string
           type?: string
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "notifications_related_opportunity_id_fkey"
-            columns: ["related_opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      opportunities: {
-        Row: {
-          award_date: string | null
-          created_at: string | null
-          created_by: string | null
-          description: string | null
-          due_date: string | null
-          estimated_value: number | null
-          id: string
-          name: string
-          opportunity_number: string | null
-          owner_id: string | null
-          priority: Database["public"]["Enums"]["opportunity_priority"] | null
-          requestor_contact_id: string | null
-          requestor_organization_id: string | null
-          status: Database["public"]["Enums"]["opportunity_status"]
-          submission_address: string | null
-          submission_link: string | null
-          submission_location_type:
-            | Database["public"]["Enums"]["submission_location_type"]
-            | null
-          submission_notes: string | null
-          type: Database["public"]["Enums"]["opportunity_type"]
-          updated_at: string | null
-          value_type: string | null
-        }
-        Insert: {
-          award_date?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          due_date?: string | null
-          estimated_value?: number | null
-          id?: string
-          name: string
-          opportunity_number?: string | null
-          owner_id?: string | null
-          priority?: Database["public"]["Enums"]["opportunity_priority"] | null
-          requestor_contact_id?: string | null
-          requestor_organization_id?: string | null
-          status?: Database["public"]["Enums"]["opportunity_status"]
-          submission_address?: string | null
-          submission_link?: string | null
-          submission_location_type?:
-            | Database["public"]["Enums"]["submission_location_type"]
-            | null
-          submission_notes?: string | null
-          type: Database["public"]["Enums"]["opportunity_type"]
-          updated_at?: string | null
-          value_type?: string | null
-        }
-        Update: {
-          award_date?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          due_date?: string | null
-          estimated_value?: number | null
-          id?: string
-          name?: string
-          opportunity_number?: string | null
-          owner_id?: string | null
-          priority?: Database["public"]["Enums"]["opportunity_priority"] | null
-          requestor_contact_id?: string | null
-          requestor_organization_id?: string | null
-          status?: Database["public"]["Enums"]["opportunity_status"]
-          submission_address?: string | null
-          submission_link?: string | null
-          submission_location_type?:
-            | Database["public"]["Enums"]["submission_location_type"]
-            | null
-          submission_notes?: string | null
-          type?: Database["public"]["Enums"]["opportunity_type"]
-          updated_at?: string | null
-          value_type?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "opportunities_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_requestor_contact_id_fkey"
-            columns: ["requestor_contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunities_requestor_organization_id_fkey"
-            columns: ["requestor_organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      opportunity_attachments: {
-        Row: {
-          attachment_type: string | null
-          created_at: string | null
-          created_by: string | null
-          file_name: string
-          file_path: string
-          file_type: string | null
-          id: string
-          opportunity_id: string
-          position: number | null
-        }
-        Insert: {
-          attachment_type?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          file_name: string
-          file_path: string
-          file_type?: string | null
-          id?: string
-          opportunity_id: string
-          position?: number | null
-        }
-        Update: {
-          attachment_type?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          file_name?: string
-          file_path?: string
-          file_type?: string | null
-          id?: string
-          opportunity_id?: string
-          position?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "opportunity_attachments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunity_attachments_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      opportunity_team_members: {
-        Row: {
-          added_at: string
-          added_by: string | null
-          id: string
-          opportunity_id: string
-          role: string | null
-          user_id: string
-        }
-        Insert: {
-          added_at?: string
-          added_by?: string | null
-          id?: string
-          opportunity_id: string
-          role?: string | null
-          user_id: string
-        }
-        Update: {
-          added_at?: string
-          added_by?: string | null
-          id?: string
-          opportunity_id?: string
-          role?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "opportunity_team_members_added_by_fkey"
-            columns: ["added_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunity_team_members_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunity_team_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      opportunity_updates: {
-        Row: {
-          content: string
-          created_at: string
-          created_by: string
-          id: string
-          metadata: Json | null
-          opportunity_id: string
-          update_type: Database["public"]["Enums"]["opportunity_update_type"]
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          created_by: string
-          id?: string
-          metadata?: Json | null
-          opportunity_id: string
-          update_type?: Database["public"]["Enums"]["opportunity_update_type"]
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          created_by?: string
-          id?: string
-          metadata?: Json | null
-          opportunity_id?: string
-          update_type?: Database["public"]["Enums"]["opportunity_update_type"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "opportunity_updates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "opportunity_updates_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities"
-            referencedColumns: ["id"]
-          },
         ]
       }
       organization_attachments: {
@@ -1981,7 +1719,6 @@ export type Database = {
           id: string
           name: string
           opportunity_id: string | null
-          organization_id: string | null
           owner_id: string | null
           phase_target: string | null
           project_type_id: string | null
@@ -2002,7 +1739,6 @@ export type Database = {
           id?: string
           name: string
           opportunity_id?: string | null
-          organization_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
@@ -2023,7 +1759,6 @@ export type Database = {
           id?: string
           name?: string
           opportunity_id?: string | null
-          organization_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
@@ -2045,13 +1780,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_opportunity_id_fkey"
-            columns: ["opportunity_id"]
-            isOneToOne: false
-            referencedRelation: "opportunities"
             referencedColumns: ["id"]
           },
           {
