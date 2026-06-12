@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { MessageSquare, Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,13 +17,11 @@ interface Notification {
   content: string | null;
   metadata: any;
   is_read: boolean;
-  related_opportunity_id: string | null;
   created_at: string;
 }
 
-export const NotificationsList = ({ onClose }: NotificationsListProps) => {
+export const NotificationsList = ({ onClose: _onClose }: NotificationsListProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   const { data: notifications, isLoading } = useQuery({
@@ -63,11 +60,6 @@ export const NotificationsList = ({ onClose }: NotificationsListProps) => {
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
-    }
-
-    if (notification.related_opportunity_id) {
-      navigate(`/opportunities/${notification.related_opportunity_id}`);
-      onClose();
     }
   };
 

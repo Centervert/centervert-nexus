@@ -51,20 +51,6 @@ export const DynamicBreadcrumbs = () => {
     enabled: !!params.id && location.pathname.startsWith('/organizations/'),
   });
 
-  const { data: opportunityName } = useQuery({
-    queryKey: ['opportunity-name', params.id],
-    queryFn: async () => {
-      if (!params.id || !location.pathname.startsWith('/opportunities/')) return null;
-      const { data } = await supabase
-        .from('opportunities')
-        .select('name')
-        .eq('id', params.id)
-        .single();
-      return data?.name || null;
-    },
-    enabled: !!params.id && location.pathname.startsWith('/opportunities/'),
-  });
-
   const { data: projectName } = useQuery({
     queryKey: ['project-name', params.id],
     queryFn: async () => {
@@ -114,12 +100,6 @@ export const DynamicBreadcrumbs = () => {
           path: '/organizations',
           isCurrentPage: isLastSegment,
         });
-      } else if (segment === 'opportunities') {
-        breadcrumbs.push({
-          label: 'Opportunities',
-          path: '/opportunities',
-          isCurrentPage: isLastSegment,
-        });
       } else if (segment === 'billing') {
         breadcrumbs.push({
           label: 'Billing',
@@ -165,8 +145,6 @@ export const DynamicBreadcrumbs = () => {
           entityName = contactName || 'Loading...';
         } else if (location.pathname.startsWith('/organizations/')) {
           entityName = organizationName || 'Loading...';
-        } else if (location.pathname.startsWith('/opportunities/')) {
-          entityName = opportunityName || 'Loading...';
         } else if (location.pathname.startsWith('/projects/')) {
           entityName = projectName || 'Loading...';
         }
