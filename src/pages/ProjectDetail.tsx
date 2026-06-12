@@ -48,7 +48,6 @@ interface Project {
   project_type_id: string | null;
   organization_id: string | null;
   contact_id: string | null;
-  opportunity_id: string | null;
   owner_id: string | null;
   created_at: string | null;
   created_by: string | null;
