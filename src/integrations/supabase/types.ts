@@ -1830,7 +1830,6 @@ export type Database = {
           is_active?: boolean | null
           line_items?: Json | null
           name: string
-          organization_id?: string | null
           next_invoice_date?: string | null
           organization_id: string
           updated_at?: string | null
@@ -1844,7 +1843,6 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           line_items?: Json | null
-          name?: string
           organization_id?: string | null
           next_invoice_date?: string | null
           organization_id?: string
