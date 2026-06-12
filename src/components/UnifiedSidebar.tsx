@@ -56,7 +56,7 @@ const UnifiedSidebar = () => {
   const hasRoleInfo = isFetched && userRole !== null && userRole !== undefined;
 
   const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/opportunities' || location.pathname === '/deals' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/opportunities/') || location.pathname.startsWith('/deals/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/deals' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/deals/');
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
   
   // Show menus while loading OR if we don't have role info yet
@@ -322,7 +322,7 @@ const UnifiedSidebar = () => {
                             const isActive = location.pathname === item.href || 
                               (item.href === '/organizations' && location.pathname.startsWith('/organizations/')) ||
                               (item.href === '/contacts' && location.pathname.startsWith('/contacts/')) ||
-                              (item.href === '/opportunities' && location.pathname.startsWith('/opportunities/'));
+                              (item.href === '/deals' && location.pathname.startsWith('/deals/'));
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
