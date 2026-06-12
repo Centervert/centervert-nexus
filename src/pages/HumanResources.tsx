@@ -46,44 +46,17 @@ const HumanResources = () => {
     },
   });
 
-  // Fetch all raises to include approved raises that have taken effect
-  const { data: raises = [] } = useQuery({
-    queryKey: ['all-raises'],
+  // Source of truth for payroll: employee_compensation view
+  const { data: compensation = [] } = useQuery({
+    queryKey: ['employee-compensation'],
     queryFn: async () => {
-      const today = new Date().toISOString().split('T')[0];
       const { data, error } = await supabase
-        .from('employee_raises')
-        .select('*')
-        .eq('status', 'approved')
-        .lte('effective_date', today);
-      
+        .from('employee_compensation')
+        .select('id, is_active, start_date, annual, per_month');
       if (error) throw error;
       return data;
     },
   });
-
-  // Calculate payroll totals
-  const calculateAnnualSalary = (employee: Employee) => {
-    // Check if there's an approved raise that has already taken effect
-    const applicableRaise = raises
-      .filter(r => r.employee_id === employee.id)
-      .sort((a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime())[0];
-    
-    // Use the new salary from the raise if it exists, otherwise use base salary
-    const salaryAmount = applicableRaise ? Number(applicableRaise.new_salary) : Number(employee.salary_amount);
-    const salaryType = applicableRaise ? 'annual' : employee.salary_type; // Raises are stored as annual amounts
-    
-    switch (salaryType) {
-      case 'weekly':
-        return salaryAmount * 52;
-      case 'monthly':
-        return salaryAmount * 12;
-      case 'annual':
-        return salaryAmount;
-      default:
-        return 0;
-    }
-  };
 
   // Separate current employees from future hires
   const today = new Date();
@@ -95,8 +68,14 @@ const HumanResources = () => {
   );
 
   const activeEmployees = currentEmployees;
-  const totalAnnualPayroll = activeEmployees.reduce((sum, emp) => sum + calculateAnnualSalary(emp), 0);
-  const totalMonthlyPayroll = totalAnnualPayroll / 12;
+  const todayStr = today.toISOString().split('T')[0];
+  const payrollRows = compensation.filter(
+    (c) => c.is_active === true && (!c.start_date || c.start_date <= todayStr)
+  );
+  const totalAnnualPayroll = payrollRows.reduce((sum, r) => sum + Number(r.annual || 0), 0);
+  const totalMonthlyPayroll = payrollRows.reduce((sum, r) => sum + Number(r.per_month || 0), 0);
+  const totalEmployeesCount = payrollRows.length;
+  const avgAnnualSalary = totalEmployeesCount > 0 ? totalAnnualPayroll / totalEmployeesCount : 0;
   const usEmployees = activeEmployees.filter(e => e.country === 'United States').length;
   const internationalEmployees = activeEmployees.filter(e => e.country !== 'United States').length;
 
@@ -151,7 +130,7 @@ const HumanResources = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{activeEmployees.length}</div>
+              <div className="text-2xl font-bold">{totalEmployeesCount}</div>
               <p className="text-xs text-muted-foreground">
                 {usEmployees} US • {internationalEmployees} International
               </p>
@@ -195,10 +174,7 @@ const HumanResources = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${activeEmployees.length > 0 
-                  ? (totalAnnualPayroll / activeEmployees.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                  : '0.00'
-                }
+                ${avgAnnualSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
                 Per employee (annual)

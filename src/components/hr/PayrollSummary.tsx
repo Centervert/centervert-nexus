@@ -23,6 +23,7 @@ interface Raise {
   new_salary: number;
   effective_date: string;
   status: string;
+  salary_type: string;
 }
 
 interface FutureHire {
@@ -57,7 +58,7 @@ export const PayrollSummary = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employee_raises')
-        .select('*')
+        .select('id, employee_id, new_salary, effective_date, status, salary_type')
         .gte('effective_date', format(today, 'yyyy-MM-dd'))
         .lte('effective_date', format(ninetyDaysOut, 'yyyy-MM-dd'))
         .eq('status', 'approved');
@@ -115,7 +116,7 @@ export const PayrollSummary = () => {
         .sort((a, b) => new Date(b.effective_date).getTime() - new Date(a.effective_date).getTime())[0];
 
       const salary = applicableRaise 
-        ? normalizeToMonthly(applicableRaise.new_salary, 'annually') // Raises are stored as annual amounts
+        ? normalizeToMonthly(applicableRaise.new_salary, applicableRaise.salary_type)
         : normalizeToMonthly(employee.salary_amount, employee.salary_type);
 
       return total + salary;
