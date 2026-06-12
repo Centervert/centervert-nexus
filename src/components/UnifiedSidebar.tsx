@@ -95,7 +95,7 @@ const UnifiedSidebar = () => {
       icon: Building2,
     },
     {
-      name: 'Opportunities (NEW)',
+      name: 'Opportunities',
       href: '/deals',
       icon: Target,
     },
