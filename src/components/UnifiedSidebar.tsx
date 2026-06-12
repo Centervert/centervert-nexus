@@ -99,11 +99,6 @@ const UnifiedSidebar = () => {
       href: '/deals',
       icon: Target,
     },
-    {
-      name: 'Opportunities (Legacy)',
-      href: '/opportunities',
-      icon: Target,
-    },
   ];
 
   const backOfficeItems = [
