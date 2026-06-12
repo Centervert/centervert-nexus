@@ -56,7 +56,7 @@ export function DealChat({ dealId }: DealChatProps) {
   const textareaRef = useRef<{ focus: () => void; insertText: (text: string) => void }>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<{ userId: string; name: string }[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const loadReactions = useCallback(async (messageIds: string[]) => {
