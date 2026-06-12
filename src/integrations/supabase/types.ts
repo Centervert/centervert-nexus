@@ -1718,6 +1718,7 @@ export type Database = {
           health_notes: string | null
           id: string
           name: string
+          organization_id: string | null
           owner_id: string | null
           phase_target: string | null
           project_type_id: string | null
@@ -1737,6 +1738,7 @@ export type Database = {
           health_notes?: string | null
           id?: string
           name: string
+          organization_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
@@ -1756,6 +1758,7 @@ export type Database = {
           health_notes?: string | null
           id?: string
           name?: string
+          organization_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
@@ -1827,6 +1830,7 @@ export type Database = {
           is_active?: boolean | null
           line_items?: Json | null
           name: string
+          organization_id?: string | null
           next_invoice_date?: string | null
           organization_id: string
           updated_at?: string | null
@@ -1841,6 +1845,7 @@ export type Database = {
           is_active?: boolean | null
           line_items?: Json | null
           name?: string
+          organization_id?: string | null
           next_invoice_date?: string | null
           organization_id?: string
           updated_at?: string | null
