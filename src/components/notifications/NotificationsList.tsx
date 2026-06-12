@@ -18,7 +18,6 @@ interface Notification {
   content: string | null;
   metadata: any;
   is_read: boolean;
-  related_opportunity_id: string | null;
   created_at: string;
 }
 
@@ -63,11 +62,6 @@ export const NotificationsList = ({ onClose }: NotificationsListProps) => {
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.is_read) {
       markAsReadMutation.mutate(notification.id);
-    }
-
-    if (notification.related_opportunity_id) {
-      navigate(`/opportunities/${notification.related_opportunity_id}`);
-      onClose();
     }
   };
 
