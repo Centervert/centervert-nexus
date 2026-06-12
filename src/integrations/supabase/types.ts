@@ -1718,7 +1718,6 @@ export type Database = {
           health_notes: string | null
           id: string
           name: string
-          opportunity_id: string | null
           owner_id: string | null
           phase_target: string | null
           project_type_id: string | null
@@ -1738,7 +1737,6 @@ export type Database = {
           health_notes?: string | null
           id?: string
           name: string
-          opportunity_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
@@ -1758,7 +1756,6 @@ export type Database = {
           health_notes?: string | null
           id?: string
           name?: string
-          opportunity_id?: string | null
           owner_id?: string | null
           phase_target?: string | null
           project_type_id?: string | null
