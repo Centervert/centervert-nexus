@@ -98,6 +98,22 @@ export const EmployeeDialog = ({
     enabled: !!employee?.id,
   });
 
+  // Fetch effective compensation for this employee from the view
+  const { data: compensation } = useQuery({
+    queryKey: ['employee-compensation', employee?.id],
+    queryFn: async () => {
+      if (!employee?.id) return null;
+      const { data, error } = await supabase
+        .from('employee_compensation')
+        .select('annual, per_month, per_paycheck')
+        .eq('id', employee.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!employee?.id,
+  });
+
   // Fetch resources/attachments for this employee
   const { data: resources = [], refetch: refetchResources } = useQuery({
     queryKey: ['employee-resources', employee?.id],
@@ -278,6 +294,7 @@ export const EmployeeDialog = ({
             effective_date: raiseData.effective_date,
             status: raiseData.status,
             notes: raiseData.notes || null,
+            salary_type: raiseData.salary_type === 'annually' ? 'annual' : raiseData.salary_type,
           })
           .eq('id', editingRaiseId);
 
@@ -296,6 +313,7 @@ export const EmployeeDialog = ({
             status: raiseData.status,
             notes: raiseData.notes || null,
             created_by: user!.id,
+            salary_type: raiseData.salary_type === 'annually' ? 'annual' : raiseData.salary_type,
           }]);
 
         if (error) throw error;
@@ -470,8 +488,8 @@ export const EmployeeDialog = ({
             </div>
             {salaryAmount && (
               <div className="text-sm text-muted-foreground space-y-1 mt-2">
-                <p>Weekly: ${salaries.weekly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                <p>Monthly: ${salaries.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p>Per Paycheck: ${(salaries.monthly / 2).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p>Per Month: ${salaries.monthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 <p>Annual: ${salaries.annual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
             )}
