@@ -21,6 +21,7 @@ interface EmployeeTableProps {
   onEdit: (employee: Employee) => void;
   onRefetch: () => void;
   searchQuery: string;
+  perPaycheckMap?: Map<string, number>;
 }
 
 export const EmployeeTable = ({
@@ -29,6 +30,7 @@ export const EmployeeTable = ({
   onEdit,
   onRefetch,
   searchQuery,
+  perPaycheckMap,
 }: EmployeeTableProps) => {
   const [sortField, setSortField] = useState<SortField | null>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -166,6 +168,7 @@ export const EmployeeTable = ({
               <SortIcon field="salary" />
             </div>
           </TableHead>
+          <TableHead>Per Paycheck</TableHead>
           <TableHead>Status</TableHead>
           <TableHead 
             className="cursor-pointer select-none hover:bg-muted/50"
@@ -196,6 +199,11 @@ export const EmployeeTable = ({
             </TableCell>
             <TableCell>{employee.position}</TableCell>
             <TableCell>{formatSalary(Number(employee.salary_amount), employee.salary_type)}</TableCell>
+            <TableCell>
+              {perPaycheckMap?.has(employee.id)
+                ? `$${(perPaycheckMap.get(employee.id) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : '—'}
+            </TableCell>
             <TableCell>
               <span className={employee.is_active ? 'text-blue-600 font-medium' : 'text-muted-foreground'}>
                 {employee.is_active ? 'Active' : 'Inactive'}
