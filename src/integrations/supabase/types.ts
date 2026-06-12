@@ -1843,7 +1843,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           line_items?: Json | null
-          organization_id?: string | null
+          name?: string
           next_invoice_date?: string | null
           organization_id?: string
           updated_at?: string | null
