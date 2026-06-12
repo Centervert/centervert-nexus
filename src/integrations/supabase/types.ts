@@ -374,6 +374,13 @@ export type Database = {
             foreignKeyName: "employee_attachments_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
+            referencedRelation: "employee_compensation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_attachments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
             referencedRelation: "employees"
             referencedColumns: ["id"]
           },
@@ -390,6 +397,7 @@ export type Database = {
           new_salary: number
           notes: string | null
           raise_amount: number
+          salary_type: string
           status: string
           updated_at: string | null
         }
@@ -403,6 +411,7 @@ export type Database = {
           new_salary: number
           notes?: string | null
           raise_amount: number
+          salary_type?: string
           status: string
           updated_at?: string | null
         }
@@ -416,6 +425,7 @@ export type Database = {
           new_salary?: number
           notes?: string | null
           raise_amount?: number
+          salary_type?: string
           status?: string
           updated_at?: string | null
         }
@@ -425,6 +435,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_raises_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_compensation"
             referencedColumns: ["id"]
           },
           {
@@ -695,6 +712,13 @@ export type Database = {
           notes?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "income_employee_costs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_compensation"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "income_employee_costs_employee_id_fkey"
             columns: ["employee_id"]
@@ -2161,7 +2185,25 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      employee_compensation: {
+        Row: {
+          annual: number | null
+          country: string | null
+          effective_amount: number | null
+          effective_salary_type: string | null
+          first_name: string | null
+          from_raise: boolean | null
+          id: string | null
+          is_active: boolean | null
+          last_name: string | null
+          name: string | null
+          per_month: number | null
+          per_paycheck: number | null
+          position: string | null
+          start_date: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       cleanup_orphaned_profiles: {
