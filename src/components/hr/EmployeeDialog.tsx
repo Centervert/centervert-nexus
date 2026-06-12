@@ -573,6 +573,13 @@ export const EmployeeDialog = ({
                   <p className="text-2xl font-bold">
                     ${Number(salaryAmount || employee.salary_amount).toLocaleString()}/{salaryType.charAt(0)}
                   </p>
+                  {compensation && (
+                    <div className="mt-2 text-sm text-muted-foreground space-y-0.5">
+                      <p>Per Paycheck: ${Number(compensation.per_paycheck || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p>Per Month: ${Number(compensation.per_month || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      <p>Annual: ${Number(compensation.annual || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Add Raise Form */}
