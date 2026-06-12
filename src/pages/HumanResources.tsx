@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Users, DollarSign, TrendingUp, Search, Calendar } from 'lucide-react';
+import { Plus, Users, DollarSign, TrendingUp, Search, Calendar, Wallet } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -52,7 +52,7 @@ const HumanResources = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('employee_compensation')
-        .select('id, is_active, start_date, annual, per_month');
+        .select('id, is_active, start_date, annual, per_month, per_paycheck');
       if (error) throw error;
       return data;
     },
@@ -74,10 +74,14 @@ const HumanResources = () => {
   );
   const totalAnnualPayroll = payrollRows.reduce((sum, r) => sum + Number(r.annual || 0), 0);
   const totalMonthlyPayroll = payrollRows.reduce((sum, r) => sum + Number(r.per_month || 0), 0);
+  const totalPayDay = payrollRows.reduce((sum, r) => sum + Number(r.per_paycheck || 0), 0);
   const totalEmployeesCount = payrollRows.length;
-  const avgAnnualSalary = totalEmployeesCount > 0 ? totalAnnualPayroll / totalEmployeesCount : 0;
   const usEmployees = activeEmployees.filter(e => e.country === 'United States').length;
   const internationalEmployees = activeEmployees.filter(e => e.country !== 'United States').length;
+
+  const perPaycheckMap = new Map<string, number>(
+    compensation.map((c) => [c.id as string, Number(c.per_paycheck || 0)])
+  );
 
   const handleEdit = (employee: Employee) => {
     setSelectedEmployee(employee);
@@ -139,7 +143,22 @@ const HumanResources = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Payroll</CardTitle>
+              <CardTitle className="text-sm font-medium">Pay Day Total</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl lg:text-2xl font-bold truncate">
+                ${totalPayDay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Per paycheck (1st & 15th)
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Total</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -147,14 +166,14 @@ const HumanResources = () => {
                 ${totalMonthlyPayroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Total monthly cost
+                Total monthly
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Annual Payroll</CardTitle>
+              <CardTitle className="text-sm font-medium">Annual Total</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -162,22 +181,7 @@ const HumanResources = () => {
                 ${totalAnnualPayroll.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                Total annual cost
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Salary</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl lg:text-2xl font-bold truncate">
-                ${avgAnnualSalary.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Per employee (annual)
+                Total annual
               </p>
             </CardContent>
           </Card>
@@ -210,6 +214,7 @@ const HumanResources = () => {
               onEdit={handleEdit}
               onRefetch={refetch}
               searchQuery={searchQuery}
+              perPaycheckMap={perPaycheckMap}
             />
           </CardContent>
         </Card>
