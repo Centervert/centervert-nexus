@@ -5,7 +5,7 @@ import SettingsSidebar from '@/components/SettingsSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { User, ArrowRight } from 'lucide-react';
+import { User, ArrowRight, Bot } from 'lucide-react';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -22,8 +22,15 @@ const Settings = () => {
     },
   ];
 
-  // No additional admin settings for now
-  const adminSettings: any[] = [];
+  const adminSettings = [
+    {
+      title: 'MCP Integration',
+      description: 'Connect AI agents to read and modify portal data',
+      icon: Bot,
+      href: '/settings/mcp',
+      color: 'text-purple-600',
+    },
+  ];
 
   return (
     <SidebarProvider>
