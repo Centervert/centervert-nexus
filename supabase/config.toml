@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.sync-billcom-customers]
 verify_jwt = true
+
+[functions.mcp]
+verify_jwt = false
