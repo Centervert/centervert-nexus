@@ -6,7 +6,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const MCP_ADMIN_KEY = Deno.env.get("MCP_ADMIN_KEY")!;
+const MCP_ADMIN_KEY = (Deno.env.get("MCP_ADMIN_KEY") ?? "").trim();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -683,9 +683,15 @@ Deno.serve(async (req) => {
   // Auth
   const authHeader = req.headers.get("authorization") ?? "";
   const provided = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!MCP_ADMIN_KEY) {
+    return new Response(
+      JSON.stringify(rpcError(null, -32002, "Server misconfigured: MCP_ADMIN_KEY not set")),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
   if (!provided || provided !== MCP_ADMIN_KEY) {
     return new Response(
-      JSON.stringify(rpcError(null, -32001, "Unauthorized")),
+      JSON.stringify(rpcError(null, -32001, `Unauthorized (provided length: ${provided.length}, expected length: ${MCP_ADMIN_KEY.length})`)),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
