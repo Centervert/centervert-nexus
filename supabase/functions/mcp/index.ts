@@ -691,7 +691,7 @@ Deno.serve(async (req) => {
   }
   if (!provided || provided !== MCP_ADMIN_KEY) {
     return new Response(
-      JSON.stringify(rpcError(null, -32001, `Unauthorized (provided length: ${provided.length}, expected length: ${MCP_ADMIN_KEY.length})`)),
+      JSON.stringify(rpcError(null, -32001, "Unauthorized")),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
