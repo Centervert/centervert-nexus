@@ -885,8 +885,7 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: [
-        ]
+        Relationships: []
       }
       organization_attachments: {
         Row: {
