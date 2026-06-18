@@ -19,6 +19,7 @@ import UserManagement from "@/pages/UserManagement";
 import HumanResources from "@/pages/HumanResources";
 import ExpenseTracking from "@/pages/ExpenseTracking";
 import Settings from "./pages/Settings";
+import McpIntegration from "./pages/McpIntegration";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
@@ -153,6 +154,14 @@ const App = () => {
                 element={
                   <ProtectedRoute adminOnly>
                     <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/mcp"
+                element={
+                  <ProtectedRoute adminOnly>
+                    <McpIntegration />
                   </ProtectedRoute>
                 }
               />

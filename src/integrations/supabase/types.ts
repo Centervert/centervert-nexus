@@ -851,6 +851,39 @@ export type Database = {
           },
         ]
       }
+      mcp_audit_log: {
+        Row: {
+          actor_label: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          input: Json | null
+          output_summary: string | null
+          success: boolean
+          tool_name: string
+        }
+        Insert: {
+          actor_label?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input?: Json | null
+          output_summary?: string | null
+          success: boolean
+          tool_name: string
+        }
+        Update: {
+          actor_label?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          input?: Json | null
+          output_summary?: string | null
+          success?: boolean
+          tool_name?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           content: string | null
