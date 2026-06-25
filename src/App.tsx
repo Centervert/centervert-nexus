@@ -14,6 +14,8 @@ import Contacts from "./pages/Contacts";
 import ContactDetail from "./pages/ContactDetail";
 import DealsNew from "./pages/DealsNew";
 import DealDetail from "./pages/DealDetail";
+import Prospects from "./pages/Prospects";
+import ProspectDetail from "./pages/ProspectDetail";
 import Billing from "@/pages/Billing";
 import UserManagement from "@/pages/UserManagement";
 import HumanResources from "@/pages/HumanResources";
@@ -98,6 +100,22 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <DealDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/prospects"
+                element={
+                  <ProtectedRoute>
+                    <Prospects />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/prospects/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProspectDetail />
                   </ProtectedRoute>
                 }
               />

@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { FollowUpsWidget } from "@/components/prospects/FollowUpsWidget";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -110,6 +111,8 @@ const Dashboard = () => {
             </Card>
           )}
         </div>
+
+        {(isAdmin || isAgent || isSalesAgent) && <FollowUpsWidget />}
 
       </div>
     </UnifiedLayout>
