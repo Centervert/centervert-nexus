@@ -265,6 +265,7 @@ export type Database = {
           name: string
           organization_id: string | null
           owner_id: string | null
+          prospect_id: string | null
           status: string
           temperature: number
           updated_at: string
@@ -279,6 +280,7 @@ export type Database = {
           name: string
           organization_id?: string | null
           owner_id?: string | null
+          prospect_id?: string | null
           status?: string
           temperature?: number
           updated_at?: string
@@ -293,6 +295,7 @@ export type Database = {
           name?: string
           organization_id?: string | null
           owner_id?: string | null
+          prospect_id?: string | null
           status?: string
           temperature?: number
           updated_at?: string
@@ -324,6 +327,13 @@ export type Database = {
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
             referencedColumns: ["id"]
           },
         ]
@@ -1837,6 +1847,122 @@ export type Database = {
           },
         ]
       }
+      prospect_visits: {
+        Row: {
+          contact_made: Database["public"]["Enums"]["visit_contact_made"]
+          created_at: string
+          created_by: string | null
+          follow_up_done: boolean
+          follow_up_due: string | null
+          id: string
+          outcome_notes: string | null
+          person_spoken_to: string | null
+          prospect_id: string
+          rep_id: string | null
+          updated_at: string
+          visited_at: string
+        }
+        Insert: {
+          contact_made?: Database["public"]["Enums"]["visit_contact_made"]
+          created_at?: string
+          created_by?: string | null
+          follow_up_done?: boolean
+          follow_up_due?: string | null
+          id?: string
+          outcome_notes?: string | null
+          person_spoken_to?: string | null
+          prospect_id: string
+          rep_id?: string | null
+          updated_at?: string
+          visited_at?: string
+        }
+        Update: {
+          contact_made?: Database["public"]["Enums"]["visit_contact_made"]
+          created_at?: string
+          created_by?: string | null
+          follow_up_done?: boolean
+          follow_up_due?: string | null
+          id?: string
+          outcome_notes?: string | null
+          person_spoken_to?: string | null
+          prospect_id?: string
+          rep_id?: string | null
+          updated_at?: string
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_visits_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prospects: {
+        Row: {
+          address: string | null
+          category: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["prospect_status"]
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["prospect_status"]
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       recurring_invoice_templates: {
         Row: {
           amount: number
@@ -2050,7 +2176,9 @@ export type Database = {
         | "status_change"
         | "assignment_change"
         | "resource_added"
+      prospect_status: "new" | "warm" | "cold" | "do_not_contact" | "converted"
       submission_location_type: "in_person" | "online" | "other"
+      visit_contact_made: "yes" | "no" | "card_only"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2215,7 +2343,9 @@ export const Constants = {
         "assignment_change",
         "resource_added",
       ],
+      prospect_status: ["new", "warm", "cold", "do_not_contact", "converted"],
       submission_location_type: ["in_person", "online", "other"],
+      visit_contact_made: ["yes", "no", "card_only"],
     },
   },
 } as const

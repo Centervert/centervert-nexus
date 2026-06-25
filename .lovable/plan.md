@@ -1,138 +1,124 @@
-## Goal
+# Sales Flow: Canvassing → Pipeline
 
-Expose the entire portal to your AI agents via a single **MCP server** hosted as a Supabase Edge Function. Any MCP-compatible agent (Claude Desktop, Cursor, your custom agent, n8n, etc.) connects to one URL, authenticates with an admin API key, and gets typed tools to read/write everything.
+Build a proper top-of-funnel (canvassing) and a real, staged deal pipeline on top of it. Two new things, one rework.
 
-## Architecture
+---
 
-```text
-Your AI Agent ──HTTPS──> Edge Function: /functions/v1/mcp
-                         (mcp-lite + Hono, Streamable HTTP transport)
-                                │
-                                ├─ Verify Authorization: Bearer <MCP_ADMIN_KEY>
-                                └─ Supabase service-role client (bypasses RLS)
-                                        │
-                                        └─ CRM / Projects / Back Office / Billing tables
-                                                + invoke existing edge functions
-                                                  (sync-billcom-invoices, etc.)
-```
+## 1. Canvassing layer (new)
 
-- **Transport:** MCP Streamable HTTP via `mcp-lite` (v0.10+), the pattern Lovable recommends for Edge Functions.
-- **Auth:** single `MCP_ADMIN_KEY` secret. Requests without `Authorization: Bearer <key>` return 401. JWT verification disabled on this function so non-Supabase agents can connect.
-- **DB access:** `SUPABASE_SERVICE_ROLE_KEY` — full read/write, bypasses RLS as requested.
-- **Audit log:** new `mcp_audit_log` table records every tool call (tool name, input, actor label, success/error, timestamp) so you can see what the agent did.
+### Prospects (place-first)
+A Prospect is a physical business we've walked into. It lives separately from Organizations until it's worth promoting.
 
-## Tools exposed (grouped)
+Fields:
+- Business name, address (Mapbox autocomplete, same as orgs)
+- Category (restaurant, retail, office, other — editable list)
+- Phone, website (optional)
+- Status: `new` · `warm` · `cold` · `do_not_contact` · `converted`
+- Owner (the rep who first dropped a card; transferable)
+- Notes
+- Auto-computed: visit count, last visit date, last contact made y/n
 
-**CRM**
-- `list_contacts`, `get_contact`, `create_contact`, `update_contact`, `delete_contact`
-- `list_organizations`, `get_organization`, `create_organization`, `update_organization`
-- `list_deals`, `get_deal`, `create_deal`, `update_deal`, `add_deal_message`
+### Visits (history under a prospect)
+Each drop-off is one Visit record. A Prospect accumulates many.
 
-**Projects**
-- `list_projects`, `get_project`, `create_project`, `update_project`
-- `list_project_tasks`, `create_project_task`, `update_project_task`, `assign_task`
-- `list_sprints`, `create_sprint`, `add_project_update`, `add_project_decision`, `add_project_risk`
+Fields:
+- Prospect (parent)
+- Rep (auto = current user, overridable)
+- Visited at (date + time, defaults now)
+- Contact made: yes / no / left card only
+- Person spoken to (free text — not a Contact record yet)
+- Outcome notes
+- Follow-up due date (optional — surfaces in "My Follow-ups")
+- Follow-up completed flag
 
-**Back Office**
-- `list_employees`, `get_employee`, `create_employee`, `update_employee`
-- `list_raises`, `create_raise`, `approve_raise`
-- `list_expenses`, `create_expense`, `update_expense`
-- `list_income`, `create_income`, `update_income`
+### Pages & UI
+- **`/prospects`** — list/table with search, status filter, owner filter, "needs follow-up" filter. Map view toggle (Mapbox, since we already use it) as a v1 nice-to-have.
+- **`/prospects/:id`** — HubSpot-style detail: header with name/address/status, inline-editable fields, Visits timeline, "Log Visit" button (right-side slide-in sheet, per project convention), "Convert to Deal" button.
+- **Dashboard widget** — "My Follow-ups This Week" for sales reps.
+- Sidebar: new "Prospects" item above Opportunities, visible to Admin + Sales Agent.
 
-**Billing**
-- `list_invoices`, `get_invoice`, `list_billcom_sync_logs`
-- `trigger_billcom_invoice_sync`, `trigger_billcom_customer_sync` (invoke existing edge functions)
+### Convert to Deal
+One click on a Prospect → opens the Deal dialog pre-filled with prospect name, address, owner, and a back-link. Prospect status flips to `converted`. **No Organization is created** at this point (per your choice) — Org gets created later only if the deal is won.
 
-**Meta**
-- `search` — full-text-ish search across contacts/orgs/deals/projects
-- `whoami` — returns server version + tool catalog summary
+---
 
-Every tool has a Zod-style `inputSchema`, validated server-side. Mutations return the updated row.
+## 2. Deal pipeline rework
 
-## Files to add
+You said there's no structured flow today. Replacing the current `active / won / lost` flat status with a real pipeline:
 
-```text
-supabase/functions/mcp/
-  index.ts              # Hono + mcp-lite server, auth, tool registration
-  deno.json             # pins mcp-lite ^0.10.0, hono, zod
-  lib/
-    auth.ts             # Bearer token check
-    supabase.ts         # service-role client factory
-    audit.ts            # writes mcp_audit_log
-    tools/
-      crm.ts            # contacts, orgs, deals tools
-      projects.ts       # projects, tasks, sprints, updates tools
-      backoffice.ts     # employees, raises, expenses, income tools
-      billing.ts        # invoices + sync triggers
-      meta.ts           # search, whoami
-```
+### Stages (in order)
+1. **New** — just created from a prospect or cold
+2. **Qualifying** — initial conversation, fit unclear
+3. **Proposal** — quote/scope sent
+4. **Negotiation** — terms back-and-forth
+5. **Won** (terminal) → triggers "Create Organization" prompt
+6. **Lost** (terminal, requires reason)
+7. **On Hold** (paused, not terminal)
 
-`supabase/config.toml` gets a `[functions.mcp]` block with `verify_jwt = false` so external agents can hit it with only the MCP admin key.
+Stored as an enum so we can re-order/rename later without code rewrites everywhere.
 
-## Database changes (one migration)
+### Ownership & hand-off
+- **Owner** (sales rep) — stays with the deal start-to-finish; accountable for movement.
+- **Assigned team** (multi) — operators/PMs added at Proposal+ stage for scoping help.
+- Stage change writes to a `deal_activity` log (who moved it, when, from→to) — gives us the hand-off trail.
 
-```sql
-CREATE TABLE public.mcp_audit_log (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  tool_name text NOT NULL,
-  input jsonb,
-  output_summary text,
-  success boolean NOT NULL,
-  error_message text,
-  actor_label text,          -- optional X-Agent-Id header value
-  created_at timestamptz NOT NULL DEFAULT now()
-);
-GRANT SELECT ON public.mcp_audit_log TO authenticated;
-GRANT ALL    ON public.mcp_audit_log TO service_role;
-ALTER TABLE public.mcp_audit_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Admins can view audit log" ON public.mcp_audit_log
-  FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
-```
+### Pipeline view (`/deals`)
+- Default = **Kanban board** by stage, drag to move (with permission check).
+- Toggle to table view (current view, kept).
+- Filters: owner, stage, temperature, value range.
+- Per-stage totals (count + sum of expected value) at the top of each column.
 
-No other schema changes. All tools operate on existing tables.
+### Reporting (small, focused)
+On Dashboard for admins:
+- Deals by stage (count + $)
+- Conversion rate stage-to-stage (last 90 days)
+- Avg time in stage (flags stalls)
+- Top reps by won $ this month
+Reps see only their own.
 
-## Secrets
+---
 
-- `MCP_ADMIN_KEY` — new secret, requested via the secrets tool. You'll paste this key into your agent's MCP client config.
-- Reuses existing `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+## 3. Reminders
 
-## Frontend (small)
+Simple due-date model (no scheduled emails this round):
+- Visit follow-up date → "My Follow-ups" list on dashboard + a badge in sidebar when overdue.
+- Same pattern usable later on Deals if you want.
 
-Add a **Settings → Integrations → MCP** page (admin-only) showing:
-- The MCP endpoint URL (`https://<project>.supabase.co/functions/v1/mcp`)
-- Example client config snippet (Claude Desktop / generic MCP)
-- A button to view the last 50 entries from `mcp_audit_log`
-- A "rotate key" button that opens the secrets update dialog
+We can layer email/push reminders later via a cron + edge function — flagged as v2.
 
-## Security notes (acknowledged)
+---
 
-You chose service/admin key with full RLS bypass. That means:
-- Anyone with `MCP_ADMIN_KEY` can read/modify everything, including HR salary data and invoices.
-- Audit log is the only accountability layer.
-- Recommend storing the key only in your agent runtime; rotate if exposed.
+## What I won't touch
+- Existing Organizations, Contacts, Projects, Billing, HR — untouched.
+- The Deal detail page (chat, attachments, temperature) stays; we're adding stage + activity log around it.
+- No data migration needed — existing deals get auto-mapped: `active`→`Qualifying`, `won`→`Won`, `lost`→`Lost`.
 
-I have updated the @security-memory note will be added after build to record this intentional bypass.
+---
 
-## Out of scope
+## Technical notes
 
-- Per-user API keys / OAuth (you chose admin key).
-- Outbound webhooks for events (can be added later if needed).
-- Streaming long responses — tools return JSON synchronously.
-- Rate limiting (Lovable has no standard primitive; can add ad‑hoc if you want).
+**New tables** (all with RLS, GRANTs, `created_at/updated_at`):
+- `prospects` — owner_id, status enum, address fields, geo lat/lng, category
+- `prospect_visits` — prospect_id, rep_id, visited_at, contact_made enum, follow_up_due, follow_up_done
+- `deal_stages` — seeded enum/lookup (allows reorder)
+- `deal_activity` — deal_id, actor_id, action, from_stage, to_stage, metadata
 
-## How you'll use it
+**Schema changes:**
+- `deals.stage` (new enum column), keep `status` for now as a computed/derived field (`won`/`lost`/`active`) for back-compat with the chat/billing code.
+- `deals.prospect_id` (nullable FK) for the conversion link.
 
-In your agent's MCP client config:
+**RLS:**
+- Sales agents see their own prospects/visits/deals + anything assigned to them.
+- Admin sees all.
+- Team members see deals they're on.
 
-```json
-{
-  "mcpServers": {
-    "centervert": {
-      "url": "https://<project>.supabase.co/functions/v1/mcp",
-      "headers": { "Authorization": "Bearer <MCP_ADMIN_KEY>" }
-    }
-  }
-}
-```
+**Pages added:** `Prospects.tsx`, `ProspectDetail.tsx`, `VisitLogSheet.tsx`, `DealKanban.tsx` (toggle inside existing `DealsNew.tsx`).
 
-Your agent will then see ~40 tools it can call to fully operate the portal.
+---
+
+## Suggested build order
+1. Prospects + Visits tables, pages, log-visit flow, follow-up dashboard widget.
+2. Deal stages enum, Kanban view, activity log, convert-from-prospect.
+3. Reporting widgets.
+
+Want me to start with step 1, or adjust the stages / fields first?
