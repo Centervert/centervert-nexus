@@ -38,6 +38,8 @@ import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
 import { DealChat } from "@/components/deals/DealChat";
 import { DealDocuments } from "@/components/deals/DealDocuments";
+import { WonDealDialog } from "@/components/deals/WonDealDialog";
+import { DEAL_STAGES } from "@/components/deals/DealKanban";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 
@@ -48,6 +50,9 @@ interface Deal {
   temperature: number;
   description: string | null;
   status: string;
+  stage: string;
+  lost_reason: string | null;
+  prospect_id: string | null;
   organization_id: string | null;
   contact_id: string | null;
   expected_value: number | null;
@@ -55,6 +60,7 @@ interface Deal {
   owner?: { full_name: string | null; email: string } | null;
   organizations?: { name: string } | null;
   contacts?: { first_name: string; last_name: string } | null;
+  prospect?: { name: string } | null;
 }
 
 export default function DealDetail() {
@@ -65,6 +71,7 @@ export default function DealDetail() {
   const [loading, setLoading] = useState(true);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
+  const [wonOpen, setWonOpen] = useState(false);
 
   useEffect(() => {
     if (id) loadDeal();
@@ -78,7 +85,8 @@ export default function DealDetail() {
         *,
         owner:profiles!deals_owner_id_fkey(full_name, email),
         organizations:organization_id(name),
-        contacts:contact_id(first_name, last_name)
+        contacts:contact_id(first_name, last_name),
+        prospect:prospect_id(name)
       `)
       .eq("id", id)
       .single();
@@ -96,24 +104,22 @@ export default function DealDetail() {
     setLoading(false);
   };
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStageChange = async (newStage: string) => {
     if (!deal) return;
-
-    const { error } = await supabase
-      .from("deals")
-      .update({ status: newStatus })
-      .eq("id", deal.id);
-
-    if (error) {
-      toast({
-        title: "Error updating status",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      setDeal({ ...deal, status: newStatus });
-      toast({ title: "Status updated" });
+    const patch: any = { stage: newStage };
+    if (newStage === "lost") {
+      const reason = window.prompt("Reason this deal was lost?");
+      if (!reason) return;
+      patch.lost_reason = reason;
     }
+    const { error } = await supabase.from("deals").update(patch).eq("id", deal.id);
+    if (error) {
+      toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Stage updated" });
+    await loadDeal();
+    if (newStage === "won" && !deal.organization_id) setWonOpen(true);
   };
 
   const handleTemperatureChange = async (newTemp: number) => {
@@ -162,15 +168,12 @@ export default function DealDetail() {
     }).format(value);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "won":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Won</Badge>;
-      case "lost":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Lost</Badge>;
-      default:
-        return <Badge variant="secondary">Active</Badge>;
-    }
+  const getStageBadge = (stage: string) => {
+    const label = DEAL_STAGES.find((s) => s.value === stage)?.label ?? stage;
+    if (stage === "won") return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">{label}</Badge>;
+    if (stage === "lost") return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">{label}</Badge>;
+    if (stage === "on_hold") return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">{label}</Badge>;
+    return <Badge variant="secondary">{label}</Badge>;
   };
 
   if (loading) {
@@ -205,16 +208,20 @@ export default function DealDetail() {
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-2xl font-bold tracking-tight">{deal.name}</h1>
-                {getStatusBadge(deal.status)}
+                {getStageBadge(deal.stage)}
               </div>
-              {deal.organizations?.name && (
-                <Link 
-                  to={`/organizations/${deal.organization_id}`}
-                  className="text-sm text-muted-foreground hover:underline"
-                >
-                  {deal.organizations.name}
-                </Link>
-              )}
+              <div className="text-sm text-muted-foreground space-x-3">
+                {deal.organizations?.name && (
+                  <Link to={`/organizations/${deal.organization_id}`} className="hover:underline">
+                    {deal.organizations.name}
+                  </Link>
+                )}
+                {deal.prospect?.name && (
+                  <Link to={`/prospects/${deal.prospect_id}`} className="hover:underline">
+                    ← From Prospect: {deal.prospect.name}
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -255,19 +262,27 @@ export default function DealDetail() {
                 <CardTitle className="text-lg">Deal Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Status */}
+                {/* Stage */}
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Status</label>
-                  <Select value={deal.status} onValueChange={handleStatusChange}>
+                  <label className="text-sm font-medium text-muted-foreground">Stage</label>
+                  <Select value={deal.stage} onValueChange={handleStageChange}>
                     <SelectTrigger className="mt-1">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="won">Won</SelectItem>
-                      <SelectItem value="lost">Lost</SelectItem>
+                      {DEAL_STAGES.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                  {deal.stage === "lost" && deal.lost_reason && (
+                    <p className="text-xs text-muted-foreground mt-1">Reason: {deal.lost_reason}</p>
+                  )}
+                  {deal.stage === "won" && !deal.organization_id && (
+                    <Button size="sm" variant="outline" className="mt-2 w-full" onClick={() => setWonOpen(true)}>
+                      Create Organization from this deal
+                    </Button>
+                  )}
                 </div>
 
                 {/* Temperature */}
@@ -375,6 +390,14 @@ export default function DealDetail() {
         onOpenChange={setEditDialogOpen}
         onSuccess={loadDeal}
         deal={deal}
+      />
+      <WonDealDialog
+        open={wonOpen}
+        onOpenChange={setWonOpen}
+        dealId={deal.id}
+        dealName={deal.name}
+        prospectId={deal.prospect_id}
+        onDone={loadDeal}
       />
     </UnifiedLayout>
   );
