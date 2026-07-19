@@ -262,10 +262,12 @@ export type Database = {
           description: string | null
           expected_value: number | null
           id: string
+          lost_reason: string | null
           name: string
           organization_id: string | null
           owner_id: string | null
           prospect_id: string | null
+          stage: Database["public"]["Enums"]["deal_stage"]
           status: string
           temperature: number
           updated_at: string
@@ -277,10 +279,12 @@ export type Database = {
           description?: string | null
           expected_value?: number | null
           id?: string
+          lost_reason?: string | null
           name: string
           organization_id?: string | null
           owner_id?: string | null
           prospect_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           temperature?: number
           updated_at?: string
@@ -292,10 +296,12 @@ export type Database = {
           description?: string | null
           expected_value?: number | null
           id?: string
+          lost_reason?: string | null
           name?: string
           organization_id?: string | null
           owner_id?: string | null
           prospect_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           temperature?: number
           updated_at?: string
@@ -2151,6 +2157,14 @@ export type Database = {
         | "sync_completed"
         | "sync_failed"
         | "manual_link"
+      deal_stage:
+        | "new"
+        | "qualifying"
+        | "proposal"
+        | "negotiation"
+        | "won"
+        | "lost"
+        | "on_hold"
       invoice_frequency: "weekly" | "monthly" | "quarterly" | "annually"
       invoice_status:
         | "draft"
@@ -2314,6 +2328,15 @@ export const Constants = {
         "sync_completed",
         "sync_failed",
         "manual_link",
+      ],
+      deal_stage: [
+        "new",
+        "qualifying",
+        "proposal",
+        "negotiation",
+        "won",
+        "lost",
+        "on_hold",
       ],
       invoice_frequency: ["weekly", "monthly", "quarterly", "annually"],
       invoice_status: [
