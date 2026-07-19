@@ -17,18 +17,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { MailOpen, MessageCircle, DoorClosed } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const OPTIONS = [
+  { value: "card_only", label: "Card drop", hint: "Left a card, no contact", icon: MailOpen },
+  { value: "yes", label: "Made contact", hint: "Spoke with someone", icon: MessageCircle },
+  { value: "no", label: "No one there", hint: "Nobody available", icon: DoorClosed },
+] as const;
 
 interface VisitLogSheetProps {
   open: boolean;
