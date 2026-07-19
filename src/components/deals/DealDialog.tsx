@@ -31,14 +31,26 @@ import {
 } from "@/components/ui/select";
 import { TemperatureSlider } from "./TemperatureSlider";
 
+const STAGES = [
+  { value: "new", label: "New" },
+  { value: "qualifying", label: "Qualifying" },
+  { value: "proposal", label: "Proposal" },
+  { value: "negotiation", label: "Negotiation" },
+  { value: "on_hold", label: "On Hold" },
+  { value: "won", label: "Won" },
+  { value: "lost", label: "Lost" },
+] as const;
+
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   owner_id: z.string().optional(),
   temperature: z.number().min(0).max(10),
+  stage: z.enum(["new","qualifying","proposal","negotiation","on_hold","won","lost"]),
   organization_id: z.string().optional(),
   contact_id: z.string().optional(),
   expected_value: z.string().optional(),
   description: z.string().optional(),
+  lost_reason: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -50,16 +62,20 @@ interface Deal {
   temperature: number;
   description: string | null;
   status: string;
+  stage?: string;
   organization_id: string | null;
   contact_id: string | null;
   expected_value: number | null;
+  lost_reason?: string | null;
 }
 
 interface DealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess: (dealId?: string) => void;
   deal?: Deal | null;
+  initialValues?: Partial<FormData>;
+  prospectId?: string | null;
 }
 
 interface Profile {
@@ -80,7 +96,7 @@ interface Contact {
   organization_id: string | null;
 }
 
-export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogProps) {
+export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues, prospectId }: DealDialogProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [owners, setOwners] = useState<Profile[]>([]);
@@ -93,14 +109,17 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogPr
       name: "",
       owner_id: undefined,
       temperature: 5,
+      stage: "new",
       organization_id: undefined,
       contact_id: undefined,
       expected_value: "",
       description: "",
+      lost_reason: "",
     },
   });
 
   const selectedOrgId = form.watch("organization_id");
+  const selectedStage = form.watch("stage");
 
   useEffect(() => {
     if (open) {
@@ -114,23 +133,27 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogPr
         name: deal.name,
         owner_id: deal.owner_id || undefined,
         temperature: deal.temperature,
+        stage: (deal.stage as any) || "new",
         organization_id: deal.organization_id || undefined,
         contact_id: deal.contact_id || undefined,
         expected_value: deal.expected_value?.toString() || "",
         description: deal.description || "",
+        lost_reason: deal.lost_reason || "",
       });
     } else if (!deal && open) {
       form.reset({
-        name: "",
-        owner_id: undefined,
-        temperature: 5,
-        organization_id: undefined,
-        contact_id: undefined,
-        expected_value: "",
-        description: "",
+        name: initialValues?.name ?? "",
+        owner_id: initialValues?.owner_id,
+        temperature: initialValues?.temperature ?? 5,
+        stage: initialValues?.stage ?? "new",
+        organization_id: initialValues?.organization_id,
+        contact_id: initialValues?.contact_id,
+        expected_value: initialValues?.expected_value ?? "",
+        description: initialValues?.description ?? "",
+        lost_reason: "",
       });
     }
-  }, [deal, open, form]);
+  }, [deal, open, form, initialValues]);
 
   const loadData = async () => {
     const [ownersRes, orgsRes, contactsRes] = await Promise.all([
@@ -158,6 +181,8 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogPr
         name: data.name,
         owner_id: data.owner_id || userData.user.id,
         temperature: data.temperature,
+        stage: data.stage as any,
+        lost_reason: data.stage === "lost" ? (data.lost_reason || null) : null,
         organization_id: data.organization_id || null,
         contact_id: data.contact_id || null,
         expected_value: data.expected_value ? parseFloat(data.expected_value) : null,
@@ -171,15 +196,18 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogPr
           .eq("id", deal.id);
         if (error) throw error;
         toast({ title: "Deal updated successfully" });
+        onSuccess(deal.id);
       } else {
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from("deals")
-          .insert({ ...dealData, created_by: userData.user.id });
+          .insert({ ...dealData, created_by: userData.user.id, prospect_id: prospectId ?? null })
+          .select("id")
+          .single();
         if (error) throw error;
         toast({ title: "Deal created successfully" });
+        onSuccess(inserted?.id);
       }
 
-      onSuccess();
       onOpenChange(false);
     } catch (error: any) {
       toast({
@@ -259,6 +287,43 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal }: DealDialogPr
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="stage"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Stage</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {STAGES.map((s) => (
+                        <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedStage === "lost" && (
+              <FormField
+                control={form.control}
+                name="lost_reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lost Reason *</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Why was this deal lost?" rows={2} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
