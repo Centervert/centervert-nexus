@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddressAutocomplete } from "@/components/contacts/AddressAutocomplete";
+import { MailOpen, MessageCircle, DoorClosed } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ProspectDialogProps {
   open: boolean;
@@ -47,6 +49,12 @@ const STATUSES: Array<{ value: string; label: string }> = [
   { value: "converted", label: "Converted" },
 ];
 
+const VISIT_OPTIONS = [
+  { value: "card_only", label: "Card drop", hint: "Left a card, no contact", icon: MailOpen },
+  { value: "yes", label: "Made contact", hint: "Spoke with someone", icon: MessageCircle },
+  { value: "no", label: "No one there", hint: "Nobody available", icon: DoorClosed },
+] as const;
+
 export function ProspectDialog({ open, onOpenChange, onSuccess, prospect }: ProspectDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -59,6 +67,9 @@ export function ProspectDialog({ open, onOpenChange, onSuccess, prospect }: Pros
   const [address, setAddress] = useState("");
   const [status, setStatus] = useState<string>("new");
   const [notes, setNotes] = useState("");
+  const [logVisit, setLogVisit] = useState(true);
+  const [contactMade, setContactMade] = useState<string>("card_only");
+  const [personSpokenTo, setPersonSpokenTo] = useState("");
 
   useEffect(() => {
     if (open) {
@@ -69,6 +80,9 @@ export function ProspectDialog({ open, onOpenChange, onSuccess, prospect }: Pros
       setAddress(prospect?.address ?? "");
       setStatus(prospect?.status ?? "new");
       setNotes(prospect?.notes ?? "");
+      setLogVisit(!prospect);
+      setContactMade("card_only");
+      setPersonSpokenTo("");
     }
   }, [open, prospect]);
 
@@ -89,20 +103,34 @@ export function ProspectDialog({ open, onOpenChange, onSuccess, prospect }: Pros
       notes: notes || null,
     };
     let error;
+    let newProspectId: string | null = null;
     if (prospect?.id) {
       ({ error } = await supabase.from("prospects").update(payload).eq("id", prospect.id));
     } else {
-      ({ error } = await supabase.from("prospects").insert({
-        ...payload,
-        owner_id: user.id,
-        created_by: user.id,
-      }));
+      const { data, error: insertErr } = await supabase
+        .from("prospects")
+        .insert({ ...payload, owner_id: user.id, created_by: user.id })
+        .select("id")
+        .single();
+      error = insertErr;
+      newProspectId = data?.id ?? null;
     }
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
       return;
     }
+
+    if (!prospect && newProspectId && logVisit) {
+      await supabase.from("prospect_visits").insert({
+        prospect_id: newProspectId,
+        rep_id: user.id,
+        created_by: user.id,
+        contact_made: contactMade as any,
+        person_spoken_to: contactMade === "yes" ? (personSpokenTo || null) : null,
+      });
+    }
+    setSaving(false);
     toast({ title: prospect ? "Prospect updated" : "Prospect added" });
     onOpenChange(false);
     onSuccess?.();
@@ -165,6 +193,60 @@ export function ProspectDialog({ open, onOpenChange, onSuccess, prospect }: Pros
             <Label>Notes</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
           </div>
+
+          {!prospect && (
+            <div className="space-y-3 rounded-md border border-border p-3">
+              <div className="flex items-center justify-between">
+                <Label className="cursor-pointer" onClick={() => setLogVisit(!logVisit)}>
+                  Log first visit
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setLogVisit(!logVisit)}
+                  className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {logVisit ? "Skip" : "Add"}
+                </button>
+              </div>
+              {logVisit && (
+                <>
+                  <div className="grid grid-cols-3 gap-2">
+                    {VISIT_OPTIONS.map((opt) => {
+                      const Icon = opt.icon;
+                      const selected = contactMade === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setContactMade(opt.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1 rounded-md border p-2 text-center transition-colors",
+                            selected
+                              ? "border-primary bg-primary/5 text-foreground"
+                              : "border-border hover:bg-muted text-muted-foreground"
+                          )}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span className="text-xs font-medium">{opt.label}</span>
+                          <span className="text-[10px] leading-tight">{opt.hint}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {contactMade === "yes" && (
+                    <div className="space-y-2">
+                      <Label>Who did you speak with?</Label>
+                      <Input
+                        value={personSpokenTo}
+                        onChange={(e) => setPersonSpokenTo(e.target.value)}
+                        placeholder="Name or role (e.g. manager)"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
