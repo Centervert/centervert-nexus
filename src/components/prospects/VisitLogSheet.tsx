@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { MailOpen, MessageCircle, DoorClosed } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 const OPTIONS = [
   { value: "card_only", label: "Card drop", hint: "Left a card, no contact", icon: MailOpen },
@@ -90,24 +89,41 @@ export function VisitLogSheet({ open, onOpenChange, prospectId, onSuccess }: Vis
         <div className="space-y-4 py-6">
           <div className="space-y-2">
             <Label>Contact Made</Label>
-            <Select value={contactMade} onValueChange={setContactMade}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="yes">Yes — spoke with someone</SelectItem>
-                <SelectItem value="card_only">Left card only</SelectItem>
-                <SelectItem value="no">No contact</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="grid grid-cols-3 gap-2">
+              {OPTIONS.map((opt) => {
+                const Icon = opt.icon;
+                const selected = contactMade === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setContactMade(opt.value)}
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-md border p-3 text-center transition-colors",
+                      selected
+                        ? "border-primary bg-primary/5 text-foreground"
+                        : "border-border hover:bg-muted text-muted-foreground"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-sm font-medium">{opt.label}</span>
+                    <span className="text-[11px] leading-tight">{opt.hint}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label>Person Spoken To</Label>
-            <Input
-              value={personSpokenTo}
-              onChange={(e) => setPersonSpokenTo(e.target.value)}
-              placeholder="Manager, owner, etc."
-            />
-          </div>
+          {contactMade === "yes" && (
+            <div className="space-y-2">
+              <Label>Who did you speak with?</Label>
+              <Input
+                value={personSpokenTo}
+                onChange={(e) => setPersonSpokenTo(e.target.value)}
+                placeholder="Name, or role (e.g. manager)"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Outcome / Notes</Label>
