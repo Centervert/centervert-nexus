@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Phone, Globe, Plus, Pencil, CheckCircle2, Circle, Trash2 } from "lucide-react";
 import { VisitLogSheet } from "@/components/prospects/VisitLogSheet";
 import { ProspectDialog } from "@/components/prospects/ProspectDialog";
-import { DealDialog } from "@/components/deals/DealDialog";
+import { ConvertProspectSheet } from "@/components/prospects/ConvertProspectSheet";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -78,14 +78,6 @@ export default function ProspectDetail() {
     },
     enabled: !!id,
   });
-
-  const handleConverted = async (dealId?: string) => {
-    if (!prospect) return;
-    await supabase.from("prospects").update({ status: "converted" as any }).eq("id", prospect.id);
-    toast({ title: "Converted to Deal", description: "Prospect is now in the deal pipeline." });
-    refetch();
-    if (dealId) navigate(`/deals/${dealId}`);
-  };
 
   const toggleFollowUp = async (visitId: string, current: boolean) => {
     await supabase.from("prospect_visits").update({ follow_up_done: !current }).eq("id", visitId);
@@ -240,16 +232,12 @@ export default function ProspectDetail() {
         prospect={prospect}
         onSuccess={refetch}
       />
-      <DealDialog
+      <ConvertProspectSheet
         open={convertOpen}
         onOpenChange={setConvertOpen}
-        prospectId={prospect.id}
-        initialValues={{
-          name: prospect.name,
-          description: [prospect.category, prospect.address, prospect.notes].filter(Boolean).join("\n"),
-          stage: "qualifying",
-        } as any}
-        onSuccess={handleConverted}
+        prospect={prospect as any}
+        suggestedContactName={visits?.find((v: any) => v.person_spoken_to)?.person_spoken_to ?? null}
+        onConverted={() => refetch()}
       />
     </UnifiedLayout>
   );
