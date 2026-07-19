@@ -8,8 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, MapPin, Phone, Globe, Plus, Pencil, CheckCircle2, Circle, Trash2 } from "lucide-react";
 import { VisitLogSheet } from "@/components/prospects/VisitLogSheet";
 import { ProspectDialog } from "@/components/prospects/ProspectDialog";
+import { DealDialog } from "@/components/deals/DealDialog";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -31,6 +34,7 @@ export default function ProspectDetail() {
   const { toast } = useToast();
   const [visitOpen, setVisitOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
 
   const { data: prospect, refetch } = useQuery({
     queryKey: ["prospect", id],
@@ -59,6 +63,29 @@ export default function ProspectDetail() {
     },
     enabled: !!id,
   });
+
+  const { data: convertedDeal } = useQuery({
+    queryKey: ["prospect-deal", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("deals")
+        .select("id, name")
+        .eq("prospect_id", id!)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const handleConverted = async (dealId?: string) => {
+    if (!prospect) return;
+    await supabase.from("prospects").update({ status: "converted" as any }).eq("id", prospect.id);
+    toast({ title: "Converted to Deal", description: "Prospect is now in the deal pipeline." });
+    refetch();
+    if (dealId) navigate(`/deals/${dealId}`);
+  };
 
   const toggleFollowUp = async (visitId: string, current: boolean) => {
     await supabase.from("prospect_visits").update({ follow_up_done: !current }).eq("id", visitId);
@@ -122,8 +149,21 @@ export default function ProspectDetail() {
             <Button onClick={() => setVisitOpen(true)}>
               <Plus className="h-4 w-4 mr-2" /> Log Visit
             </Button>
+            {prospect.status !== "converted" && (
+              <Button variant="default" onClick={() => setConvertOpen(true)}>
+                <ArrowRight className="h-4 w-4 mr-2" /> Convert to Deal
+              </Button>
+            )}
           </div>
         </div>
+
+        {convertedDeal && (
+          <div className="text-sm">
+            <Link to={`/deals/${convertedDeal.id}`} className="text-primary hover:underline">
+              → Became Deal: {convertedDeal.name}
+            </Link>
+          </div>
+        )}
 
         {prospect.notes && (
           <Card>
@@ -199,6 +239,17 @@ export default function ProspectDetail() {
         onOpenChange={setEditOpen}
         prospect={prospect}
         onSuccess={refetch}
+      />
+      <DealDialog
+        open={convertOpen}
+        onOpenChange={setConvertOpen}
+        prospectId={prospect.id}
+        initialValues={{
+          name: prospect.name,
+          description: [prospect.category, prospect.address, prospect.notes].filter(Boolean).join("\n"),
+          stage: "qualifying",
+        } as any}
+        onSuccess={handleConverted}
       />
     </UnifiedLayout>
   );

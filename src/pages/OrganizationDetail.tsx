@@ -18,6 +18,7 @@ import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
 import OrganizationBillingSummary from "@/components/billing/OrganizationBillingSummary";
 import InvoiceTable from "@/components/billing/InvoiceTable";
 import OrganizationResourceManager from "@/components/organizations/OrganizationResourceManager";
+import { Link } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -83,6 +84,20 @@ function OrganizationDetail() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: wonDeals = [] } = useQuery({
+    queryKey: ["organization-won-deals", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("deals")
+        .select("id, name")
+        .eq("organization_id", id!)
+        .eq("stage", "won")
+        .order("updated_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
   });
 
   const deleteMutation = useMutation({
@@ -191,6 +206,17 @@ function OrganizationDetail() {
                       {organization.website.replace(/^https?:\/\//, '')}
                       <ExternalLink className="h-3 w-3" />
                     </a>
+                  )}
+                  {wonDeals.length > 0 && (
+                    <div className="text-xs text-muted-foreground mt-2 space-x-2">
+                      <span>← Won from:</span>
+                      {wonDeals.map((d, i) => (
+                        <span key={d.id}>
+                          <Link to={`/deals/${d.id}`} className="text-primary hover:underline">{d.name}</Link>
+                          {i < wonDeals.length - 1 && <span>,</span>}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

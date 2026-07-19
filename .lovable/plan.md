@@ -1,124 +1,102 @@
-# Sales Flow: Canvassing → Pipeline
+# Sales Flow: Effortless Stage Hand-offs
 
-Build a proper top-of-funnel (canvassing) and a real, staged deal pipeline on top of it. Two new things, one rework.
-
----
-
-## 1. Canvassing layer (new)
-
-### Prospects (place-first)
-A Prospect is a physical business we've walked into. It lives separately from Organizations until it's worth promoting.
-
-Fields:
-- Business name, address (Mapbox autocomplete, same as orgs)
-- Category (restaurant, retail, office, other — editable list)
-- Phone, website (optional)
-- Status: `new` · `warm` · `cold` · `do_not_contact` · `converted`
-- Owner (the rep who first dropped a card; transferable)
-- Notes
-- Auto-computed: visit count, last visit date, last contact made y/n
-
-### Visits (history under a prospect)
-Each drop-off is one Visit record. A Prospect accumulates many.
-
-Fields:
-- Prospect (parent)
-- Rep (auto = current user, overridable)
-- Visited at (date + time, defaults now)
-- Contact made: yes / no / left card only
-- Person spoken to (free text — not a Contact record yet)
-- Outcome notes
-- Follow-up due date (optional — surfaces in "My Follow-ups")
-- Follow-up completed flag
-
-### Pages & UI
-- **`/prospects`** — list/table with search, status filter, owner filter, "needs follow-up" filter. Map view toggle (Mapbox, since we already use it) as a v1 nice-to-have.
-- **`/prospects/:id`** — HubSpot-style detail: header with name/address/status, inline-editable fields, Visits timeline, "Log Visit" button (right-side slide-in sheet, per project convention), "Convert to Deal" button.
-- **Dashboard widget** — "My Follow-ups This Week" for sales reps.
-- Sidebar: new "Prospects" item above Opportunities, visible to Admin + Sales Agent.
-
-### Convert to Deal
-One click on a Prospect → opens the Deal dialog pre-filled with prospect name, address, owner, and a back-link. Prospect status flips to `converted`. **No Organization is created** at this point (per your choice) — Org gets created later only if the deal is won.
+Build the missing conversion moments so a rep never has to re-type data when moving something forward. Ship in 5 usable slices — each is valuable on its own.
 
 ---
 
-## 2. Deal pipeline rework
+## Slice 1 — "Convert to Deal" on Prospect
 
-You said there's no structured flow today. Replacing the current `active / won / lost` flat status with a real pipeline:
+**Where:** Prospect detail header (`/prospects/:id`)
 
-### Stages (in order)
-1. **New** — just created from a prospect or cold
-2. **Qualifying** — initial conversation, fit unclear
-3. **Proposal** — quote/scope sent
-4. **Negotiation** — terms back-and-forth
-5. **Won** (terminal) → triggers "Create Organization" prompt
-6. **Lost** (terminal, requires reason)
-7. **On Hold** (paused, not terminal)
+- New **"Convert to Deal"** button next to Edit / Log Visit.
+- Opens the existing Deal dialog (`DealDialog`) in create mode, pre-filled:
+  - `name` = prospect name
+  - `description` = prospect address + category + notes (concatenated)
+  - `prospect_id` = current prospect
+  - Owner = current user (or prospect owner)
+- On successful create: flip `prospects.status` → `converted` and toast "Converted — view deal" with a link.
+- If the prospect is already `converted`, show a small "→ Became [Deal Name]" link instead of the button (backlink from Slice 5, cheap to include now).
 
-Stored as an enum so we can re-order/rename later without code rewrites everywhere.
-
-### Ownership & hand-off
-- **Owner** (sales rep) — stays with the deal start-to-finish; accountable for movement.
-- **Assigned team** (multi) — operators/PMs added at Proposal+ stage for scoping help.
-- Stage change writes to a `deal_activity` log (who moved it, when, from→to) — gives us the hand-off trail.
-
-### Pipeline view (`/deals`)
-- Default = **Kanban board** by stage, drag to move (with permission check).
-- Toggle to table view (current view, kept).
-- Filters: owner, stage, temperature, value range.
-- Per-stage totals (count + sum of expected value) at the top of each column.
-
-### Reporting (small, focused)
-On Dashboard for admins:
-- Deals by stage (count + $)
-- Conversion rate stage-to-stage (last 90 days)
-- Avg time in stage (flags stalls)
-- Top reps by won $ this month
-Reps see only their own.
+**Files:** `DealDialog.tsx` (accept `initialValues` + `prospectId` props), `ProspectDetail.tsx` (button + status flip).
 
 ---
 
-## 3. Reminders
+## Slice 2 — Real Deal Stage Pipeline
 
-Simple due-date model (no scheduled emails this round):
-- Visit follow-up date → "My Follow-ups" list on dashboard + a badge in sidebar when overdue.
-- Same pattern usable later on Deals if you want.
+**Schema change (migration):**
+- New enum `deal_stage`: `new`, `qualifying`, `proposal`, `negotiation`, `won`, `lost`, `on_hold`.
+- New column `deals.stage` (enum, default `new`, not null).
+- Backfill from existing `status`: `active` → `qualifying`, `won` → `won`, `lost` → `lost`.
+- Keep `deals.status` for now — treat as derived (`won`/`lost`/`active`) via a trigger that syncs it from `stage`, so existing chat/billing code that reads `status` doesn't break.
+- Optional `lost_reason` text column (nullable) for when stage = `lost`.
 
-We can layer email/push reminders later via a cron + edge function — flagged as v2.
+**UI:**
+- Add a **Stage** selector on the Deal dialog and Deal detail header (inline dropdown, per project convention).
+- List view (`DealsNew.tsx`): replace the 3-tab status filter with a stage filter (All / Active / Won / Lost, where "Active" = everything not terminal). Add a Stage column.
+- When user picks `lost`, prompt for `lost_reason` (required).
+
+**Files:** migration; `DealDialog.tsx`, `DealDetail.tsx`, `DealsNew.tsx`, `types.ts` regenerates.
 
 ---
 
-## What I won't touch
-- Existing Organizations, Contacts, Projects, Billing, HR — untouched.
-- The Deal detail page (chat, attachments, temperature) stays; we're adding stage + activity log around it.
-- No data migration needed — existing deals get auto-mapped: `active`→`Qualifying`, `won`→`Won`, `lost`→`Lost`.
+## Slice 3 — Won → Create Organization
+
+**Trigger:** When a deal's stage moves to `won` (in dialog, detail page, or Kanban).
+
+- If `deals.organization_id` is already set → just toast "Deal won" and stop (org already exists).
+- Otherwise, open a **"Create Organization from this deal"** dialog, pre-filled:
+  - `name` = deal name
+  - `address` fields = pulled from the linked prospect (if any)
+  - `type` = "Private Company" default
+- Two buttons: **Create Organization** (creates org, sets `deals.organization_id`, optional inline "Add Contact" section) or **Skip for now** (deal still moves to Won, org can be created later from the deal detail page).
+- After org creation, offer a follow-up "Add Contact" mini-form (name, email, phone) that inserts a Contact linked to the new Org — one shot, skippable.
+
+**Files:** new `WonDealDialog.tsx` (composes org create + contact create), hook into stage-change handler in `DealDetail.tsx` and `DealDialog.tsx`.
+
+---
+
+## Slice 4 — Kanban View on `/deals`
+
+- Add a view toggle at top of `DealsNew.tsx`: **Board | Table** (defaults Board for reps, Table for admins — configurable later).
+- Board = columns per stage (New, Qualifying, Proposal, Negotiation, On Hold, Won, Lost).
+- Each card: name, org (if any), value, temperature dot, owner avatar.
+- Drag between columns to move stage. Uses `@dnd-kit/core` (already in shadcn ecosystem, will install if missing).
+- Column headers show count + sum of `expected_value`.
+- Dropping onto Won triggers Slice 3's dialog. Dropping onto Lost prompts for reason.
+- Filters (owner, search) apply to both views.
+
+**Files:** new `DealKanban.tsx`, `DealCard.tsx`; `DealsNew.tsx` gets the toggle.
+
+---
+
+## Slice 5 — Backlinks (traceability)
+
+Small, quick, high-value once the pipeline is real.
+
+- **Prospect detail:** if `converted`, show "→ Became [Deal Name]" linking to the deal.
+- **Deal detail:** if `prospect_id` set, show "← From Prospect [Name]" in the header. If `organization_id` set and stage is won, show "→ Organization [Name]".
+- **Organization detail:** query for deals where `organization_id = this org AND stage = won`, show them under a "Won From" section (or just add a single "← Won from Deal [Name]" line if only one).
+
+**Files:** `ProspectDetail.tsx`, `DealDetail.tsx`, `OrganizationDetail.tsx`.
+
+---
+
+## Suggested build order
+
+1. Slice 1 (Convert to Deal) — smallest, most visible friction removed
+2. Slice 2 (Stage pipeline) — foundation for 3 & 4
+3. Slice 3 (Won → Org) — closes the loop
+4. Slice 4 (Kanban) — pipeline becomes visual
+5. Slice 5 (Backlinks) — polish pass
 
 ---
 
 ## Technical notes
 
-**New tables** (all with RLS, GRANTs, `created_at/updated_at`):
-- `prospects` — owner_id, status enum, address fields, geo lat/lng, category
-- `prospect_visits` — prospect_id, rep_id, visited_at, contact_made enum, follow_up_due, follow_up_done
-- `deal_stages` — seeded enum/lookup (allows reorder)
-- `deal_activity` — deal_id, actor_id, action, from_stage, to_stage, metadata
+- **Migration in Slice 2** is the only schema change; everything else is code.
+- **`deals.status` stays** as a synced derived column (via BEFORE UPDATE trigger `status := CASE stage WHEN 'won' THEN 'won' WHEN 'lost' THEN 'lost' ELSE 'active' END`) so `DealChat`, billing hooks, and MCP tools that read `status` keep working unchanged.
+- **RLS on new dialogs:** org creation already has policies (admin/agent); reps without org-create permission see the Won dialog but the "Create Organization" button is disabled with tooltip "Ask an admin to create the client org."
+- **No changes to Contacts, Projects, Billing, HR, or DealChat.**
+- **`prospect_id`, `organization_id`, `contact_id`** already exist on `deals` — no FK work needed.
 
-**Schema changes:**
-- `deals.stage` (new enum column), keep `status` for now as a computed/derived field (`won`/`lost`/`active`) for back-compat with the chat/billing code.
-- `deals.prospect_id` (nullable FK) for the conversion link.
-
-**RLS:**
-- Sales agents see their own prospects/visits/deals + anything assigned to them.
-- Admin sees all.
-- Team members see deals they're on.
-
-**Pages added:** `Prospects.tsx`, `ProspectDetail.tsx`, `VisitLogSheet.tsx`, `DealKanban.tsx` (toggle inside existing `DealsNew.tsx`).
-
----
-
-## Suggested build order
-1. Prospects + Visits tables, pages, log-visit flow, follow-up dashboard widget.
-2. Deal stages enum, Kanban view, activity log, convert-from-prospect.
-3. Reporting widgets.
-
-Want me to start with step 1, or adjust the stages / fields first?
+Confirm this plan (or say "just Slice 1 + 3 first") and I'll build.
