@@ -441,6 +441,102 @@ function buildTools(): ToolDef[] {
       handler: (i) => updateRow("employee_raises", String(i.id), { status: "approved" }),
     },
     {
+      name: "update_raise",
+      description: "Update an employee raise by id.",
+      inputSchema: obj({ id: str(), patch: { type: "object" } }, ["id", "patch"]),
+      handler: (i) => updateRow("employee_raises", String(i.id), i.patch as Record<string, unknown>),
+    },
+    {
+      name: "delete_raise",
+      description: "Delete an employee raise by id.",
+      inputSchema: idInput,
+      handler: (i) => deleteRow("employee_raises", String(i.id)),
+    },
+    {
+      name: "delete_employee",
+      description: "Delete an employee by id. Prefer setting is_active=false instead.",
+      inputSchema: idInput,
+      handler: (i) => deleteRow("employees", String(i.id)),
+    },
+    {
+      name: "list_employee_compensation",
+      description: "List effective compensation rows from the employee_compensation view (per_paycheck, per_month, annual, effective_amount, effective_salary_type, from_raise). Pass filters like { is_active: true } or { id: '<employee_id>' }.",
+      inputSchema: listInput,
+      handler: async (i) => {
+        const limit = Math.min(Number(i.limit ?? 100), 500);
+        const offset = Number(i.offset ?? 0);
+        const filters = (i.filters as Record<string, unknown>) ?? {};
+        let q = sb().from("employee_compensation").select("*", { count: "exact" });
+        for (const [k, v] of Object.entries(filters)) q = q.eq(k, v as never);
+        q = q.range(offset, offset + limit - 1);
+        const { data, error, count } = await q;
+        if (error) throw new Error(error.message);
+        return { items: data, total: count, limit, offset };
+      },
+    },
+    {
+      name: "get_employee_compensation",
+      description: "Get a single employee's effective compensation row from the employee_compensation view.",
+      inputSchema: obj({ employee_id: str("Employee UUID") }, ["employee_id"]),
+      handler: async (i) => {
+        const { data, error } = await sb()
+          .from("employee_compensation")
+          .select("*")
+          .eq("id", String(i.employee_id))
+          .maybeSingle();
+        if (error) throw new Error(error.message);
+        if (!data) throw new Error(`No compensation row for employee ${i.employee_id}`);
+        return data;
+      },
+    },
+    {
+      name: "list_employee_notes",
+      description: "List employee activity/notes. Pass filters: { employee_id, category }. Categories: general | payroll | bonus | performance | schedule.",
+      inputSchema: listInput,
+      handler: (i) => listTable("employee_notes", i),
+    },
+    {
+      name: "add_employee_note",
+      description: "Post an activity/comment on an employee's chat-style feed. Use categories: general, payroll, bonus, performance, schedule.",
+      inputSchema: obj({
+        employee_id: str(),
+        content: str(),
+        category: optStr("general | payroll | bonus | performance | schedule (default general)"),
+        created_by: optStr("User id of author; omit for system/agent posts"),
+      }, ["employee_id", "content"]),
+      handler: (i) =>
+        insertRow("employee_notes", {
+          employee_id: i.employee_id,
+          content: i.content,
+          category: i.category ?? "general",
+          created_by: i.created_by ?? null,
+        }),
+    },
+    {
+      name: "update_employee_note",
+      description: "Edit an employee note by id.",
+      inputSchema: obj({ id: str(), patch: { type: "object" } }, ["id", "patch"]),
+      handler: (i) => updateRow("employee_notes", String(i.id), i.patch as Record<string, unknown>),
+    },
+    {
+      name: "delete_employee_note",
+      description: "Delete an employee note by id.",
+      inputSchema: idInput,
+      handler: (i) => deleteRow("employee_notes", String(i.id)),
+    },
+    {
+      name: "list_employee_attachments",
+      description: "List employee attachments (HR docs like W9, agreements). Pass filters: { employee_id }.",
+      inputSchema: listInput,
+      handler: (i) => listTable("employee_attachments", i),
+    },
+    {
+      name: "delete_employee_attachment",
+      description: "Delete an employee attachment record by id.",
+      inputSchema: idInput,
+      handler: (i) => deleteRow("employee_attachments", String(i.id)),
+    },
+    {
       name: "list_expenses",
       description: "List expenses.",
       inputSchema: listInput,
