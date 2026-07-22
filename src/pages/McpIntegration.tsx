@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import SettingsSidebar from '@/components/SettingsSidebar';
+import UnifiedLayout from '@/components/UnifiedLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,25 +73,17 @@ export default function McpIntegration() {
   });
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
-        <SettingsSidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="flex h-16 items-center gap-4 border-b border-border bg-muted/30 px-4 md:px-8">
-            <SidebarTrigger />
-            <Button variant="ghost" size="sm" onClick={() => navigate('/settings')}>
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back
-            </Button>
-            <h1 className="text-lg font-semibold">MCP Integration</h1>
-          </div>
-
-          <div className="p-4 md:p-8 max-w-5xl space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">AI Agent Access (MCP)</h2>
-              <p className="text-muted-foreground">
-                Connect any MCP-compatible AI agent to read and modify your portal data.
-              </p>
-            </div>
+    <UnifiedLayout>
+      <div className="p-4 md:p-6 max-w-5xl space-y-6">
+        <div>
+          <Button variant="ghost" size="sm" className="mb-3 -ml-2" onClick={() => navigate('/settings')}>
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Settings
+          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">MCP Integration</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Connect any MCP-compatible AI agent to read and modify your portal data.
+          </p>
+        </div>
 
             <Alert variant="destructive">
               <ShieldAlert className="h-4 w-4" />
@@ -241,9 +232,7 @@ export default function McpIntegration() {
                 </Button>
               </CardContent>
             </Card>
-          </div>
-        </main>
       </div>
-    </SidebarProvider>
+    </UnifiedLayout>
   );
 }
