@@ -589,6 +589,68 @@ function buildTools(): ToolDef[] {
   // ─── Billing ───
   tools.push(
     {
+      name: "list_audit_log",
+      description: "List change-history entries. Filter with { table_name, record_id, actor_id, action } (action = INSERT|UPDATE|DELETE). Ordered newest-first.",
+      inputSchema: obj({
+        limit: num("Max rows (default 50, max 500)"),
+        offset: num(),
+        filters: { type: "object", description: "e.g. { table_name: 'employees', record_id: '<uuid>' }" },
+      }),
+      handler: async (i) => {
+        const limit = Math.min(Number(i.limit ?? 50), 500);
+        const offset = Number(i.offset ?? 0);
+        const filters = (i.filters as Record<string, unknown>) ?? {};
+        let q = sb().from("audit_log").select("*", { count: "exact" });
+        for (const [k, v] of Object.entries(filters)) q = q.eq(k, v as never);
+        q = q.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+        const { data, error, count } = await q;
+        if (error) throw new Error(error.message);
+        return { items: data, total: count, limit, offset };
+      },
+    },
+    {
+      name: "get_record_history",
+      description: "Full change history for a single record (all inserts/updates/deletes with before/after snapshots and per-field diffs).",
+      inputSchema: obj({
+        table_name: str("e.g. 'employees', 'deals', 'contacts'"),
+        record_id: str("UUID of the row"),
+      }, ["table_name", "record_id"]),
+      handler: async (i) => {
+        const { data, error } = await sb()
+          .from("audit_log")
+          .select("*")
+          .eq("table_name", String(i.table_name))
+          .eq("record_id", String(i.record_id))
+          .order("created_at", { ascending: true });
+        if (error) throw new Error(error.message);
+        return { history: data ?? [] };
+      },
+    },
+    {
+      name: "revert_record",
+      description: "Revert a record to a prior state using a specific audit_log entry id. For UPDATE/DELETE entries it restores old_data; for INSERT entries it deletes the row (undoes the create). Returns the restored row or the deleted id.",
+      inputSchema: obj({ audit_log_id: str("audit_log.id to revert to") }, ["audit_log_id"]),
+      handler: async (i) => {
+        const { data: entry, error: e1 } = await sb()
+          .from("audit_log").select("*").eq("id", String(i.audit_log_id)).maybeSingle();
+        if (e1) throw new Error(e1.message);
+        if (!entry) throw new Error("audit_log entry not found");
+        const table = entry.table_name as string;
+        const recordId = entry.record_id as string;
+        if (entry.action === "INSERT") {
+          const { error } = await sb().from(table).delete().eq("id", recordId);
+          if (error) throw new Error(error.message);
+          return { reverted: true, action: "deleted_insert", table, id: recordId };
+        }
+        const old = entry.old_data as Record<string, unknown> | null;
+        if (!old) throw new Error("No old_data on this entry to revert to");
+        // Upsert old snapshot (covers both UPDATE-revert and DELETE-restore)
+        const { data, error } = await sb().from(table).upsert(old).select().single();
+        if (error) throw new Error(error.message);
+        return { reverted: true, action: entry.action === "DELETE" ? "restored_delete" : "restored_update", table, row: data };
+      },
+    },
+    {
       name: "list_invoices",
       description: "List invoices.",
       inputSchema: listInput,
