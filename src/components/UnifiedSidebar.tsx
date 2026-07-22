@@ -16,6 +16,7 @@ import {
   FolderKanban,
   ClipboardList,
   MapPin,
+  History,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -127,6 +128,11 @@ const UnifiedSidebar = () => {
       name: 'Team',
       href: '/users',
       icon: Users,
+    },
+    {
+      name: 'Change History',
+      href: '/history',
+      icon: History,
     },
   ];
 
