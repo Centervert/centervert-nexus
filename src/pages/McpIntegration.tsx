@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 
 const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID as string;
 const MCP_URL = `https://${PROJECT_ID}.supabase.co/functions/v1/mcp`;
+const AGENT_GUIDE_URL = `https://${PROJECT_ID}.supabase.co/functions/v1/agent-guide?key=YOUR_MCP_ADMIN_KEY`;
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);
@@ -112,6 +113,30 @@ export default function McpIntegration() {
                   <code className="flex-1 rounded bg-muted px-3 py-2 text-sm">{MCP_URL}</code>
                   <CopyButton value={MCP_URL} />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Agent operating guide (hidden)</CardTitle>
+                <CardDescription>
+                  A confidential HTML briefing that describes every tool, conventions, and safety
+                  rules. Give this URL to your agent as its onboarding document — the page is served
+                  only when the correct admin key is presented (bad keys return 404, not 401, so the
+                  URL can't be fingerprinted). It's excluded from search engines and never cached.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded bg-muted px-3 py-2 text-xs break-all">
+                    {AGENT_GUIDE_URL}
+                  </code>
+                  <CopyButton value={AGENT_GUIDE_URL} />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Replace <code>YOUR_MCP_ADMIN_KEY</code> with the same key your agent uses for MCP.
+                  Treat the full URL as a secret — anyone who has it can read the guide.
+                </p>
               </CardContent>
             </Card>
 
