@@ -1,51 +1,51 @@
+
 ## Goal
-Make the walk from Prospect → Deal feel effortless. Prospects stay lightweight (business + visits). Contact and Organization are attached at conversion time, with the choice to pick existing or create new — inline, no leaving the flow.
+Add a chat-style running notes/comments feed on each employee (in the Employee dialog under HR) so admins and AI agents can post ongoing updates (bonuses issued, payroll split, schedule changes, etc.) separate from the existing static "Notes" field.
 
-## What changes
+## Data model (new table)
+Create `public.employee_notes`:
+- `id` uuid pk default gen_random_uuid()
+- `employee_id` uuid not null references `employees(id)` on delete cascade
+- `content` text not null
+- `category` text null (optional tag: `general` | `payroll` | `bonus` | `performance` | `schedule`)
+- `created_by` uuid null references `auth.users(id)`
+- `created_at` timestamptz default now()
+- `updated_at` timestamptz default now()
 
-### 1. ProspectDetail — cleaner conversion entry
-- Keep "Convert to Deal" as the primary CTA (already there).
-- Clicking it opens a new dedicated **Convert to Deal** sheet (not the generic DealDialog) so the flow is purpose-built.
+Grants + RLS (admin-only, matches existing employees table policy):
+- `GRANT SELECT, INSERT, UPDATE, DELETE ... TO authenticated; GRANT ALL TO service_role;`
+- Enable RLS. Policies: admins (via `has_role(auth.uid(),'admin')`) can select/insert/update/delete. Also allow `service_role` (so MCP agent using service key can post).
+- Add to `supabase_realtime` publication for live updates.
+- Trigger to bump `updated_at`.
 
-### 2. New `ConvertProspectSheet` component
-A single right-side sheet with three sections, top to bottom:
+Regenerate types in `src/integrations/supabase/types.ts` to include the new table.
 
-**A. Deal basics** (pre-filled from prospect)
-- Deal name (defaults to prospect name)
-- Temperature slider (default 5)
-- Expected value (optional)
-- Stage locked to "Qualifying" for conversions
+## UI
 
-**B. Organization** — segmented control
-- `Use existing` → searchable combobox of orgs
-- `Create new` → inline fields: name (defaults to prospect name), address (defaults to prospect address), phone (defaults to prospect phone), website (defaults to prospect website), type (Private Company default)
-- `Skip for now` → no org attached
+### EmployeeDialog.tsx
+- Add a new tab or section "Activity" alongside existing sections (Details / Compensation / Raises / Resources). If dialog is single-scroll, add a collapsible "Activity & Notes" block near the bottom, above delete.
+- Only render when editing an existing employee (needs `employee.id`).
 
-**C. Contact** — segmented control
-- `Use existing` → searchable combobox (filtered to selected org if one was picked)
-- `Create new` → inline fields: first name, last name, email, phone, title. If a visit had a `person_spoken_to`, pre-fill last-name field with it as a starting hint.
-- `Skip for now` → no contact attached (valid for card-drop prospects)
+### New component: `src/components/hr/EmployeeActivityFeed.tsx`
+- Chat-like list, newest at bottom (or top — pick newest-at-top for scannability).
+- Each entry: author avatar/initial + name, timestamp (relative), optional category chip (text-colored, per project rule no filled badges), content with `whitespace-pre-wrap`.
+- Composer at bottom: textarea + category select (General/Payroll/Bonus/Performance/Schedule) + Post button. Enter to submit, Shift+Enter newline.
+- Inline edit/delete for the author (admin) via small ghost buttons on hover.
+- Realtime subscription (`supabase.channel('employee_notes:<id>')`) to append new rows live.
+- Uses react-query for initial load + invalidation.
 
-### 3. Submit behavior (single transaction feel)
-On "Convert":
-1. If "Create new" org selected → insert into `organizations`, capture id.
-2. If "Create new" contact selected → insert into `contacts` with the org id (new or picked), capture id.
-3. Insert `deals` row with `prospect_id`, `organization_id`, `contact_id`, stage=`qualifying`, plus deal basics.
-4. Update `prospects.status = 'converted'`.
-5. Toast success and navigate to `/deals/{id}`.
+### Author display
+Join with `profiles` to get `full_name`/`email` for `created_by`. For agent-posted entries (created_by null, via service role), show "AI Agent" or "System".
 
-Errors on any step surface a toast and stop the flow (no partial deal without the just-created org/contact — we insert org first, then contact, then deal so refs are valid).
+## MCP (optional, non-blocking)
+Expose two tools in `supabase/functions/mcp/index.ts` so the agent can write notes: `employee_note.add`, `employee_note.list`. Out of scope unless requested — mention only.
 
-### 4. Small polish
-- Remove the current `DealDialog` invocation from ProspectDetail (replaced by the new sheet).
-- Prospect detail keeps the "→ Became Deal: X" backlink already in place.
-- No schema changes.
-
-## Files touched
-- `src/components/prospects/ConvertProspectSheet.tsx` (new)
-- `src/pages/ProspectDetail.tsx` (swap DealDialog → ConvertProspectSheet)
+## Files
+- new migration `supabase/migrations/<ts>_employee_notes.sql`
+- edit `src/integrations/supabase/types.ts`
+- new `src/components/hr/EmployeeActivityFeed.tsx`
+- edit `src/components/hr/EmployeeDialog.tsx` to mount the feed
 
 ## Out of scope
-- Adding contacts/orgs directly to a Prospect (per your direction: prospects stay lightweight; contact/org attachment happens at conversion).
-- Visit log changes (already the way you want).
-- Won-stage org creation flow (`WonDealDialog`) — untouched.
+- Existing plain-text "Notes" field stays as-is (long-form summary). The feed is additive.
+- No @mentions or reactions in v1 (can add later using the same pattern as deal_messages).

@@ -402,6 +402,51 @@ export type Database = {
           },
         ]
       }
+      employee_notes: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          employee_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          employee_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employee_compensation"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_raises: {
         Row: {
           created_at: string | null
