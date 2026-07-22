@@ -32,7 +32,8 @@ import {
   Pencil,
   Trash2,
   MessageSquare,
-  FileText
+  FileText,
+  History as HistoryIcon,
 } from "lucide-react";
 import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
