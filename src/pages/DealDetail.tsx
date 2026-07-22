@@ -32,11 +32,13 @@ import {
   Pencil,
   Trash2,
   MessageSquare,
-  FileText
+  FileText,
+  History as HistoryIcon,
 } from "lucide-react";
 import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
 import { DealChat } from "@/components/deals/DealChat";
+import { RecordHistory } from "@/components/history/RecordHistory";
 import { DealDocuments } from "@/components/deals/DealDocuments";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { DEAL_STAGES } from "@/components/deals/DealKanban";
@@ -373,12 +375,17 @@ export default function DealDetail() {
                       <FileText className="h-4 w-4" />
                       Documents
                     </TabsTrigger>
+                    <TabsTrigger value="history" className="gap-2">
+                      <HistoryIcon className="h-4 w-4" />
+                      History
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </CardHeader>
               <CardContent>
                 {activeTab === "chat" && <DealChat dealId={deal.id} />}
                 {activeTab === "documents" && <DealDocuments dealId={deal.id} />}
+                {activeTab === "history" && <RecordHistory tableName="deals" recordId={deal.id} />}
               </CardContent>
             </Card>
           </div>

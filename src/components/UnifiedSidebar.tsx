@@ -16,6 +16,7 @@ import {
   FolderKanban,
   ClipboardList,
   MapPin,
+  History,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -58,7 +59,7 @@ const UnifiedSidebar = () => {
 
   const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/deals' || location.pathname === '/prospects' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/deals/') || location.pathname.startsWith('/prospects/');
-  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users';
+  const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users' || location.pathname === '/history';
   
   // Show menus while loading OR if we don't have role info yet
   // Once we have confirmed role data, apply role-based visibility
@@ -127,6 +128,11 @@ const UnifiedSidebar = () => {
       name: 'Team',
       href: '/users',
       icon: Users,
+    },
+    {
+      name: 'Change History',
+      href: '/history',
+      icon: History,
     },
   ];
 

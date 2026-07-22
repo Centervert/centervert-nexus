@@ -18,6 +18,7 @@ import { ProjectReleasesTab } from "@/components/projects/ProjectReleasesTab";
 import { ProjectDocsTab } from "@/components/projects/ProjectDocsTab";
 import { ProjectTicketsTab } from "@/components/projects/ProjectTicketsTab";
 import { ProjectRoadmapTab } from "@/components/projects/ProjectRoadmapTab";
+import { RecordHistory } from "@/components/history/RecordHistory";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -29,7 +30,8 @@ import {
   Rocket,
   FolderOpen,
   Ticket,
-  GanttChart
+  GanttChart,
+  History as HistoryIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Json } from "@/integrations/supabase/types";
@@ -256,6 +258,13 @@ const ProjectDetail = () => {
               <GanttChart className="h-4 w-4 mr-2" />
               Roadmap
             </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="data-[state=active]:bg-muted data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-b-none px-4 py-2"
+            >
+              <HistoryIcon className="h-4 w-4 mr-2" />
+              History
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -300,6 +309,10 @@ const ProjectDetail = () => {
               projectStartDate={project.start_date}
               projectEndDate={project.target_end_date}
             />
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-6">
+            <RecordHistory tableName="projects" recordId={project.id} />
           </TabsContent>
         </Tabs>
       </div>
