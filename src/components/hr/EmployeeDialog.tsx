@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { Database } from '@/integrations/supabase/types';
 import { Plus, Calendar } from 'lucide-react';
 import { EmployeeResourceManager } from './EmployeeResourceManager';
+import { EmployeeActivityFeed } from './EmployeeActivityFeed';
 
 type Employee = Database['public']['Tables']['employees']['Row'];
 type EmployeeRaise = Database['public']['Tables']['employee_raises']['Row'];
@@ -753,6 +754,15 @@ export const EmployeeDialog = ({
                   resources={resources}
                   onResourcesChange={() => refetchResources()}
                 />
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Activity Feed - Only for existing employees */}
+          {employee && (
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <EmployeeActivityFeed employeeId={employee.id} />
               </CardContent>
             </Card>
           )}
