@@ -17,6 +17,7 @@ import {
   ClipboardList,
   MapPin,
   History,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
