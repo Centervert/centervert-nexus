@@ -44,6 +44,15 @@ import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { DEAL_STAGES } from "@/components/deals/DealKanban";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useDealQualification } from "@/hooks/useDealQualification";
+import { HeatMap } from "@/components/deals/meddpicc/HeatMap";
+import { QualificationTab } from "@/components/deals/meddpicc/QualificationTab";
+import { EvidenceFeed } from "@/components/deals/meddpicc/EvidenceFeed";
+import { ThreeWhys } from "@/components/deals/meddpicc/ThreeWhys";
+import { RecordList } from "@/components/deals/meddpicc/RecordList";
+import * as RecordConfigs from "@/components/deals/meddpicc/recordConfigs";
+import { StageChangeDialog } from "@/components/deals/meddpicc/StageChangeDialog";
+import { stageGates, PROFILES } from "@/lib/meddpicc";
 
 interface Deal {
   id: string;
@@ -53,6 +62,13 @@ interface Deal {
   description: string | null;
   status: string;
   stage: string;
+  methodology_profile: string | null;
+  compelling_event: string | null;
+  why_change: string | null;
+  why_now: string | null;
+  why_us: string | null;
+  qualification_score: number | null;
+  critical_gap_count: number | null;
   lost_reason: string | null;
   prospect_id: string | null;
   organization_id: string | null;
@@ -74,6 +90,14 @@ export default function DealDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
   const [wonOpen, setWonOpen] = useState(false);
+  const [pendingStage, setPendingStage] = useState<string | null>(null);
+
+  const qualification = useDealQualification(
+    deal?.id,
+    deal?.stage ?? "discovery",
+    deal?.methodology_profile,
+    deal?.compelling_event,
+  );
 
   useEffect(() => {
     if (id) loadDeal();
@@ -108,6 +132,12 @@ export default function DealDetail() {
 
   const handleStageChange = async (newStage: string) => {
     if (!deal) return;
+    if (newStage === deal.stage) return;
+    setPendingStage(newStage);
+  };
+
+  const commitStageChange = async (newStage: string, overrideReason: string | null) => {
+    if (!deal) return;
     const patch: any = { stage: newStage };
     if (newStage === "lost") {
       const reason = window.prompt("Reason this deal was lost?");
@@ -119,9 +149,29 @@ export default function DealDetail() {
       toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
       return;
     }
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("deal_stage_history").insert({
+      deal_id: deal.id,
+      from_stage: deal.stage as any,
+      to_stage: newStage as any,
+      changed_by: userData.user?.id ?? null,
+      override_reason: overrideReason,
+      qualification_score: qualification.score,
+      critical_gap_count: qualification.gaps.filter((g) => g.severity === "critical").length,
+    } as any);
     toast({ title: "Stage updated" });
     await loadDeal();
     if (newStage === "won" && !deal.organization_id) setWonOpen(true);
+  };
+
+  const saveDealPatch = async (patch: Record<string, unknown>) => {
+    if (!deal) return;
+    const { error } = await supabase.from("deals").update(patch as any).eq("id", deal.id);
+    if (error) {
+      toast({ title: "Error saving", description: error.message, variant: "destructive" });
+      return;
+    }
+    await loadDeal();
   };
 
   const handleTemperatureChange = async (newTemp: number) => {
