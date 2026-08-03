@@ -238,7 +238,7 @@ export function ConvertProspectSheet({ open, onOpenChange, prospect, suggestedCo
           owner_id: user.id,
           created_by: user.id,
           temperature,
-          stage: "qualifying" as any,
+          stage: "discovery" as any,
           organization_id: orgId,
           contact_id: contactId,
           prospect_id: prospect.id,

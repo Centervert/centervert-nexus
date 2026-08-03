@@ -222,6 +222,231 @@ export type Database = {
           },
         ]
       }
+      deal_competitors: {
+        Row: {
+          competitor_type: string
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          id: string
+          name: string
+          our_strategy: string | null
+          position: string
+          strengths: string | null
+          updated_at: string
+          weaknesses: string | null
+        }
+        Insert: {
+          competitor_type?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          id?: string
+          name: string
+          our_strategy?: string | null
+          position?: string
+          strengths?: string | null
+          updated_at?: string
+          weaknesses?: string | null
+        }
+        Update: {
+          competitor_type?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          id?: string
+          name?: string
+          our_strategy?: string | null
+          position?: string
+          strengths?: string | null
+          updated_at?: string
+          weaknesses?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_competitors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_competitors_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_criteria: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          criterion: string
+          deal_id: string
+          id: string
+          must_have: boolean
+          notes: string | null
+          our_position: string
+          resolved: boolean
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          criterion: string
+          deal_id: string
+          id?: string
+          must_have?: boolean
+          notes?: string | null
+          our_position?: string
+          resolved?: boolean
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          criterion?: string
+          deal_id?: string
+          id?: string
+          must_have?: boolean
+          notes?: string | null
+          our_position?: string
+          resolved?: boolean
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_criteria_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_criteria_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_elements: {
+        Row: {
+          created_at: string
+          deal_id: string
+          element: string
+          id: string
+          last_verified_at: string | null
+          score: number
+          summary: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          element: string
+          id?: string
+          last_verified_at?: string | null
+          score?: number
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          element?: string
+          id?: string
+          last_verified_at?: string | null
+          score?: number
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_elements_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_elements_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_evidence: {
+        Row: {
+          confirmed_by: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          element: string | null
+          id: string
+          note: string
+          occurred_on: string
+          source: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          element?: string | null
+          id?: string
+          note: string
+          occurred_on?: string
+          source?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confirmed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          element?: string | null
+          id?: string
+          note?: string
+          occurred_on?: string
+          source?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_evidence_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_evidence_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_message_reactions: {
         Row: {
           created_at: string | null
@@ -293,57 +518,583 @@ export type Database = {
           },
         ]
       }
-      deals: {
+      deal_metrics: {
         Row: {
-          contact_id: string | null
+          baseline: string | null
           created_at: string
           created_by: string | null
-          description: string | null
-          expected_value: number | null
+          deal_id: string
           id: string
-          lost_reason: string | null
           name: string
-          organization_id: string | null
-          owner_id: string | null
-          prospect_id: string | null
-          stage: Database["public"]["Enums"]["deal_stage"]
+          notes: string | null
+          owner_name: string | null
+          target: string | null
+          timeframe: string | null
+          unit: string | null
+          updated_at: string
+          validated: boolean
+        }
+        Insert: {
+          baseline?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_name?: string | null
+          target?: string | null
+          timeframe?: string | null
+          unit?: string | null
+          updated_at?: string
+          validated?: boolean
+        }
+        Update: {
+          baseline?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_name?: string | null
+          target?: string | null
+          timeframe?: string | null
+          unit?: string | null
+          updated_at?: string
+          validated?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_metrics_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_metrics_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_next_actions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          description: string
+          due_date: string | null
+          id: string
+          owner_name: string | null
+          owner_side: string
           status: string
-          temperature: number
           updated_at: string
         }
         Insert: {
-          contact_id?: string | null
           created_at?: string
           created_by?: string | null
-          description?: string | null
-          expected_value?: number | null
+          deal_id: string
+          description: string
+          due_date?: string | null
           id?: string
-          lost_reason?: string | null
-          name: string
-          organization_id?: string | null
-          owner_id?: string | null
-          prospect_id?: string | null
-          stage?: Database["public"]["Enums"]["deal_stage"]
+          owner_name?: string | null
+          owner_side?: string
           status?: string
-          temperature?: number
           updated_at?: string
         }
         Update: {
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          owner_name?: string | null
+          owner_side?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_next_actions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_next_actions_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_pains: {
+        Row: {
+          buyer_owned: boolean
+          consequence: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          description: string
+          id: string
+          impact: string | null
+          level: string
+          owner_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          buyer_owned?: boolean
+          consequence?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          description: string
+          id?: string
+          impact?: string | null
+          level?: string
+          owner_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          buyer_owned?: boolean
+          consequence?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          description?: string
+          id?: string
+          impact?: string | null
+          level?: string
+          owner_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_pains_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_pains_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_process_steps: {
+        Row: {
+          category: string
+          confirmed_by_buyer: boolean
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          due_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_name: string | null
+          sequence: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          confirmed_by_buyer?: boolean
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          due_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_name?: string | null
+          sequence?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          confirmed_by_buyer?: boolean
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          due_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_name?: string | null
+          sequence?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_process_steps_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_process_steps_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_risks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          description: string
+          due_date: string | null
+          id: string
+          mitigation: string | null
+          owner_name: string | null
+          probability: string
+          severity: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          description: string
+          due_date?: string | null
+          id?: string
+          mitigation?: string | null
+          owner_name?: string | null
+          probability?: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          mitigation?: string | null
+          owner_name?: string | null
+          probability?: string
+          severity?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_risks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_risks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_score_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          critical_gap_count: number
+          deal_id: string
+          id: string
+          scores: Json
+          stage: string | null
+          total_score: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          critical_gap_count?: number
+          deal_id: string
+          id?: string
+          scores?: Json
+          stage?: string | null
+          total_score?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          critical_gap_count?: number
+          deal_id?: string
+          id?: string
+          scores?: Json
+          stage?: string | null
+          total_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_score_snapshots_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_score_snapshots_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_stage_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          deal_id: string
+          from_stage: string | null
+          id: string
+          override_reason: string | null
+          to_stage: string
+          unmet_gates: Json
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          deal_id: string
+          from_stage?: string | null
+          id?: string
+          override_reason?: string | null
+          to_stage: string
+          unmet_gates?: Json
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          deal_id?: string
+          from_stage?: string | null
+          id?: string
+          override_reason?: string | null
+          to_stage?: string
+          unmet_gates?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_stage_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_stage_history_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_stakeholders: {
+        Row: {
+          authority: string
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          id: string
+          influence: string
+          last_engaged_on: string | null
+          name: string
+          notes: string | null
+          relationship_strength: string
+          role: string
+          stance: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          authority?: string
           contact_id?: string | null
           created_at?: string
           created_by?: string | null
+          deal_id: string
+          id?: string
+          influence?: string
+          last_engaged_on?: string | null
+          name: string
+          notes?: string | null
+          relationship_strength?: string
+          role?: string
+          stance?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          authority?: string
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          id?: string
+          influence?: string
+          last_engaged_on?: string | null
+          name?: string
+          notes?: string | null
+          relationship_strength?: string
+          role?: string
+          stance?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_stakeholders_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_stakeholders_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_stakeholders_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          actual_winner: string | null
+          close_date: string | null
+          compelling_event: string | null
+          compelling_event_date: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          critical_gap_count: number
+          description: string | null
+          expected_value: number | null
+          forecast_category: string
+          gate_override_reason: string | null
+          id: string
+          loss_type: string | null
+          lost_reason: string | null
+          methodology_profile: string
+          name: string
+          next_action: string | null
+          next_action_due_at: string | null
+          next_action_owner: string | null
+          organization_id: string | null
+          owner_id: string | null
+          prospect_id: string | null
+          qualification_score: number
+          stage: Database["public"]["Enums"]["deal_stage"]
+          status: string
+          target_decision_date: string | null
+          target_signature_date: string | null
+          temperature: number
+          updated_at: string
+          why_change: string | null
+          why_now: string | null
+          why_us: string | null
+          win_reason: string | null
+        }
+        Insert: {
+          actual_winner?: string | null
+          close_date?: string | null
+          compelling_event?: string | null
+          compelling_event_date?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          critical_gap_count?: number
           description?: string | null
           expected_value?: number | null
+          forecast_category?: string
+          gate_override_reason?: string | null
           id?: string
+          loss_type?: string | null
           lost_reason?: string | null
-          name?: string
+          methodology_profile?: string
+          name: string
+          next_action?: string | null
+          next_action_due_at?: string | null
+          next_action_owner?: string | null
           organization_id?: string | null
           owner_id?: string | null
           prospect_id?: string | null
+          qualification_score?: number
           stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
+          target_decision_date?: string | null
+          target_signature_date?: string | null
           temperature?: number
           updated_at?: string
+          why_change?: string | null
+          why_now?: string | null
+          why_us?: string | null
+          win_reason?: string | null
+        }
+        Update: {
+          actual_winner?: string | null
+          close_date?: string | null
+          compelling_event?: string | null
+          compelling_event_date?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          critical_gap_count?: number
+          description?: string | null
+          expected_value?: number | null
+          forecast_category?: string
+          gate_override_reason?: string | null
+          id?: string
+          loss_type?: string | null
+          lost_reason?: string | null
+          methodology_profile?: string
+          name?: string
+          next_action?: string | null
+          next_action_due_at?: string | null
+          next_action_owner?: string | null
+          organization_id?: string | null
+          owner_id?: string | null
+          prospect_id?: string | null
+          qualification_score?: number
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          status?: string
+          target_decision_date?: string | null
+          target_signature_date?: string | null
+          temperature?: number
+          updated_at?: string
+          why_change?: string | null
+          why_now?: string | null
+          why_us?: string | null
+          win_reason?: string | null
         }
         Relationships: [
           {
@@ -2185,6 +2936,7 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_deal: { Args: { _deal_id: string }; Returns: boolean }
       cleanup_orphaned_profiles: {
         Args: never
         Returns: {
@@ -2242,10 +2994,12 @@ export type Database = {
         | "sync_failed"
         | "manual_link"
       deal_stage:
-        | "new"
-        | "qualifying"
-        | "proposal"
-        | "negotiation"
+        | "discovery"
+        | "qualified"
+        | "solution_fit"
+        | "preferred_vendor"
+        | "commercial"
+        | "commit"
         | "won"
         | "lost"
         | "on_hold"
@@ -2414,10 +3168,12 @@ export const Constants = {
         "manual_link",
       ],
       deal_stage: [
-        "new",
-        "qualifying",
-        "proposal",
-        "negotiation",
+        "discovery",
+        "qualified",
+        "solution_fit",
+        "preferred_vendor",
+        "commercial",
+        "commit",
         "won",
         "lost",
         "on_hold",

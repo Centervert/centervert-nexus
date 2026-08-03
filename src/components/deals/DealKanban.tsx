@@ -3,19 +3,11 @@ import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, useDrop
 import { useNavigate } from "react-router-dom";
 import { TemperatureDisplay } from "./TemperatureSlider";
 import { Card } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
+import { DollarSign, AlertTriangle } from "lucide-react";
+import { DEAL_STAGES, type DealStage, maxScore } from "@/lib/meddpicc";
 
-export const DEAL_STAGES = [
-  { value: "new", label: "New" },
-  { value: "qualifying", label: "Qualifying" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "on_hold", label: "On Hold" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-] as const;
-
-export type DealStage = typeof DEAL_STAGES[number]["value"];
+export { DEAL_STAGES };
+export type { DealStage };
 
 interface KanbanDeal {
   id: string;
@@ -23,6 +15,9 @@ interface KanbanDeal {
   stage: string;
   temperature: number;
   expected_value: number | null;
+  qualification_score?: number | null;
+  critical_gap_count?: number | null;
+  methodology_profile?: string | null;
   organizations?: { name: string } | null;
   owner?: { full_name: string | null; email: string } | null;
 }
@@ -61,6 +56,17 @@ function DealCard({ deal }: { deal: KanbanDeal }) {
           {deal.owner?.full_name || deal.owner?.email}
         </div>
       )}
+      <div className="flex items-center gap-2 mt-1.5 text-[10px]">
+        <span className="text-muted-foreground">
+          {deal.qualification_score ?? 0}/{maxScore(deal.methodology_profile)}
+        </span>
+        {!!deal.critical_gap_count && deal.critical_gap_count > 0 && (
+          <span className="flex items-center gap-0.5 text-destructive">
+            <AlertTriangle className="h-3 w-3" />
+            {deal.critical_gap_count}
+          </span>
+        )}
+      </div>
     </Card>
   );
 }
@@ -98,9 +104,9 @@ export function DealKanban({ deals, onStageChange }: Props) {
     const m: Record<string, KanbanDeal[]> = {};
     for (const s of DEAL_STAGES) m[s.value] = [];
     for (const d of deals) {
-      const s = (d.stage as string) || "new";
+      const s = (d.stage as string) || "discovery";
       if (m[s]) m[s].push(d);
-      else m["new"].push(d);
+      else m["discovery"].push(d);
     }
     return m;
   }, [deals]);

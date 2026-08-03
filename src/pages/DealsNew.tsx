@@ -20,6 +20,7 @@ import { DealDialog } from "@/components/deals/DealDialog";
 import { Badge } from "@/components/ui/badge";
 import { DealKanban, DEAL_STAGES, DealStage } from "@/components/deals/DealKanban";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
+import { maxScore } from "@/lib/meddpicc";
 
 interface Deal {
   id: string;
@@ -32,6 +33,9 @@ interface Deal {
   organization_id: string | null;
   prospect_id: string | null;
   created_at: string;
+  qualification_score: number | null;
+  critical_gap_count: number | null;
+  methodology_profile: string | null;
   owner?: { full_name: string | null; email: string } | null;
   organizations?: { name: string } | null;
 }
@@ -106,16 +110,36 @@ export default function DealsNew() {
   const handleKanbanStageChange = async (dealId: string, newStage: DealStage) => {
     const deal = deals.find((d) => d.id === dealId);
     if (!deal) return;
+    const fromStage = deal.stage;
+    const recordHistory = async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      await supabase.from("deal_stage_history").insert({
+        deal_id: dealId,
+        from_stage: fromStage as any,
+        to_stage: newStage as any,
+        changed_by: userData.user?.id ?? null,
+        qualification_score: deal.qualification_score ?? null,
+        critical_gap_count: deal.critical_gap_count ?? null,
+      } as any);
+    };
     if (newStage === "lost") {
       const reason = window.prompt("Reason this deal was lost?");
       if (!reason) return;
       const { error } = await supabase.from("deals").update({ stage: newStage, lost_reason: reason } as any).eq("id", dealId);
       if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
+      await recordHistory();
       await loadDeals();
       return;
     }
     const { error } = await supabase.from("deals").update({ stage: newStage } as any).eq("id", dealId);
     if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
+    await recordHistory();
+    if (deal.critical_gap_count && deal.critical_gap_count > 0) {
+      toast({
+        title: "Moved with open gaps",
+        description: `${deal.critical_gap_count} critical qualification gap${deal.critical_gap_count > 1 ? "s" : ""} still open on this deal.`,
+      });
+    }
     if (newStage === "won" && !deal.organization_id) {
       setWonDeal({ ...deal, stage: newStage });
     }
@@ -205,6 +229,7 @@ export default function DealsNew() {
                   <TableHead>Owner</TableHead>
                   <TableHead>Temperature</TableHead>
                   <TableHead>Value</TableHead>
+                  <TableHead>Score</TableHead>
                   <TableHead>Stage</TableHead>
                 </TableRow>
               </TableHeader>
@@ -238,6 +263,14 @@ export default function DealsNew() {
                           </>
                         ) : (
                           <span className="text-muted-foreground">—</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <span>{deal.qualification_score ?? 0}/{maxScore(deal.methodology_profile)}</span>
+                        {!!deal.critical_gap_count && deal.critical_gap_count > 0 && (
+                          <span className="text-destructive text-xs">{deal.critical_gap_count} gaps</span>
                         )}
                       </div>
                     </TableCell>

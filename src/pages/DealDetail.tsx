@@ -34,6 +34,9 @@ import {
   MessageSquare,
   FileText,
   History as HistoryIcon,
+  Target,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
@@ -44,6 +47,15 @@ import { WonDealDialog } from "@/components/deals/WonDealDialog";
 import { DEAL_STAGES } from "@/components/deals/DealKanban";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
+import { useDealQualification } from "@/hooks/useDealQualification";
+import { HeatMap } from "@/components/deals/meddpicc/HeatMap";
+import { QualificationTab } from "@/components/deals/meddpicc/QualificationTab";
+import { EvidenceFeed } from "@/components/deals/meddpicc/EvidenceFeed";
+import { ThreeWhys } from "@/components/deals/meddpicc/ThreeWhys";
+import { RecordList } from "@/components/deals/meddpicc/RecordList";
+import * as RecordConfigs from "@/components/deals/meddpicc/recordConfigs";
+import { StageChangeDialog } from "@/components/deals/meddpicc/StageChangeDialog";
+import { stageGates, PROFILES } from "@/lib/meddpicc";
 
 interface Deal {
   id: string;
@@ -53,6 +65,13 @@ interface Deal {
   description: string | null;
   status: string;
   stage: string;
+  methodology_profile: string | null;
+  compelling_event: string | null;
+  why_change: string | null;
+  why_now: string | null;
+  why_us: string | null;
+  qualification_score: number | null;
+  critical_gap_count: number | null;
   lost_reason: string | null;
   prospect_id: string | null;
   organization_id: string | null;
@@ -74,6 +93,14 @@ export default function DealDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
   const [wonOpen, setWonOpen] = useState(false);
+  const [pendingStage, setPendingStage] = useState<string | null>(null);
+
+  const qualification = useDealQualification(
+    deal?.id,
+    deal?.stage ?? "discovery",
+    deal?.methodology_profile,
+    deal?.compelling_event,
+  );
 
   useEffect(() => {
     if (id) loadDeal();
@@ -108,6 +135,12 @@ export default function DealDetail() {
 
   const handleStageChange = async (newStage: string) => {
     if (!deal) return;
+    if (newStage === deal.stage) return;
+    setPendingStage(newStage);
+  };
+
+  const commitStageChange = async (newStage: string, overrideReason: string | null) => {
+    if (!deal) return;
     const patch: any = { stage: newStage };
     if (newStage === "lost") {
       const reason = window.prompt("Reason this deal was lost?");
@@ -119,9 +152,29 @@ export default function DealDetail() {
       toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
       return;
     }
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("deal_stage_history").insert({
+      deal_id: deal.id,
+      from_stage: deal.stage as any,
+      to_stage: newStage as any,
+      changed_by: userData.user?.id ?? null,
+      override_reason: overrideReason,
+      qualification_score: qualification.score,
+      critical_gap_count: qualification.gaps.filter((g) => g.severity === "critical").length,
+    } as any);
     toast({ title: "Stage updated" });
     await loadDeal();
     if (newStage === "won" && !deal.organization_id) setWonOpen(true);
+  };
+
+  const saveDealPatch = async (patch: Record<string, unknown>) => {
+    if (!deal) return;
+    const { error } = await supabase.from("deals").update(patch as any).eq("id", deal.id);
+    if (error) {
+      toast({ title: "Error saving", description: error.message, variant: "destructive" });
+      return;
+    }
+    await loadDeal();
   };
 
   const handleTemperatureChange = async (newTemp: number) => {
@@ -287,6 +340,31 @@ export default function DealDetail() {
                   )}
                 </div>
 
+                {/* Qualification */}
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Qualification
+                    </label>
+                    <span className="text-sm font-semibold">
+                      {qualification.score}/{qualification.max}
+                    </span>
+                  </div>
+                  <HeatMap
+                    elements={qualification.elements}
+                    profile={deal.methodology_profile}
+                    onSelect={() => setActiveTab("qualification")}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {PROFILES.find((p) => p.value === (deal.methodology_profile || "full"))?.label}
+                    {qualification.gaps.some((g) => g.severity === "critical") && (
+                      <span className="text-destructive">
+                        {" "}· {qualification.gaps.filter((g) => g.severity === "critical").length} critical gap(s)
+                      </span>
+                    )}
+                  </p>
+                </div>
+
                 {/* Temperature */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Temperature</label>
@@ -366,7 +444,19 @@ export default function DealDetail() {
             <Card>
               <CardHeader className="pb-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList>
+                  <TabsList className="flex-wrap h-auto">
+                    <TabsTrigger value="qualification" className="gap-2">
+                      <Target className="h-4 w-4" />
+                      Qualification
+                    </TabsTrigger>
+                    <TabsTrigger value="records" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Records
+                    </TabsTrigger>
+                    <TabsTrigger value="evidence" className="gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      Evidence
+                    </TabsTrigger>
                     <TabsTrigger value="chat" className="gap-2">
                       <MessageSquare className="h-4 w-4" />
                       Chat
@@ -383,6 +473,45 @@ export default function DealDetail() {
                 </Tabs>
               </CardHeader>
               <CardContent>
+                {activeTab === "qualification" && (
+                  <div className="space-y-6">
+                    <ThreeWhys
+                      whyChange={deal.why_change}
+                      whyNow={deal.why_now}
+                      whyUs={deal.why_us}
+                      onSave={saveDealPatch}
+                    />
+                    <QualificationTab
+                      dealId={deal.id}
+                      profile={deal.methodology_profile}
+                      elements={qualification.elements}
+                      gaps={qualification.gaps}
+                      onChanged={qualification.reload}
+                    />
+                  </div>
+                )}
+                {activeTab === "records" && (
+                  <div className="space-y-6">
+                    {[
+                      RecordConfigs.STAKEHOLDERS,
+                      RecordConfigs.METRICS,
+                      RecordConfigs.PAINS,
+                      RecordConfigs.CRITERIA,
+                      RecordConfigs.PROCESS_STEPS,
+                      RecordConfigs.COMPETITORS,
+                      RecordConfigs.RISKS,
+                      RecordConfigs.NEXT_ACTIONS,
+                    ].map((cfg) => (
+                      <RecordList
+                        key={cfg.table}
+                        dealId={deal.id}
+                        onChanged={qualification.reload}
+                        {...cfg}
+                      />
+                    ))}
+                  </div>
+                )}
+                {activeTab === "evidence" && <EvidenceFeed dealId={deal.id} />}
                 {activeTab === "chat" && <DealChat dealId={deal.id} />}
                 {activeTab === "documents" && <DealDocuments dealId={deal.id} />}
                 {activeTab === "history" && <RecordHistory tableName="deals" recordId={deal.id} />}
@@ -406,6 +535,20 @@ export default function DealDetail() {
         prospectId={deal.prospect_id}
         onDone={loadDeal}
       />
+      {pendingStage && (
+        <StageChangeDialog
+          open={!!pendingStage}
+          onOpenChange={(o) => !o && setPendingStage(null)}
+          fromStage={deal.stage}
+          toStage={pendingStage}
+          gates={stageGates(pendingStage, qualification.elements, qualification.facts)}
+          onConfirm={async (reason) => {
+            const target = pendingStage;
+            setPendingStage(null);
+            await commitStageChange(target, reason);
+          }}
+        />
+      )}
     </UnifiedLayout>
   );
 }
