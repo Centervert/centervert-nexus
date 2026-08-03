@@ -9,9 +9,6 @@ export interface RecordConfig {
   fields: FieldDef[];
 }
 
-const yesNo = (label: string): FieldDef => ({ name: "", label, type: "checkbox" });
-void yesNo;
-
 export const STAKEHOLDERS: RecordConfig = {
   table: "deal_stakeholders",
   title: "Stakeholders",
@@ -169,7 +166,6 @@ export const PROCESS_STEPS: RecordConfig = {
   description: "Decision and paper-process milestones — dated, owned and buyer-confirmed.",
   primaryField: "name",
   metaFields: ["category", "owner_name", "due_date", "status", "confirmed_by_buyer"],
-  orderByPlaceholder: undefined as never,
   fields: [
     { name: "name", label: "Step", type: "text", required: true },
     {
@@ -199,7 +195,7 @@ export const PROCESS_STEPS: RecordConfig = {
     { name: "confirmed_by_buyer", label: "Confirmed by the buyer", type: "checkbox" },
     { name: "notes", label: "Notes", type: "textarea" },
   ],
-} as RecordConfig;
+};
 
 export const COMPETITORS: RecordConfig = {
   table: "deal_competitors",
