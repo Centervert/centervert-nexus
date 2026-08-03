@@ -34,6 +34,9 @@ import {
   MessageSquare,
   FileText,
   History as HistoryIcon,
+  Target,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
