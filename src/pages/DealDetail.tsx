@@ -337,6 +337,31 @@ export default function DealDetail() {
                   )}
                 </div>
 
+                {/* Qualification */}
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-muted-foreground">
+                      Qualification
+                    </label>
+                    <span className="text-sm font-semibold">
+                      {qualification.score}/{qualification.max}
+                    </span>
+                  </div>
+                  <HeatMap
+                    elements={qualification.elements}
+                    profile={deal.methodology_profile}
+                    onSelect={() => setActiveTab("qualification")}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {PROFILES.find((p) => p.value === (deal.methodology_profile || "full"))?.label}
+                    {qualification.gaps.some((g) => g.severity === "critical") && (
+                      <span className="text-destructive">
+                        {" "}· {qualification.gaps.filter((g) => g.severity === "critical").length} critical gap(s)
+                      </span>
+                    )}
+                  </p>
+                </div>
+
                 {/* Temperature */}
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Temperature</label>
