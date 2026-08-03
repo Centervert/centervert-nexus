@@ -20,6 +20,7 @@ import { DealDialog } from "@/components/deals/DealDialog";
 import { Badge } from "@/components/ui/badge";
 import { DealKanban, DEAL_STAGES, DealStage } from "@/components/deals/DealKanban";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
+import { maxScore } from "@/lib/meddpicc";
 
 interface Deal {
   id: string;
