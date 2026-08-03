@@ -441,7 +441,19 @@ export default function DealDetail() {
             <Card>
               <CardHeader className="pb-3">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList>
+                  <TabsList className="flex-wrap h-auto">
+                    <TabsTrigger value="qualification" className="gap-2">
+                      <Target className="h-4 w-4" />
+                      Qualification
+                    </TabsTrigger>
+                    <TabsTrigger value="records" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Records
+                    </TabsTrigger>
+                    <TabsTrigger value="evidence" className="gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      Evidence
+                    </TabsTrigger>
                     <TabsTrigger value="chat" className="gap-2">
                       <MessageSquare className="h-4 w-4" />
                       Chat
@@ -458,6 +470,45 @@ export default function DealDetail() {
                 </Tabs>
               </CardHeader>
               <CardContent>
+                {activeTab === "qualification" && (
+                  <div className="space-y-6">
+                    <ThreeWhys
+                      whyChange={deal.why_change}
+                      whyNow={deal.why_now}
+                      whyUs={deal.why_us}
+                      onSave={saveDealPatch}
+                    />
+                    <QualificationTab
+                      dealId={deal.id}
+                      profile={deal.methodology_profile}
+                      elements={qualification.elements}
+                      gaps={qualification.gaps}
+                      onChanged={qualification.reload}
+                    />
+                  </div>
+                )}
+                {activeTab === "records" && (
+                  <div className="space-y-6">
+                    {[
+                      RecordConfigs.STAKEHOLDERS,
+                      RecordConfigs.METRICS,
+                      RecordConfigs.PAINS,
+                      RecordConfigs.CRITERIA,
+                      RecordConfigs.PROCESS_STEPS,
+                      RecordConfigs.COMPETITORS,
+                      RecordConfigs.RISKS,
+                      RecordConfigs.NEXT_ACTIONS,
+                    ].map((cfg) => (
+                      <RecordList
+                        key={cfg.table}
+                        dealId={deal.id}
+                        onChanged={qualification.reload}
+                        {...cfg}
+                      />
+                    ))}
+                  </div>
+                )}
+                {activeTab === "evidence" && <EvidenceFeed dealId={deal.id} />}
                 {activeTab === "chat" && <DealChat dealId={deal.id} />}
                 {activeTab === "documents" && <DealDocuments dealId={deal.id} />}
                 {activeTab === "history" && <RecordHistory tableName="deals" recordId={deal.id} />}
