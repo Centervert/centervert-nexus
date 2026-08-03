@@ -30,22 +30,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TemperatureSlider } from "./TemperatureSlider";
+import { DEAL_STAGES, PROFILES } from "@/lib/meddpicc";
 
-const STAGES = [
-  { value: "new", label: "New" },
-  { value: "qualifying", label: "Qualifying" },
-  { value: "proposal", label: "Proposal" },
-  { value: "negotiation", label: "Negotiation" },
-  { value: "on_hold", label: "On Hold" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-] as const;
+const STAGES = DEAL_STAGES;
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
   owner_id: z.string().optional(),
   temperature: z.number().min(0).max(10),
-  stage: z.enum(["new","qualifying","proposal","negotiation","on_hold","won","lost"]),
+  stage: z.enum([
+    "discovery",
+    "qualified",
+    "solution_fit",
+    "preferred_vendor",
+    "commercial",
+    "commit",
+    "on_hold",
+    "won",
+    "lost",
+  ]),
+  methodology_profile: z.enum(["full", "standard", "lite"]),
   organization_id: z.string().optional(),
   contact_id: z.string().optional(),
   expected_value: z.string().optional(),
@@ -63,6 +67,7 @@ interface Deal {
   description: string | null;
   status: string;
   stage?: string;
+  methodology_profile?: string | null;
   organization_id: string | null;
   contact_id: string | null;
   expected_value: number | null;
@@ -109,7 +114,8 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues,
       name: "",
       owner_id: undefined,
       temperature: 5,
-      stage: "new",
+      stage: "discovery",
+      methodology_profile: "full",
       organization_id: undefined,
       contact_id: undefined,
       expected_value: "",
@@ -133,7 +139,8 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues,
         name: deal.name,
         owner_id: deal.owner_id || undefined,
         temperature: deal.temperature,
-        stage: (deal.stage as any) || "new",
+        stage: (deal.stage as any) || "discovery",
+        methodology_profile: (deal.methodology_profile as any) || "full",
         organization_id: deal.organization_id || undefined,
         contact_id: deal.contact_id || undefined,
         expected_value: deal.expected_value?.toString() || "",
@@ -145,7 +152,8 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues,
         name: initialValues?.name ?? "",
         owner_id: initialValues?.owner_id,
         temperature: initialValues?.temperature ?? 5,
-        stage: initialValues?.stage ?? "new",
+        stage: initialValues?.stage ?? "discovery",
+        methodology_profile: initialValues?.methodology_profile ?? "full",
         organization_id: initialValues?.organization_id,
         contact_id: initialValues?.contact_id,
         expected_value: initialValues?.expected_value ?? "",
@@ -182,6 +190,7 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues,
         owner_id: data.owner_id || userData.user.id,
         temperature: data.temperature,
         stage: data.stage as any,
+        methodology_profile: data.methodology_profile,
         lost_reason: data.stage === "lost" ? (data.lost_reason || null) : null,
         organization_id: data.organization_id || null,
         contact_id: data.contact_id || null,
@@ -283,6 +292,27 @@ export function DealDialog({ open, onOpenChange, onSuccess, deal, initialValues,
                       onChange={field.onChange}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="methodology_profile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Qualification profile</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PROFILES.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
