@@ -535,6 +535,20 @@ export default function DealDetail() {
         prospectId={deal.prospect_id}
         onDone={loadDeal}
       />
+      {pendingStage && (
+        <StageChangeDialog
+          open={!!pendingStage}
+          onOpenChange={(o) => !o && setPendingStage(null)}
+          fromStage={deal.stage}
+          toStage={pendingStage}
+          gates={stageGates(pendingStage, qualification.elements, qualification.facts)}
+          onConfirm={async (reason) => {
+            const target = pendingStage;
+            setPendingStage(null);
+            await commitStageChange(target, reason);
+          }}
+        />
+      )}
     </UnifiedLayout>
   );
 }
