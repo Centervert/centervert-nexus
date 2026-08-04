@@ -343,3 +343,25 @@ export const FORECAST_CATEGORIES = [
   { value: "commit", label: "Commit" },
   { value: "closed", label: "Closed" },
 ] as const;
+
+/** Forecast category implied by the pipeline stage. */
+export function forecastForStage(stage: string): string {
+  switch (stage) {
+    case "won":
+    case "lost":
+      return "closed";
+    case "commit":
+      return "commit";
+    case "preferred_vendor":
+    case "commercial":
+      return "best_case";
+    default:
+      return "pipeline";
+  }
+}
+
+/** Score as a 0-100 percentage of the profile maximum. */
+export function scorePercent(score: number, profile?: string | null) {
+  const max = maxScore(profile);
+  return max > 0 ? Math.round((score / max) * 100) : 0;
+}

@@ -3379,6 +3379,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recompute_deal_qualification_score: {
+        Args: { _deal_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "agent" | "user" | "sales_agent"
