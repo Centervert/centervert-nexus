@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { TemperatureDisplay } from "./TemperatureSlider";
 import { Card } from "@/components/ui/card";
 import { DollarSign, AlertTriangle } from "lucide-react";
-import { DEAL_STAGES, type DealStage, maxScore } from "@/lib/meddpicc";
+import { DEAL_STAGES, type DealStage, maxScore, scorePercent } from "@/lib/meddpicc";
 
 export { DEAL_STAGES };
 export type { DealStage };
@@ -58,6 +58,8 @@ function DealCard({ deal }: { deal: KanbanDeal }) {
       )}
       <div className="flex items-center gap-2 mt-1.5 text-[10px]">
         <span className="text-muted-foreground">
+          {scorePercent(deal.qualification_score ?? 0, deal.methodology_profile)}%
+          {" · "}
           {deal.qualification_score ?? 0}/{maxScore(deal.methodology_profile)}
         </span>
         {!!deal.critical_gap_count && deal.critical_gap_count > 0 && (
