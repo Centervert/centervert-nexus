@@ -327,7 +327,12 @@ export default function DealsNew() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span>{deal.qualification_score ?? 0}/{maxScore(deal.methodology_profile)}</span>
+                        <span>
+                          {scorePercent(deal.qualification_score ?? 0, deal.methodology_profile)}%
+                          <span className="text-muted-foreground text-xs ml-1">
+                            ({deal.qualification_score ?? 0}/{maxScore(deal.methodology_profile)})
+                          </span>
+                        </span>
                         {!!deal.critical_gap_count && deal.critical_gap_count > 0 && (
                           <span className="text-destructive text-xs">{deal.critical_gap_count} gaps</span>
                         )}
@@ -357,6 +362,28 @@ export default function DealsNew() {
           onDone={() => { setWonDeal(null); loadDeals(); }}
         />
       )}
+
+      {pending && !lostDeal && (
+        <StageChangeDialog
+          open
+          onOpenChange={(o) => !o && setPending(null)}
+          fromStage={pending.deal.stage}
+          toStage={pending.toStage}
+          gates={pending.gates}
+          onConfirm={(reason) => commitStageChange(reason)}
+        />
+      )}
+
+      <LostDealDialog
+        open={!!lostDeal}
+        onOpenChange={(o) => {
+          if (!o) {
+            setLostDeal(null);
+            setPending(null);
+          }
+        }}
+        onConfirm={(patch) => commitStageChange(null, patch)}
+      />
     </UnifiedLayout>
   );
 }
