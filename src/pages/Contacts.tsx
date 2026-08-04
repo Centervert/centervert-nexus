@@ -40,12 +40,12 @@ const Contacts = () => {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Contacts</h1>
-            <p className="text-sm text-muted-foreground">Contact records</p>
+            <h1 className="text-3xl font-bold tracking-tight">People</h1>
+            <p className="text-sm text-muted-foreground">Individual human records across companies and prospects</p>
           </div>
           <Button size="sm" onClick={() => setIsDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Create contact
+            Create person
           </Button>
         </div>
 
@@ -55,13 +55,13 @@ const Contacts = () => {
               value="all"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              All Contacts
+              All People
             </TabsTrigger>
             <TabsTrigger
               value="my"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              My Contacts
+              My People
             </TabsTrigger>
           </TabsList>
         </Tabs>

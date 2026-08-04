@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: string
+          attachment_url: string | null
+          body: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          follow_up_done: boolean
+          follow_up_on: string | null
+          id: string
+          interest_level: string | null
+          left_behind: string | null
+          occurred_at: string
+          organization_id: string | null
+          outcome: string | null
+          owner_id: string | null
+          person_spoken_to: string | null
+          project_id: string | null
+          prospect_id: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: string
+          attachment_url?: string | null
+          body?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          follow_up_done?: boolean
+          follow_up_on?: string | null
+          id?: string
+          interest_level?: string | null
+          left_behind?: string | null
+          occurred_at?: string
+          organization_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          person_spoken_to?: string | null
+          project_id?: string | null
+          prospect_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          attachment_url?: string | null
+          body?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          follow_up_done?: boolean
+          follow_up_on?: string | null
+          id?: string
+          interest_level?: string | null
+          left_behind?: string | null
+          occurred_at?: string
+          organization_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          person_spoken_to?: string | null
+          project_id?: string | null
+          prospect_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -692,6 +793,60 @@ export type Database = {
           },
         ]
       }
+      deal_people: {
+        Row: {
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          deal_role: string
+          id: string
+          influence: string | null
+          notes: string | null
+          stance: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          deal_role?: string
+          id?: string
+          influence?: string | null
+          notes?: string | null
+          stance?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          deal_role?: string
+          id?: string
+          influence?: string | null
+          notes?: string | null
+          stance?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_people_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_people_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_process_steps: {
         Row: {
           category: string
@@ -994,14 +1149,20 @@ export type Database = {
           compelling_event: string | null
           compelling_event_date: string | null
           contact_id: string | null
+          contract_status: string | null
           created_at: string
           created_by: string | null
           critical_gap_count: number
           description: string | null
+          economic_buyer_confirmed: boolean | null
           expected_value: number | null
           forecast_category: string
           gate_override_reason: string | null
+          had_champion: boolean | null
           id: string
+          legal_review_status: string | null
+          loss_category: string | null
+          loss_detail: string | null
           loss_type: string | null
           lost_reason: string | null
           methodology_profile: string
@@ -1011,8 +1172,17 @@ export type Database = {
           next_action_owner: string | null
           organization_id: string | null
           owner_id: string | null
+          payment_schedule: string | null
+          po_status: string | null
+          pricing_model: string | null
           prospect_id: string | null
           qualification_score: number
+          quoted_amount: number | null
+          reengage_on: string | null
+          scope_summary: string | null
+          security_review_status: string | null
+          signer_name: string | null
+          signer_title: string | null
           stage: Database["public"]["Enums"]["deal_stage"]
           status: string
           target_decision_date: string | null
@@ -1030,14 +1200,20 @@ export type Database = {
           compelling_event?: string | null
           compelling_event_date?: string | null
           contact_id?: string | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           critical_gap_count?: number
           description?: string | null
+          economic_buyer_confirmed?: boolean | null
           expected_value?: number | null
           forecast_category?: string
           gate_override_reason?: string | null
+          had_champion?: boolean | null
           id?: string
+          legal_review_status?: string | null
+          loss_category?: string | null
+          loss_detail?: string | null
           loss_type?: string | null
           lost_reason?: string | null
           methodology_profile?: string
@@ -1047,8 +1223,17 @@ export type Database = {
           next_action_owner?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          payment_schedule?: string | null
+          po_status?: string | null
+          pricing_model?: string | null
           prospect_id?: string | null
           qualification_score?: number
+          quoted_amount?: number | null
+          reengage_on?: string | null
+          scope_summary?: string | null
+          security_review_status?: string | null
+          signer_name?: string | null
+          signer_title?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           target_decision_date?: string | null
@@ -1066,14 +1251,20 @@ export type Database = {
           compelling_event?: string | null
           compelling_event_date?: string | null
           contact_id?: string | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           critical_gap_count?: number
           description?: string | null
+          economic_buyer_confirmed?: boolean | null
           expected_value?: number | null
           forecast_category?: string
           gate_override_reason?: string | null
+          had_champion?: boolean | null
           id?: string
+          legal_review_status?: string | null
+          loss_category?: string | null
+          loss_detail?: string | null
           loss_type?: string | null
           lost_reason?: string | null
           methodology_profile?: string
@@ -1083,8 +1274,17 @@ export type Database = {
           next_action_owner?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          payment_schedule?: string | null
+          po_status?: string | null
+          pricing_model?: string | null
           prospect_id?: string | null
           qualification_score?: number
+          quoted_amount?: number | null
+          reengage_on?: string | null
+          scope_summary?: string | null
+          security_review_status?: string | null
+          signer_name?: string | null
+          signer_title?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           target_decision_date?: string | null
@@ -1827,6 +2027,7 @@ export type Database = {
           notes: string | null
           organization_type: string | null
           phone: string | null
+          relationship_status: string
           updated_at: string | null
           website: string | null
         }
@@ -1841,6 +2042,7 @@ export type Database = {
           notes?: string | null
           organization_type?: string | null
           phone?: string | null
+          relationship_status?: string
           updated_at?: string | null
           website?: string | null
         }
@@ -1855,6 +2057,7 @@ export type Database = {
           notes?: string | null
           organization_type?: string | null
           phone?: string | null
+          relationship_status?: string
           updated_at?: string | null
           website?: string | null
         }
@@ -2744,19 +2947,33 @@ export type Database = {
       prospects: {
         Row: {
           address: string | null
+          campaign: string | null
           category: string | null
           city: string | null
+          converted_deal_id: string | null
           country: string | null
           created_at: string
           created_by: string | null
+          discovery_scheduled: boolean
+          has_possible_problem: boolean
           id: string
+          interest_level: string | null
+          last_activity_at: string | null
           latitude: number | null
           longitude: number | null
           name: string
+          next_action: string | null
+          next_action_due_on: string | null
           notes: string | null
+          organization_id: string | null
           owner_id: string | null
           phone: string | null
           postal_code: string | null
+          primary_contact_id: string | null
+          source: string | null
+          spoke_with_relevant_person: boolean
+          stage: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at: string
           state: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           updated_at: string
@@ -2764,19 +2981,33 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          campaign?: string | null
           category?: string | null
           city?: string | null
+          converted_deal_id?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_scheduled?: boolean
+          has_possible_problem?: boolean
           id?: string
+          interest_level?: string | null
+          last_activity_at?: string | null
           latitude?: number | null
           longitude?: number | null
           name: string
+          next_action?: string | null
+          next_action_due_on?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
+          primary_contact_id?: string | null
+          source?: string | null
+          spoke_with_relevant_person?: boolean
+          stage?: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at?: string
           state?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           updated_at?: string
@@ -2784,25 +3015,61 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          campaign?: string | null
           category?: string | null
           city?: string | null
+          converted_deal_id?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_scheduled?: boolean
+          has_possible_problem?: boolean
           id?: string
+          interest_level?: string | null
+          last_activity_at?: string | null
           latitude?: number | null
           longitude?: number | null
           name?: string
+          next_action?: string | null
+          next_action_due_on?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
+          primary_contact_id?: string | null
+          source?: string | null
+          spoke_with_relevant_person?: boolean
+          stage?: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at?: string
           state?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prospects_converted_deal_id_fkey"
+            columns: ["converted_deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospects_primary_contact_id_fkey"
+            columns: ["primary_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recurring_invoice_templates: {
         Row: {
@@ -2892,6 +3159,98 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          details: string | null
+          due_date: string | null
+          id: string
+          organization_id: string | null
+          owner_id: string | null
+          owner_name: string | null
+          owner_side: string
+          priority: string
+          prospect_id: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          details?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          owner_side?: string
+          priority?: string
+          prospect_id?: string | null
+          status?: string
+          task_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          details?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          owner_side?: string
+          priority?: string
+          prospect_id?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -2915,6 +3274,15 @@ export type Database = {
       }
     }
     Views: {
+      activity_volume: {
+        Row: {
+          activity_count: number | null
+          activity_type: string | null
+          owner_id: string | null
+          week: string | null
+        }
+        Relationships: []
+      }
       employee_compensation: {
         Row: {
           annual: number | null
@@ -2931,6 +3299,34 @@ export type Database = {
           per_paycheck: number | null
           position: string | null
           start_date: string | null
+        }
+        Relationships: []
+      }
+      opportunity_pipeline: {
+        Row: {
+          avg_score: number | null
+          deal_count: number | null
+          pipeline_value: number | null
+          stage: string | null
+          total_gaps: number | null
+        }
+        Relationships: []
+      }
+      prospect_conversion: {
+        Row: {
+          converted_prospects: number | null
+          discovery_scheduled: number | null
+          owner_id: string | null
+          total_prospects: number | null
+        }
+        Relationships: []
+      }
+      prospect_stage_counts: {
+        Row: {
+          avg_days_in_stage: number | null
+          prospect_count: number | null
+          stage: string | null
+          stale_count: number | null
         }
         Relationships: []
       }
@@ -3028,6 +3424,13 @@ export type Database = {
         | "status_change"
         | "assignment_change"
         | "resource_added"
+      prospect_stage:
+        | "target"
+        | "prospect"
+        | "contacted"
+        | "connected"
+        | "discovery_scheduled"
+        | "converted"
       prospect_status: "new" | "warm" | "cold" | "do_not_contact" | "converted"
       submission_location_type: "in_person" | "online" | "other"
       visit_contact_made: "yes" | "no" | "card_only"
@@ -3205,6 +3608,14 @@ export const Constants = {
         "status_change",
         "assignment_change",
         "resource_added",
+      ],
+      prospect_stage: [
+        "target",
+        "prospect",
+        "contacted",
+        "connected",
+        "discovery_scheduled",
+        "converted",
       ],
       prospect_status: ["new", "warm", "cold", "do_not_contact", "converted"],
       submission_location_type: ["in_person", "online", "other"],

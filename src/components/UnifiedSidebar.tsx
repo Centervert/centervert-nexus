@@ -17,6 +17,10 @@ import {
   ClipboardList,
   MapPin,
   History,
+  Home,
+  ListChecks,
+  CheckSquare,
+  BarChart3,
   Settings as SettingsIcon,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
@@ -59,7 +63,7 @@ const UnifiedSidebar = () => {
   const hasRoleInfo = isFetched && userRole !== null && userRole !== undefined;
 
   const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/');
-  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/deals' || location.pathname === '/prospects' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/deals/') || location.pathname.startsWith('/prospects/');
+  const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/deals' || location.pathname === '/prospects' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/deals/') || location.pathname.startsWith('/prospects/') || location.pathname === '/sales' || location.pathname === '/activities' || location.pathname === '/tasks' || location.pathname === '/reports';
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users' || location.pathname === '/history' || location.pathname.startsWith('/settings');
   
   // Show menus while loading OR if we don't have role info yet
@@ -88,14 +92,14 @@ const UnifiedSidebar = () => {
 
   const crmItems = [
     {
-      name: 'Contacts',
-      href: '/contacts',
-      icon: Users,
+      name: 'Sales Home',
+      href: '/sales',
+      icon: Home,
     },
     {
-      name: 'Organizations',
-      href: '/organizations',
-      icon: Building2,
+      name: 'Prospecting',
+      href: '/prospects',
+      icon: MapPin,
     },
     {
       name: 'Opportunities',
@@ -103,9 +107,29 @@ const UnifiedSidebar = () => {
       icon: Target,
     },
     {
-      name: 'Prospects',
-      href: '/prospects',
-      icon: MapPin,
+      name: 'Companies',
+      href: '/organizations',
+      icon: Building2,
+    },
+    {
+      name: 'People',
+      href: '/contacts',
+      icon: Users,
+    },
+    {
+      name: 'Activities',
+      href: '/activities',
+      icon: ListChecks,
+    },
+    {
+      name: 'Tasks',
+      href: '/tasks',
+      icon: CheckSquare,
+    },
+    {
+      name: 'Reports',
+      href: '/reports',
+      icon: BarChart3,
     },
   ];
 

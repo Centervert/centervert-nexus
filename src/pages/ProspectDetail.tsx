@@ -13,6 +13,12 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { ActivityDialog } from "@/components/activities/ActivityDialog";
+import { ActivityTimeline } from "@/components/activities/ActivityTimeline";
+import { TaskList } from "@/components/tasks/TaskList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PROSPECT_STAGES, prospectStageLabel } from "@/lib/crm";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -35,6 +41,7 @@ export default function ProspectDetail() {
   const [visitOpen, setVisitOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [convertOpen, setConvertOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
 
   const { data: prospect, refetch } = useQuery({
     queryKey: ["prospect", id],
@@ -129,21 +136,35 @@ export default function ProspectDetail() {
                 </div>
               )}
             </div>
-            <div className="mt-2 text-sm">
-              Status: <span className="font-medium">{STATUS_LABELS[prospect.status] ?? prospect.status}</span>
-              {prospect.category && <span className="ml-3 text-muted-foreground">{prospect.category}</span>}
+            <div className="mt-3 flex items-center gap-3">
+              <Select
+                value={(prospect as any).stage ?? "target"}
+                onValueChange={async (v) => {
+                  await supabase.from("prospects").update({ stage: v } as any).eq("id", prospect.id);
+                  toast({ title: `Moved to ${prospectStageLabel(v)}` });
+                  refetch();
+                }}
+              >
+                <SelectTrigger className="h-9 w-56"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PROSPECT_STAGES.map((st) => (
+                    <SelectItem key={st.value} value={st.value}>{st.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {prospect.category && <span className="text-sm text-muted-foreground">{prospect.category}</span>}
             </div>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Pencil className="h-4 w-4 mr-2" /> Edit
             </Button>
-            <Button onClick={() => setVisitOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Log Visit
+            <Button onClick={() => setActivityOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Log Activity
             </Button>
-            {prospect.status !== "converted" && (
+            {(prospect as any).stage !== "converted" && (
               <Button variant="default" onClick={() => setConvertOpen(true)}>
-                <ArrowRight className="h-4 w-4 mr-2" /> Convert to Deal
+                <ArrowRight className="h-4 w-4 mr-2" /> Convert to Opportunity
               </Button>
             )}
           </div>
@@ -165,10 +186,33 @@ export default function ProspectDetail() {
         )}
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Visit History ({visits?.length ?? 0})</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
+            <Tabs defaultValue="activities">
+              <TabsList className="bg-transparent border-b rounded-none h-auto p-0 w-full justify-start">
+                {[
+                  { v: "activities", l: "Activities" },
+                  { v: "tasks", l: "Tasks" },
+                  { v: "visits", l: `Visit history (${visits?.length ?? 0})` },
+                ].map((t) => (
+                  <TabsTrigger
+                    key={t.v}
+                    value={t.v}
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                  >
+                    {t.l}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+
+              <TabsContent value="activities" className="pt-4">
+                <ActivityTimeline filter={{ prospect_id: prospect.id }} />
+              </TabsContent>
+
+              <TabsContent value="tasks" className="pt-4">
+                <TaskList links={{ prospect_id: prospect.id }} scope="all" />
+              </TabsContent>
+
+              <TabsContent value="visits" className="pt-4">
             {!visits || visits.length === 0 ? (
               <div className="text-sm text-muted-foreground py-6 text-center">
                 No visits yet. Log the first one above.
@@ -210,6 +254,8 @@ export default function ProspectDetail() {
                 ))}
               </div>
             )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
@@ -220,6 +266,13 @@ export default function ProspectDetail() {
         </div>
       </div>
 
+      <ActivityDialog
+        open={activityOpen}
+        onOpenChange={setActivityOpen}
+        links={{ prospect_id: prospect.id }}
+        defaultType="in_person_visit"
+        onSuccess={() => { refetch(); refetchVisits(); }}
+      />
       <VisitLogSheet
         open={visitOpen}
         onOpenChange={setVisitOpen}
