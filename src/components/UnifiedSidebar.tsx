@@ -284,7 +284,7 @@ const UnifiedSidebar = () => {
                     {!isCollapsed && (
                         <CollapsibleContent className="overflow-hidden transition-all duration-normal ease-smooth data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
                         <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
-                          {activeWorkItems.map((item, index) => {
+                          {activeWorkItems.map((item) => {
                             const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/');
                             return (
                               <SidebarMenuSubItem 
@@ -356,7 +356,7 @@ const UnifiedSidebar = () => {
                     {!isCollapsed && (
                         <CollapsibleContent className="overflow-hidden transition-all duration-normal ease-smooth data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
                         <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
-                          {crmItems.map((item, index) => {
+                          {crmItems.map((item) => {
                             const isActive = location.pathname === item.href || 
                               (item.href === '/organizations' && location.pathname.startsWith('/organizations/')) ||
                               (item.href === '/contacts' && location.pathname.startsWith('/contacts/')) ||
@@ -432,7 +432,7 @@ const UnifiedSidebar = () => {
                     {!isCollapsed && (
                         <CollapsibleContent className="overflow-hidden transition-all duration-normal ease-smooth data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
                         <SidebarMenuSub className="space-y-1 pl-2 mt-2 mb-1">
-                          {backOfficeItems.map((item, index) => {
+                          {backOfficeItems.map((item) => {
                             const isActive = location.pathname === item.href;
                             return (
                               <SidebarMenuSubItem 
