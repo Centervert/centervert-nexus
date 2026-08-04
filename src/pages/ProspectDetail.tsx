@@ -19,6 +19,9 @@ import { TaskList } from "@/components/tasks/TaskList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PROSPECT_STAGES, prospectStageLabel } from "@/lib/crm";
+import { ProspectOverview } from "@/components/prospects/ProspectOverview";
+import { ProspectPeople } from "@/components/prospects/ProspectPeople";
+import { RecordHistory } from "@/components/history/RecordHistory";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -187,12 +190,15 @@ export default function ProspectDetail() {
 
         <Card>
           <CardContent className="pt-6">
-            <Tabs defaultValue="activities">
+            <Tabs defaultValue="overview">
               <TabsList className="bg-transparent border-b rounded-none h-auto p-0 w-full justify-start">
                 {[
+                  { v: "overview", l: "Overview" },
+                  { v: "people", l: "People" },
                   { v: "activities", l: "Activities" },
                   { v: "tasks", l: "Tasks" },
                   { v: "visits", l: `Visit history (${visits?.length ?? 0})` },
+                  { v: "history", l: "History" },
                 ].map((t) => (
                   <TabsTrigger
                     key={t.v}
@@ -203,6 +209,14 @@ export default function ProspectDetail() {
                   </TabsTrigger>
                 ))}
               </TabsList>
+
+              <TabsContent value="overview" className="pt-4">
+                <ProspectOverview prospect={prospect} onSaved={refetch} />
+              </TabsContent>
+
+              <TabsContent value="people" className="pt-4">
+                <ProspectPeople prospect={prospect} />
+              </TabsContent>
 
               <TabsContent value="activities" className="pt-4">
                 <ActivityTimeline filter={{ prospect_id: prospect.id }} />
@@ -254,6 +268,10 @@ export default function ProspectDetail() {
                 ))}
               </div>
             )}
+              </TabsContent>
+
+              <TabsContent value="history" className="pt-4">
+                <RecordHistory tableName="prospects" recordId={prospect.id} />
               </TabsContent>
             </Tabs>
           </CardContent>

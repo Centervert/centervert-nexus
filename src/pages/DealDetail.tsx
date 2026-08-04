@@ -37,6 +37,8 @@ import {
   Target,
   Users,
   ClipboardList,
+  Receipt,
+  CalendarClock,
 } from "lucide-react";
 import { TemperatureSlider } from "@/components/deals/TemperatureSlider";
 import { DealDialog } from "@/components/deals/DealDialog";
@@ -56,6 +58,10 @@ import { RecordList } from "@/components/deals/meddpicc/RecordList";
 import * as RecordConfigs from "@/components/deals/meddpicc/recordConfigs";
 import { StageChangeDialog } from "@/components/deals/meddpicc/StageChangeDialog";
 import { stageGates, PROFILES } from "@/lib/meddpicc";
+import { CommercialTab } from "@/components/deals/CommercialTab";
+import { LostDealDialog } from "@/components/deals/LostDealDialog";
+import { ActivityTimeline } from "@/components/activities/ActivityTimeline";
+import { TaskList } from "@/components/tasks/TaskList";
 
 interface Deal {
   id: string;
@@ -94,6 +100,7 @@ export default function DealDetail() {
   const [activeTab, setActiveTab] = useState("chat");
   const [wonOpen, setWonOpen] = useState(false);
   const [pendingStage, setPendingStage] = useState<string | null>(null);
+  const [lostOpen, setLostOpen] = useState(false);
 
   const qualification = useDealQualification(
     deal?.id,
@@ -139,14 +146,13 @@ export default function DealDetail() {
     setPendingStage(newStage);
   };
 
-  const commitStageChange = async (newStage: string, overrideReason: string | null) => {
+  const commitStageChange = async (
+    newStage: string,
+    overrideReason: string | null,
+    extraPatch: Record<string, unknown> = {},
+  ) => {
     if (!deal) return;
-    const patch: any = { stage: newStage };
-    if (newStage === "lost") {
-      const reason = window.prompt("Reason this deal was lost?");
-      if (!reason) return;
-      patch.lost_reason = reason;
-    }
+    const patch: any = { stage: newStage, ...extraPatch };
     const { error } = await supabase.from("deals").update(patch).eq("id", deal.id);
     if (error) {
       toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
@@ -457,6 +463,18 @@ export default function DealDetail() {
                       <ClipboardList className="h-4 w-4" />
                       Evidence
                     </TabsTrigger>
+                    <TabsTrigger value="commercial" className="gap-2">
+                      <Receipt className="h-4 w-4" />
+                      Commercial
+                    </TabsTrigger>
+                    <TabsTrigger value="activities" className="gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      Activities
+                    </TabsTrigger>
+                    <TabsTrigger value="tasks" className="gap-2">
+                      <CalendarClock className="h-4 w-4" />
+                      Tasks
+                    </TabsTrigger>
                     <TabsTrigger value="chat" className="gap-2">
                       <MessageSquare className="h-4 w-4" />
                       Chat
@@ -512,6 +530,9 @@ export default function DealDetail() {
                   </div>
                 )}
                 {activeTab === "evidence" && <EvidenceFeed dealId={deal.id} />}
+                {activeTab === "commercial" && <CommercialTab deal={deal} onSave={saveDealPatch} />}
+                {activeTab === "activities" && <ActivityTimeline filter={{ deal_id: deal.id }} />}
+                {activeTab === "tasks" && <TaskList links={{ deal_id: deal.id }} scope="all" />}
                 {activeTab === "chat" && <DealChat dealId={deal.id} />}
                 {activeTab === "documents" && <DealDocuments dealId={deal.id} />}
                 {activeTab === "history" && <RecordHistory tableName="deals" recordId={deal.id} />}
@@ -545,10 +566,25 @@ export default function DealDetail() {
           onConfirm={async (reason) => {
             const target = pendingStage;
             setPendingStage(null);
+            if (target === "lost") {
+              setLostOpen(true);
+              (window as any).__pendingLostReason = reason;
+              return;
+            }
             await commitStageChange(target, reason);
           }}
         />
       )}
+      <LostDealDialog
+        open={lostOpen}
+        onOpenChange={setLostOpen}
+        onConfirm={async (patch) => {
+          setLostOpen(false);
+          const reason = (window as any).__pendingLostReason ?? null;
+          (window as any).__pendingLostReason = null;
+          await commitStageChange("lost", reason, patch);
+        }}
+      />
     </UnifiedLayout>
   );
 }
