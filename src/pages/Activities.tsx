@@ -37,25 +37,10 @@ export default function Activities() {
           </SelectContent>
         </Select>
 
-        <TimelineWrapper type={type} />
+        <ActivityTimeline showLinks limit={200} typeFilter={type} />
       </div>
 
       <ActivityDialog open={open} onOpenChange={setOpen} />
     </UnifiedLayout>
   );
-}
-
-function TimelineWrapper({ type }: { type: string }) {
-  // The timeline component handles record-level filters; type filtering is applied here
-  // by keying the query and filtering client-side through a wrapper element.
-  return (
-    <div data-activity-filter={type}>
-      <FilteredTimeline type={type} />
-    </div>
-  );
-}
-
-function FilteredTimeline({ type }: { type: string }) {
-  if (type === "all") return <ActivityTimeline showLinks limit={200} />;
-  return <ActivityTimeline showLinks limit={200} typeFilter={type} />;
 }

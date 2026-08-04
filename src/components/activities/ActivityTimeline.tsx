@@ -14,13 +14,14 @@ export interface TimelineFilter {
 interface Props {
   filter?: TimelineFilter;
   limit?: number;
+  typeFilter?: string;
   showLinks?: boolean;
   emptyMessage?: string;
 }
 
-export function ActivityTimeline({ filter, limit = 100, showLinks = false, emptyMessage = "No activity logged yet." }: Props) {
+export function ActivityTimeline({ filter, limit = 100, typeFilter, showLinks = false, emptyMessage = "No activity logged yet." }: Props) {
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["activities", filter, limit],
+    queryKey: ["activities", filter, limit, typeFilter],
     queryFn: async () => {
       let q = supabase
         .from("activities")
@@ -31,6 +32,7 @@ export function ActivityTimeline({ filter, limit = 100, showLinks = false, empty
       if (filter?.contact_id) q = q.eq("contact_id", filter.contact_id);
       if (filter?.prospect_id) q = q.eq("prospect_id", filter.prospect_id);
       if (filter?.deal_id) q = q.eq("deal_id", filter.deal_id);
+      if (typeFilter && typeFilter !== "all") q = q.eq("activity_type", typeFilter);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
