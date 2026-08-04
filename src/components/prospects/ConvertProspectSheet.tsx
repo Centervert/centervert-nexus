@@ -249,8 +249,78 @@ export function ConvertProspectSheet({ open, onOpenChange, prospect, suggestedCo
         .single();
       if (dealErr) throw dealErr;
 
-      // 4. Mark prospect converted
-      await supabase.from("prospects").update({ status: "converted" as any }).eq("id", prospect.id);
+      // 4. Seed MEDDPICC state from the prospecting checklist so the deal does
+      //    not start from zero evidence.
+      const { data: p } = await supabase
+        .from("prospects")
+        .select("has_possible_problem, spoke_with_relevant_person, discovery_scheduled, interest_level, notes")
+        .eq("id", prospect.id)
+        .maybeSingle();
+
+      if (deal?.id) {
+        const elements: Array<{ element: string; score: number; summary: string | null }> = [];
+        if (p?.has_possible_problem) {
+          elements.push({
+            element: "pain",
+            score: 1,
+            summary: "Possible problem identified during prospecting — needs buyer validation.",
+          });
+        }
+        if (p?.spoke_with_relevant_person) {
+          elements.push({
+            element: "economic_buyer",
+            score: 1,
+            summary: "Spoke with a relevant person during prospecting — authority not yet confirmed.",
+          });
+        }
+        if (p?.discovery_scheduled) {
+          elements.push({
+            element: "decision_process",
+            score: 1,
+            summary: "Discovery scheduled during prospecting.",
+          });
+        }
+        if (elements.length > 0) {
+          await supabase.from("deal_elements").insert(
+            elements.map((e) => ({
+              deal_id: deal.id,
+              ...e,
+              last_verified_at: new Date().toISOString(),
+              updated_by: user.id,
+            })) as any,
+          );
+          await supabase.from("deal_evidence").insert(
+            elements.map((e) => ({
+              deal_id: deal.id,
+              element: e.element,
+              note: e.summary,
+              source: "Prospecting checklist",
+              created_by: user.id,
+            })) as any,
+          );
+        }
+        if (p?.has_possible_problem) {
+          await supabase.from("deal_pains").insert({
+            deal_id: deal.id,
+            description: p?.notes?.trim() || "Problem surfaced during prospecting — details to confirm.",
+            level: "business",
+            buyer_owned: false,
+            created_by: user.id,
+          } as any);
+        }
+      }
+
+      // 5. Mark prospect converted and keep the link back to the deal
+      await supabase
+        .from("prospects")
+        .update({
+          status: "converted" as any,
+          stage: "converted" as any,
+          converted_deal_id: deal?.id ?? null,
+          organization_id: orgId,
+          primary_contact_id: contactId,
+        } as any)
+        .eq("id", prospect.id);
 
       toast({ title: "Converted to Deal", description: "Now in the deal pipeline." });
       onOpenChange(false);
