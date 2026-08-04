@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchDealQualification } from "@/lib/dealQualification";
 import {
   criticalGaps,
   totalScore,
@@ -36,32 +37,13 @@ export function useDealQualification(
   const reload = useCallback(async () => {
     if (!dealId) return;
     setLoading(true);
-    const [els, pains, actions, criteria, stakeholders, competitors] = await Promise.all([
-      supabase.from("deal_elements").select("element, score, summary, last_verified_at").eq("deal_id", dealId),
-      supabase.from("deal_pains").select("buyer_owned").eq("deal_id", dealId),
-      supabase.from("deal_next_actions").select("owner_side, status").eq("deal_id", dealId),
-      supabase.from("deal_criteria").select("must_have, resolved").eq("deal_id", dealId),
-      supabase.from("deal_stakeholders").select("role, stance").eq("deal_id", dealId),
-      supabase.from("deal_competitors").select("id").eq("deal_id", dealId),
-    ]);
-
-    const rows = (els.data || []) as ElementRow[];
-    setElements(rows);
-
-    const nextFacts: DealFacts = {
+    const { elements: rows, facts: nextFacts } = await fetchDealQualification(
+      dealId,
       stage,
-      methodology_profile: profile,
-      compelling_event: compellingEvent || null,
-      hasBuyerOwnedPain: (pains.data || []).some((p: any) => p.buyer_owned),
-      hasCustomerOwnedNextStep: (actions.data || []).some(
-        (a: any) => a.owner_side === "customer" && a.status === "open",
-      ),
-      hasUnresolvedMustHave: (criteria.data || []).some((c: any) => c.must_have && !c.resolved),
-      hasActiveChampion: (stakeholders.data || []).some(
-        (s: any) => s.role === "champion" && s.stance !== "opposed",
-      ),
-      hasCompetitors: (competitors.data || []).length > 0,
-    };
+      profile,
+      compellingEvent,
+    );
+    setElements(rows);
     setFacts(nextFacts);
 
     const score = totalScore(rows, profile);
