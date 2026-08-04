@@ -57,7 +57,7 @@ import { ThreeWhys } from "@/components/deals/meddpicc/ThreeWhys";
 import { RecordList } from "@/components/deals/meddpicc/RecordList";
 import * as RecordConfigs from "@/components/deals/meddpicc/recordConfigs";
 import { StageChangeDialog } from "@/components/deals/meddpicc/StageChangeDialog";
-import { stageGates, PROFILES } from "@/lib/meddpicc";
+import { stageGates, PROFILES, forecastForStage } from "@/lib/meddpicc";
 import { CommercialTab } from "@/components/deals/CommercialTab";
 import { LostDealDialog } from "@/components/deals/LostDealDialog";
 import { ActivityTimeline } from "@/components/activities/ActivityTimeline";
@@ -152,7 +152,14 @@ export default function DealDetail() {
     extraPatch: Record<string, unknown> = {},
   ) => {
     if (!deal) return;
-    const patch: any = { stage: newStage, ...extraPatch };
+    const unmet = stageGates(newStage, qualification.elements, qualification.facts).filter((g) => !g.passed);
+    const criticalGapCount = qualification.gaps.filter((g) => g.severity === "critical").length;
+    const patch: any = {
+      stage: newStage,
+      forecast_category: forecastForStage(newStage),
+      gate_override_reason: overrideReason,
+      ...extraPatch,
+    };
     const { error } = await supabase.from("deals").update(patch).eq("id", deal.id);
     if (error) {
       toast({ title: "Error updating stage", description: error.message, variant: "destructive" });
@@ -165,8 +172,15 @@ export default function DealDetail() {
       to_stage: newStage as any,
       changed_by: userData.user?.id ?? null,
       override_reason: overrideReason,
-      qualification_score: qualification.score,
-      critical_gap_count: qualification.gaps.filter((g) => g.severity === "critical").length,
+      unmet_gates: unmet.map((g) => g.label),
+    } as any);
+    await supabase.from("deal_score_snapshots").insert({
+      deal_id: deal.id,
+      stage: newStage,
+      total_score: qualification.score,
+      critical_gap_count: criticalGapCount,
+      scores: Object.fromEntries(qualification.elements.map((e) => [e.element, e.score])),
+      created_by: userData.user?.id ?? null,
     } as any);
     toast({ title: "Stage updated" });
     await loadDeal();
