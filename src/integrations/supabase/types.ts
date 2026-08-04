@@ -2747,19 +2747,33 @@ export type Database = {
       prospects: {
         Row: {
           address: string | null
+          campaign: string | null
           category: string | null
           city: string | null
+          converted_deal_id: string | null
           country: string | null
           created_at: string
           created_by: string | null
+          discovery_scheduled: boolean
+          has_possible_problem: boolean
           id: string
+          interest_level: string | null
+          last_activity_at: string | null
           latitude: number | null
           longitude: number | null
           name: string
+          next_action: string | null
+          next_action_due_on: string | null
           notes: string | null
+          organization_id: string | null
           owner_id: string | null
           phone: string | null
           postal_code: string | null
+          primary_contact_id: string | null
+          source: string | null
+          spoke_with_relevant_person: boolean
+          stage: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at: string
           state: string | null
           status: Database["public"]["Enums"]["prospect_status"]
           updated_at: string
@@ -2767,19 +2781,33 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          campaign?: string | null
           category?: string | null
           city?: string | null
+          converted_deal_id?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_scheduled?: boolean
+          has_possible_problem?: boolean
           id?: string
+          interest_level?: string | null
+          last_activity_at?: string | null
           latitude?: number | null
           longitude?: number | null
           name: string
+          next_action?: string | null
+          next_action_due_on?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
+          primary_contact_id?: string | null
+          source?: string | null
+          spoke_with_relevant_person?: boolean
+          stage?: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at?: string
           state?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           updated_at?: string
@@ -2787,25 +2815,61 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          campaign?: string | null
           category?: string | null
           city?: string | null
+          converted_deal_id?: string | null
           country?: string | null
           created_at?: string
           created_by?: string | null
+          discovery_scheduled?: boolean
+          has_possible_problem?: boolean
           id?: string
+          interest_level?: string | null
+          last_activity_at?: string | null
           latitude?: number | null
           longitude?: number | null
           name?: string
+          next_action?: string | null
+          next_action_due_on?: string | null
           notes?: string | null
+          organization_id?: string | null
           owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
+          primary_contact_id?: string | null
+          source?: string | null
+          spoke_with_relevant_person?: boolean
+          stage?: Database["public"]["Enums"]["prospect_stage"]
+          stage_changed_at?: string
           state?: string | null
           status?: Database["public"]["Enums"]["prospect_status"]
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prospects_converted_deal_id_fkey"
+            columns: ["converted_deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospects_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prospects_primary_contact_id_fkey"
+            columns: ["primary_contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recurring_invoice_templates: {
         Row: {
@@ -3031,6 +3095,13 @@ export type Database = {
         | "status_change"
         | "assignment_change"
         | "resource_added"
+      prospect_stage:
+        | "target"
+        | "prospect"
+        | "contacted"
+        | "connected"
+        | "discovery_scheduled"
+        | "converted"
       prospect_status: "new" | "warm" | "cold" | "do_not_contact" | "converted"
       submission_location_type: "in_person" | "online" | "other"
       visit_contact_made: "yes" | "no" | "card_only"
@@ -3208,6 +3279,14 @@ export const Constants = {
         "status_change",
         "assignment_change",
         "resource_added",
+      ],
+      prospect_stage: [
+        "target",
+        "prospect",
+        "contacted",
+        "connected",
+        "discovery_scheduled",
+        "converted",
       ],
       prospect_status: ["new", "warm", "cold", "do_not_contact", "converted"],
       submission_location_type: ["in_person", "online", "other"],
