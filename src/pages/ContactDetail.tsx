@@ -10,6 +10,11 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Mail, Phone, Building2, Briefcase, Trash2 } from "lucide-react";
 import { formatPhoneNumber, normalizePhoneNumber } from "@/lib/phoneUtils";
 import { EditableCell } from "@/components/contacts/EditableCell";
+import { Link } from "react-router-dom";
+import { ActivityTimeline } from "@/components/activities/ActivityTimeline";
+import { TaskList } from "@/components/tasks/TaskList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { stageLabel } from "@/lib/meddpicc";
 import { EditableSelectCell } from "@/components/contacts/EditableSelectCell";
 import { EditableAddressCell } from "@/components/contacts/EditableAddressCell";
 import { Switch } from "@/components/ui/switch";
@@ -151,7 +156,7 @@ const ContactDetail = () => {
             onClick={() => navigate("/contacts")}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Contacts
+            Back to People
           </Button>
         </div>
 
@@ -264,7 +269,7 @@ const ContactDetail = () => {
                   <h3 className="font-semibold text-sm">Visibility</h3>
                   <div className="space-y-3">
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Show in All Contacts</div>
+                      <div className="text-xs text-muted-foreground mb-1">Show in All People</div>
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={contact.show_in_all_contacts}
@@ -283,7 +288,7 @@ const ContactDetail = () => {
           <div className="lg:col-span-2 space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Contact profile</CardTitle>
+                <CardTitle>Person profile</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -425,13 +430,15 @@ const ContactDetail = () => {
           </div>
         </div>
 
+        <PersonEngagement contactId={id!} />
+
         {/* Delete Section at Bottom */}
         <div className="mt-8 pt-6 border-t">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">Danger Zone</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Permanently delete this contact and all associated data
+                Permanently delete this person and all associated data
               </p>
             </div>
             <Button 
@@ -441,7 +448,7 @@ const ContactDetail = () => {
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Contact
+              Delete Person
             </Button>
           </div>
         </div>
@@ -450,7 +457,7 @@ const ContactDetail = () => {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+            <AlertDialogTitle>Delete Person</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete {contact?.first_name} {contact?.last_name}? This action cannot be undone.
             </AlertDialogDescription>
@@ -466,5 +473,70 @@ const ContactDetail = () => {
     </UnifiedLayout>
   );
 };
+
+function PersonEngagement({ contactId }: { contactId: string }) {
+  const { data: deals = [] } = useQuery({
+    queryKey: ["contact-deals", contactId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("deals")
+        .select("id, name, stage, expected_value")
+        .eq("contact_id", contactId)
+        .order("updated_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!contactId,
+  });
+
+  return (
+    <Card className="mt-6">
+      <CardContent className="pt-6">
+        <Tabs defaultValue="opportunities">
+          <TabsList className="bg-transparent border-b rounded-none h-auto p-0 w-full justify-start">
+            {[
+              { v: "opportunities", l: `Opportunities (${deals.length})` },
+              { v: "activities", l: "Activities" },
+              { v: "tasks", l: "Tasks" },
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+              >
+                {t.l}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="opportunities" className="pt-4 space-y-3">
+            {deals.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No opportunities linked to this person.</p>
+            ) : (
+              deals.map((d: any) => (
+                <div key={d.id} className="space-y-0.5">
+                  <Link to={`/deals/${d.id}`} className="text-sm font-medium text-primary hover:underline">
+                    {d.name}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    {stageLabel(d.stage)}
+                    {d.expected_value ? ` • $${Number(d.expected_value).toLocaleString()}` : ""}
+                  </p>
+                </div>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="activities" className="pt-4">
+            <ActivityTimeline filter={{ contact_id: contactId }} />
+          </TabsContent>
+
+          <TabsContent value="tasks" className="pt-4">
+            <TaskList links={{ contact_id: contactId }} scope="all" />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default ContactDetail;
