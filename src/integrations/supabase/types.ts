@@ -1149,14 +1149,20 @@ export type Database = {
           compelling_event: string | null
           compelling_event_date: string | null
           contact_id: string | null
+          contract_status: string | null
           created_at: string
           created_by: string | null
           critical_gap_count: number
           description: string | null
+          economic_buyer_confirmed: boolean | null
           expected_value: number | null
           forecast_category: string
           gate_override_reason: string | null
+          had_champion: boolean | null
           id: string
+          legal_review_status: string | null
+          loss_category: string | null
+          loss_detail: string | null
           loss_type: string | null
           lost_reason: string | null
           methodology_profile: string
@@ -1166,8 +1172,17 @@ export type Database = {
           next_action_owner: string | null
           organization_id: string | null
           owner_id: string | null
+          payment_schedule: string | null
+          po_status: string | null
+          pricing_model: string | null
           prospect_id: string | null
           qualification_score: number
+          quoted_amount: number | null
+          reengage_on: string | null
+          scope_summary: string | null
+          security_review_status: string | null
+          signer_name: string | null
+          signer_title: string | null
           stage: Database["public"]["Enums"]["deal_stage"]
           status: string
           target_decision_date: string | null
@@ -1185,14 +1200,20 @@ export type Database = {
           compelling_event?: string | null
           compelling_event_date?: string | null
           contact_id?: string | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           critical_gap_count?: number
           description?: string | null
+          economic_buyer_confirmed?: boolean | null
           expected_value?: number | null
           forecast_category?: string
           gate_override_reason?: string | null
+          had_champion?: boolean | null
           id?: string
+          legal_review_status?: string | null
+          loss_category?: string | null
+          loss_detail?: string | null
           loss_type?: string | null
           lost_reason?: string | null
           methodology_profile?: string
@@ -1202,8 +1223,17 @@ export type Database = {
           next_action_owner?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          payment_schedule?: string | null
+          po_status?: string | null
+          pricing_model?: string | null
           prospect_id?: string | null
           qualification_score?: number
+          quoted_amount?: number | null
+          reengage_on?: string | null
+          scope_summary?: string | null
+          security_review_status?: string | null
+          signer_name?: string | null
+          signer_title?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           target_decision_date?: string | null
@@ -1221,14 +1251,20 @@ export type Database = {
           compelling_event?: string | null
           compelling_event_date?: string | null
           contact_id?: string | null
+          contract_status?: string | null
           created_at?: string
           created_by?: string | null
           critical_gap_count?: number
           description?: string | null
+          economic_buyer_confirmed?: boolean | null
           expected_value?: number | null
           forecast_category?: string
           gate_override_reason?: string | null
+          had_champion?: boolean | null
           id?: string
+          legal_review_status?: string | null
+          loss_category?: string | null
+          loss_detail?: string | null
           loss_type?: string | null
           lost_reason?: string | null
           methodology_profile?: string
@@ -1238,8 +1274,17 @@ export type Database = {
           next_action_owner?: string | null
           organization_id?: string | null
           owner_id?: string | null
+          payment_schedule?: string | null
+          po_status?: string | null
+          pricing_model?: string | null
           prospect_id?: string | null
           qualification_score?: number
+          quoted_amount?: number | null
+          reengage_on?: string | null
+          scope_summary?: string | null
+          security_review_status?: string | null
+          signer_name?: string | null
+          signer_title?: string | null
           stage?: Database["public"]["Enums"]["deal_stage"]
           status?: string
           target_decision_date?: string | null
@@ -3229,6 +3274,15 @@ export type Database = {
       }
     }
     Views: {
+      activity_volume: {
+        Row: {
+          activity_count: number | null
+          activity_type: string | null
+          owner_id: string | null
+          week: string | null
+        }
+        Relationships: []
+      }
       employee_compensation: {
         Row: {
           annual: number | null
@@ -3245,6 +3299,34 @@ export type Database = {
           per_paycheck: number | null
           position: string | null
           start_date: string | null
+        }
+        Relationships: []
+      }
+      opportunity_pipeline: {
+        Row: {
+          avg_score: number | null
+          deal_count: number | null
+          pipeline_value: number | null
+          stage: string | null
+          total_gaps: number | null
+        }
+        Relationships: []
+      }
+      prospect_conversion: {
+        Row: {
+          converted_prospects: number | null
+          discovery_scheduled: number | null
+          owner_id: string | null
+          total_prospects: number | null
+        }
+        Relationships: []
+      }
+      prospect_stage_counts: {
+        Row: {
+          avg_days_in_stage: number | null
+          prospect_count: number | null
+          stage: string | null
+          stale_count: number | null
         }
         Relationships: []
       }
