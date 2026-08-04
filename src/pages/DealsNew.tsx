@@ -20,7 +20,20 @@ import { DealDialog } from "@/components/deals/DealDialog";
 import { Badge } from "@/components/ui/badge";
 import { DealKanban, DEAL_STAGES, DealStage } from "@/components/deals/DealKanban";
 import { WonDealDialog } from "@/components/deals/WonDealDialog";
-import { maxScore } from "@/lib/meddpicc";
+import { LostDealDialog } from "@/components/deals/LostDealDialog";
+import { StageChangeDialog } from "@/components/deals/meddpicc/StageChangeDialog";
+import { fetchDealQualification } from "@/lib/dealQualification";
+import {
+  maxScore,
+  scorePercent,
+  forecastForStage,
+  stageGates,
+  totalScore,
+  criticalGaps,
+  type DealFacts,
+  type ElementRow,
+  type GateCheck,
+} from "@/lib/meddpicc";
 
 interface Deal {
   id: string;
@@ -36,6 +49,7 @@ interface Deal {
   qualification_score: number | null;
   critical_gap_count: number | null;
   methodology_profile: string | null;
+  compelling_event?: string | null;
   owner?: { full_name: string | null; email: string } | null;
   organizations?: { name: string } | null;
 }
@@ -50,6 +64,16 @@ export default function DealsNew() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [view, setView] = useState<"board" | "table">("board");
   const [wonDeal, setWonDeal] = useState<Deal | null>(null);
+  const [pending, setPending] = useState<{
+    deal: Deal;
+    toStage: DealStage;
+    gates: GateCheck[];
+    elements: ElementRow[];
+    facts: DealFacts;
+    score: number;
+    gapCount: number;
+  } | null>(null);
+  const [lostDeal, setLostDeal] = useState<Deal | null>(null);
 
   useEffect(() => {
     loadDeals();
@@ -107,42 +131,77 @@ export default function DealsNew() {
     lost: deals.filter((d) => d.stage === "lost").length,
   };
 
+  /** Drag on the board goes through the same gate check as the deal page. */
   const handleKanbanStageChange = async (dealId: string, newStage: DealStage) => {
     const deal = deals.find((d) => d.id === dealId);
-    if (!deal) return;
-    const fromStage = deal.stage;
-    const recordHistory = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      await supabase.from("deal_stage_history").insert({
-        deal_id: dealId,
-        from_stage: fromStage as any,
-        to_stage: newStage as any,
-        changed_by: userData.user?.id ?? null,
-        qualification_score: deal.qualification_score ?? null,
-        critical_gap_count: deal.critical_gap_count ?? null,
-      } as any);
-    };
+    if (!deal || deal.stage === newStage) return;
+
+    const { elements, facts } = await fetchDealQualification(
+      dealId,
+      newStage,
+      deal.methodology_profile,
+      deal.compelling_event,
+    );
+    const gates = stageGates(newStage, elements, facts);
+    const score = totalScore(elements, deal.methodology_profile);
+    const gapCount = criticalGaps(elements, facts).filter((g) => g.severity === "critical").length;
+
     if (newStage === "lost") {
-      const reason = window.prompt("Reason this deal was lost?");
-      if (!reason) return;
-      const { error } = await supabase.from("deals").update({ stage: newStage, lost_reason: reason } as any).eq("id", dealId);
-      if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
-      await recordHistory();
-      await loadDeals();
+      setPending({ deal, toStage: newStage, gates: [], elements, facts, score, gapCount });
+      setLostDeal(deal);
       return;
     }
-    const { error } = await supabase.from("deals").update({ stage: newStage } as any).eq("id", dealId);
-    if (error) return toast({ title: "Error", description: error.message, variant: "destructive" });
-    await recordHistory();
-    if (deal.critical_gap_count && deal.critical_gap_count > 0) {
+    setPending({ deal, toStage: newStage, gates, elements, facts, score, gapCount });
+  };
+
+  const commitStageChange = async (
+    overrideReason: string | null,
+    extraPatch: Record<string, unknown> = {},
+  ) => {
+    if (!pending) return;
+    const { deal, toStage, gates, elements, score, gapCount } = pending;
+    const { error } = await supabase
+      .from("deals")
+      .update({
+        stage: toStage,
+        forecast_category: forecastForStage(toStage),
+        gate_override_reason: overrideReason,
+        ...extraPatch,
+      } as any)
+      .eq("id", deal.id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("deal_stage_history").insert({
+      deal_id: deal.id,
+      from_stage: deal.stage as any,
+      to_stage: toStage as any,
+      changed_by: userData.user?.id ?? null,
+      override_reason: overrideReason,
+      unmet_gates: gates.filter((g) => !g.passed).map((g) => g.label),
+    } as any);
+    await supabase.from("deal_score_snapshots").insert({
+      deal_id: deal.id,
+      stage: toStage,
+      total_score: score,
+      critical_gap_count: gapCount,
+      scores: Object.fromEntries(elements.map((e) => [e.element, e.score])),
+      created_by: userData.user?.id ?? null,
+    } as any);
+
+    if (gapCount > 0 && toStage !== "won" && toStage !== "lost") {
       toast({
         title: "Moved with open gaps",
-        description: `${deal.critical_gap_count} critical qualification gap${deal.critical_gap_count > 1 ? "s" : ""} still open on this deal.`,
+        description: `${gapCount} critical qualification gap${gapCount > 1 ? "s" : ""} still open on this deal.`,
       });
     }
-    if (newStage === "won" && !deal.organization_id) {
-      setWonDeal({ ...deal, stage: newStage });
+    if (toStage === "won" && !deal.organization_id) {
+      setWonDeal({ ...deal, stage: toStage });
     }
+    setPending(null);
+    setLostDeal(null);
     await loadDeals();
   };
 
