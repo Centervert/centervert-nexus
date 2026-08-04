@@ -303,7 +303,7 @@ export function ConvertProspectSheet({ open, onOpenChange, prospect, suggestedCo
           await supabase.from("deal_pains").insert({
             deal_id: deal.id,
             description: p?.notes?.trim() || "Problem surfaced during prospecting — details to confirm.",
-            level: "business",
+            level: "operational",
             buyer_owned: false,
             created_by: user.id,
           } as any);
