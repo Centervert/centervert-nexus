@@ -18,6 +18,12 @@ import BillComStatusBadge from "@/components/billing/BillComStatusBadge";
 import OrganizationBillingSummary from "@/components/billing/OrganizationBillingSummary";
 import InvoiceTable from "@/components/billing/InvoiceTable";
 import OrganizationResourceManager from "@/components/organizations/OrganizationResourceManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { RELATIONSHIP_STATUSES, prospectStageLabel } from "@/lib/crm";
+import { stageLabel } from "@/lib/meddpicc";
 import { Link } from "react-router-dom";
 import {
   AlertDialog,
@@ -100,6 +106,32 @@ function OrganizationDetail() {
     enabled: !!id,
   });
 
+  const { data: linkedDeals = [] } = useQuery({
+    queryKey: ["organization-deals", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("deals")
+        .select("id, name, stage, expected_value, qualification_score, critical_gap_count")
+        .eq("organization_id", id!)
+        .order("updated_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
+  const { data: linkedProspects = [] } = useQuery({
+    queryKey: ["organization-prospects", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("prospects")
+        .select("id, name, stage, last_activity_at")
+        .eq("organization_id", id!)
+        .order("updated_at", { ascending: false });
+      return data ?? [];
+    },
+    enabled: !!id,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("organizations").delete().eq("id", id);
@@ -107,11 +139,11 @@ function OrganizationDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      toast.success("Organization deleted successfully");
+      toast.success("Company deleted successfully");
       navigate("/organizations");
     },
     onError: (error: Error) => {
-      toast.error("Failed to delete organization", { description: error.message });
+      toast.error("Failed to delete company", { description: error.message });
     },
   });
 
@@ -126,10 +158,10 @@ function OrganizationDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organization", id] });
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      toast.success("Organization updated");
+      toast.success("Company updated");
     },
     onError: (error: Error) => {
-      toast.error("Failed to update organization");
+      toast.error("Failed to update company");
       console.error(error);
     },
   });
@@ -163,7 +195,7 @@ function OrganizationDetail() {
     return (
       <UnifiedLayout>
         <div className="container mx-auto p-6">
-          <p className="text-muted-foreground">Organization not found</p>
+          <p className="text-muted-foreground">Company not found</p>
         </div>
       </UnifiedLayout>
     );
@@ -181,7 +213,7 @@ function OrganizationDetail() {
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-2xl font-semibold">Organizations</h1>
+          <h1 className="text-2xl font-semibold">Companies</h1>
         </div>
 
         {/* Two-column layout */}
@@ -238,6 +270,20 @@ function OrganizationDetail() {
                         {organization.is_active ? "Active" : "Inactive"}
                       </span>
                     </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Relationship</div>
+                    <Select
+                      value={organization.relationship_status ?? "target_account"}
+                      onValueChange={(v) => updateMutation.mutate({ relationship_status: v })}
+                    >
+                      <SelectTrigger className="h-9 w-full max-w-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {RELATIONSHIP_STATUSES.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Bill.com Link Status</div>
@@ -299,7 +345,7 @@ function OrganizationDetail() {
 
               {/* Organization profile */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm">Organization profile</h3>
+                <h3 className="font-semibold text-sm">Company profile</h3>
                 <div className="space-y-3">
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Address</div>
@@ -329,19 +375,75 @@ function OrganizationDetail() {
                 <EditableCell
                   value={organization.notes}
                   onSave={(value) => handleFieldUpdate("notes", value)}
-                  placeholder="Add notes about this organization..."
+                  placeholder="Add notes about this company..."
                   type="text"
                 />
               </div>
             </Card>
           </div>
 
-          {/* Right column - Contacts */}
+          {/* Right column - People and linked records */}
           <div className="space-y-6">
+            <Card className="p-6">
+              <Tabs defaultValue="opportunities">
+                <TabsList className="bg-transparent border-b rounded-none h-auto p-0 w-full justify-start">
+                  <TabsTrigger
+                    value="opportunities"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                  >
+                    Opportunities ({linkedDeals.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="prospecting"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                  >
+                    Prospecting ({linkedProspects.length})
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="opportunities" className="pt-4 space-y-3">
+                  {linkedDeals.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No opportunities yet.</p>
+                  ) : (
+                    linkedDeals.map((d: any) => (
+                      <div key={d.id} className="space-y-0.5">
+                        <Link to={`/deals/${d.id}`} className="text-sm font-medium text-primary hover:underline">
+                          {d.name}
+                        </Link>
+                        <p className="text-xs text-muted-foreground">
+                          {stageLabel(d.stage)}
+                          {d.expected_value ? ` • $${Number(d.expected_value).toLocaleString()}` : ""}
+                          {` • score ${d.qualification_score}`}
+                          {d.critical_gap_count > 0 && (
+                            <span className="text-destructive"> • {d.critical_gap_count} gaps</span>
+                          )}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+
+                <TabsContent value="prospecting" className="pt-4 space-y-3">
+                  {linkedProspects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No prospecting records linked.</p>
+                  ) : (
+                    linkedProspects.map((p: any) => (
+                      <div key={p.id} className="space-y-0.5">
+                        <Link to={`/prospects/${p.id}`} className="text-sm font-medium text-primary hover:underline">
+                          {p.name}
+                        </Link>
+                        <p className="text-xs text-muted-foreground">{prospectStageLabel(p.stage)}</p>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
+            </Card>
+
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">
-                  Contacts {contacts.length > 0 && `(${contacts.length})`}
+                  People {contacts.length > 0 && `(${contacts.length})`}
                 </h3>
                 <Button 
                   size="sm" 

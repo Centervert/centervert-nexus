@@ -55,13 +55,13 @@ const Contacts = () => {
               value="all"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              All Contacts
+              All People
             </TabsTrigger>
             <TabsTrigger
               value="my"
               className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
             >
-              My Contacts
+              My People
             </TabsTrigger>
           </TabsList>
         </Tabs>
