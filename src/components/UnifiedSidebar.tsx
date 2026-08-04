@@ -289,10 +289,6 @@ const UnifiedSidebar = () => {
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
-                                className="animate-fade-in"
-                                style={{ 
-                                  animationDelay: `${index * 50}ms`,
-                                }}
                               >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
@@ -369,10 +365,6 @@ const UnifiedSidebar = () => {
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
-                                className="animate-fade-in"
-                                style={{ 
-                                  animationDelay: `${index * 50}ms`,
-                                }}
                               >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
@@ -445,10 +437,6 @@ const UnifiedSidebar = () => {
                             return (
                               <SidebarMenuSubItem 
                                 key={item.name}
-                                className="animate-fade-in"
-                                style={{ 
-                                  animationDelay: `${index * 50}ms`,
-                                }}
                               >
                                 <SidebarMenuSubButton
                                   isActive={isActive}
