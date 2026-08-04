@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: string
+          attachment_url: string | null
+          body: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          follow_up_done: boolean
+          follow_up_on: string | null
+          id: string
+          interest_level: string | null
+          left_behind: string | null
+          occurred_at: string
+          organization_id: string | null
+          outcome: string | null
+          owner_id: string | null
+          person_spoken_to: string | null
+          project_id: string | null
+          prospect_id: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          activity_type?: string
+          attachment_url?: string | null
+          body?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          follow_up_done?: boolean
+          follow_up_on?: string | null
+          id?: string
+          interest_level?: string | null
+          left_behind?: string | null
+          occurred_at?: string
+          organization_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          person_spoken_to?: string | null
+          project_id?: string | null
+          prospect_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activity_type?: string
+          attachment_url?: string | null
+          body?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          follow_up_done?: boolean
+          follow_up_on?: string | null
+          id?: string
+          interest_level?: string | null
+          left_behind?: string | null
+          occurred_at?: string
+          organization_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          person_spoken_to?: string | null
+          project_id?: string | null
+          prospect_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -685,6 +786,60 @@ export type Database = {
           },
           {
             foreignKeyName: "deal_pains_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_people: {
+        Row: {
+          contact_id: string
+          created_at: string
+          created_by: string | null
+          deal_id: string
+          deal_role: string
+          id: string
+          influence: string | null
+          notes: string | null
+          stance: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          created_by?: string | null
+          deal_id: string
+          deal_role?: string
+          id?: string
+          influence?: string | null
+          notes?: string | null
+          stance?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string
+          deal_role?: string
+          id?: string
+          influence?: string | null
+          notes?: string | null
+          stance?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_people_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_people_deal_id_fkey"
             columns: ["deal_id"]
             isOneToOne: false
             referencedRelation: "deals"
@@ -2955,6 +3110,98 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string | null
+          deal_id: string | null
+          details: string | null
+          due_date: string | null
+          id: string
+          organization_id: string | null
+          owner_id: string | null
+          owner_name: string | null
+          owner_side: string
+          priority: string
+          prospect_id: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          details?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          owner_side?: string
+          priority?: string
+          prospect_id?: string | null
+          status?: string
+          task_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deal_id?: string | null
+          details?: string | null
+          due_date?: string | null
+          id?: string
+          organization_id?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          owner_side?: string
+          priority?: string
+          prospect_id?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
             referencedColumns: ["id"]
           },
         ]
