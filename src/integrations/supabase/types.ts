@@ -1827,6 +1827,7 @@ export type Database = {
           notes: string | null
           organization_type: string | null
           phone: string | null
+          relationship_status: string
           updated_at: string | null
           website: string | null
         }
@@ -1841,6 +1842,7 @@ export type Database = {
           notes?: string | null
           organization_type?: string | null
           phone?: string | null
+          relationship_status?: string
           updated_at?: string | null
           website?: string | null
         }
@@ -1855,6 +1857,7 @@ export type Database = {
           notes?: string | null
           organization_type?: string | null
           phone?: string | null
+          relationship_status?: string
           updated_at?: string | null
           website?: string | null
         }
