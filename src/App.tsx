@@ -15,6 +15,10 @@ import ContactDetail from "./pages/ContactDetail";
 import DealsNew from "./pages/DealsNew";
 import DealDetail from "./pages/DealDetail";
 import Prospects from "./pages/Prospects";
+import SalesHome from "./pages/SalesHome";
+import Activities from "./pages/Activities";
+import Tasks from "./pages/Tasks";
+import Reports from "./pages/Reports";
 import ProspectDetail from "./pages/ProspectDetail";
 import Billing from "@/pages/Billing";
 import UserManagement from "@/pages/UserManagement";
@@ -117,6 +121,38 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ProspectDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sales"
+                element={
+                  <ProtectedRoute>
+                    <SalesHome />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/activities"
+                element={
+                  <ProtectedRoute>
+                    <Activities />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <Tasks />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute>
+                    <Reports />
                   </ProtectedRoute>
                 }
               />

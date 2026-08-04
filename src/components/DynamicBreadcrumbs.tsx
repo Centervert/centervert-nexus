@@ -90,16 +90,26 @@ export const DynamicBreadcrumbs = () => {
       // Handle main sections
       if (segment === 'contacts') {
         breadcrumbs.push({
-          label: 'Contacts',
+          label: 'People',
           path: '/contacts',
           isCurrentPage: isLastSegment,
         });
       } else if (segment === 'organizations') {
         breadcrumbs.push({
-          label: 'Organizations',
+          label: 'Companies',
           path: '/organizations',
           isCurrentPage: isLastSegment,
         });
+      } else if (segment === 'sales') {
+        breadcrumbs.push({ label: 'Sales Home', path: '/sales', isCurrentPage: isLastSegment });
+      } else if (segment === 'activities') {
+        breadcrumbs.push({ label: 'Activities', path: '/activities', isCurrentPage: isLastSegment });
+      } else if (segment === 'tasks') {
+        breadcrumbs.push({ label: 'Tasks', path: '/tasks', isCurrentPage: isLastSegment });
+      } else if (segment === 'reports') {
+        breadcrumbs.push({ label: 'Reports', path: '/reports', isCurrentPage: isLastSegment });
+      } else if (segment === 'prospects') {
+        breadcrumbs.push({ label: 'Prospecting', path: '/prospects', isCurrentPage: isLastSegment });
       } else if (segment === 'billing') {
         breadcrumbs.push({
           label: 'Billing',
