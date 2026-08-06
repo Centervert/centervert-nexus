@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProjectLinksCard } from "@/components/projects/ProjectLinksCard";
 import { 
   CheckCircle2, 
   Target, 
@@ -52,9 +53,10 @@ interface ProjectOverviewTabProps {
   project: Project;
   teamMembers: TeamMember[];
   onRefresh: () => void;
+  canEdit?: boolean;
 }
 
-export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectOverviewTabProps) {
+export function ProjectOverviewTab({ project, teamMembers, onRefresh, canEdit = false }: ProjectOverviewTabProps) {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [risks, setRisks] = useState<Risk[]>([]);
   const [decisions, setDecisions] = useState<Decision[]>([]);
@@ -126,6 +128,9 @@ export function ProjectOverviewTab({ project, teamMembers, onRefresh }: ProjectO
 
   return (
     <div className="space-y-6">
+      {/* Quick Links */}
+      <ProjectLinksCard projectId={project.id} canEdit={canEdit} />
+
       {/* Status Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>

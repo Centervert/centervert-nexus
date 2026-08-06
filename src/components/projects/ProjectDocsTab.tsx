@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectResourceManager } from "@/components/projects/ProjectResourceManager";
+import { SecretsRegister } from "@/components/projects/SecretsRegister";
 
 interface Resource {
   id: string;
@@ -16,9 +17,10 @@ interface Resource {
 
 interface ProjectDocsTabProps {
   projectId: string;
+  canEdit?: boolean;
 }
 
-export function ProjectDocsTab({ projectId }: ProjectDocsTabProps) {
+export function ProjectDocsTab({ projectId, canEdit = false }: ProjectDocsTabProps) {
   const [resources, setResources] = useState<Resource[]>([]);
 
   useEffect(() => {
@@ -38,13 +40,16 @@ export function ProjectDocsTab({ projectId }: ProjectDocsTabProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-4">
       <h2 className="text-lg font-semibold">Documentation & Resources</h2>
       <ProjectResourceManager
         projectId={projectId}
         resources={resources}
         onResourcesChange={loadResources}
       />
+      </div>
+      <SecretsRegister projectId={projectId} canEdit={canEdit} />
     </div>
   );
 }

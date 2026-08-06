@@ -2306,6 +2306,70 @@ export type Database = {
           },
         ]
       }
+      project_links: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          note: string | null
+          owner_id: string | null
+          position: number
+          project_id: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          note?: string | null
+          owner_id?: string | null
+          position?: number
+          project_id: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          note?: string | null
+          owner_id?: string | null
+          position?: number
+          project_id?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_links_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_links_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_meetings: {
         Row: {
           created_at: string | null
@@ -2472,6 +2536,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_risks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_secret_refs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          environment: string
+          id: string
+          last_rotated_on: string | null
+          location_path: string | null
+          manager: string
+          name: string
+          owner_id: string | null
+          project_id: string
+          rotation_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          id?: string
+          last_rotated_on?: string | null
+          location_path?: string | null
+          manager?: string
+          name: string
+          owner_id?: string | null
+          project_id: string
+          rotation_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          environment?: string
+          id?: string
+          last_rotated_on?: string | null
+          location_path?: string | null
+          manager?: string
+          name?: string
+          owner_id?: string | null
+          project_id?: string
+          rotation_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_secret_refs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_secret_refs_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_secret_refs_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -3271,6 +3402,77 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wiki_pages: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          page_type: string
+          parent_id: string | null
+          position: number
+          project_id: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          page_type?: string
+          parent_id?: string | null
+          position?: number
+          project_id?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          page_type?: string
+          parent_id?: string | null
+          position?: number
+          project_id?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_pages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_pages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_pages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_pages_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

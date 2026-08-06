@@ -16,9 +16,11 @@ import { ProjectRisksTab } from "@/components/projects/ProjectRisksTab";
 import { ProjectMeetingsTab } from "@/components/projects/ProjectMeetingsTab";
 import { ProjectReleasesTab } from "@/components/projects/ProjectReleasesTab";
 import { ProjectDocsTab } from "@/components/projects/ProjectDocsTab";
+import { ProjectWikiTab } from "@/components/projects/ProjectWikiTab";
 import { ProjectTicketsTab } from "@/components/projects/ProjectTicketsTab";
 import { ProjectRoadmapTab } from "@/components/projects/ProjectRoadmapTab";
 import { RecordHistory } from "@/components/history/RecordHistory";
+import { useUserRole } from "@/hooks/useUserRole";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -31,6 +33,7 @@ import {
   FolderOpen,
   Ticket,
   GanttChart,
+  BookOpen,
   History as HistoryIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,6 +74,8 @@ interface TeamMember {
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { data: userRole } = useUserRole();
+  const canEdit = !!(userRole?.isAdmin || userRole?.isAgent);
   const [project, setProject] = useState<Project | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -244,6 +249,13 @@ const ProjectDetail = () => {
               <FolderOpen className="h-4 w-4 mr-2" />
               Docs
             </TabsTrigger>
+            <TabsTrigger
+              value="wiki"
+              className="data-[state=active]:bg-muted data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-b-none px-4 py-2"
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              Wiki
+            </TabsTrigger>
             <TabsTrigger 
               value="tickets"
               className="data-[state=active]:bg-muted data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-b-none px-4 py-2"
@@ -272,6 +284,7 @@ const ProjectDetail = () => {
               project={project} 
               teamMembers={teamMembers}
               onRefresh={loadProject}
+              canEdit={canEdit}
             />
           </TabsContent>
 
@@ -296,7 +309,11 @@ const ProjectDetail = () => {
           </TabsContent>
 
           <TabsContent value="docs" className="mt-6">
-            <ProjectDocsTab projectId={project.id} />
+            <ProjectDocsTab projectId={project.id} canEdit={canEdit} />
+          </TabsContent>
+
+          <TabsContent value="wiki" className="mt-6">
+            <ProjectWikiTab projectId={project.id} canEdit={canEdit} />
           </TabsContent>
 
           <TabsContent value="tickets" className="mt-6">

@@ -275,6 +275,64 @@ function buildTools(): ToolDef[] {
   // ─── Projects ───
   tools.push(
     {
+      name: "list_wiki_pages",
+      description:
+        "List wiki pages. Pass filters: { project_id } for a project's wiki. Company-wide pages have project_id = null.",
+      inputSchema: listInput,
+      handler: (i) => listTable("wiki_pages", i),
+    },
+    {
+      name: "get_wiki_page",
+      description: "Get a wiki page (including its markdown body) by id.",
+      inputSchema: idInput,
+      handler: (i) => getById("wiki_pages", String(i.id)),
+    },
+    {
+      name: "create_wiki_page",
+      description:
+        "Create a wiki page. Omit project_id for a company-wide page. Body is markdown.",
+      inputSchema: obj({
+        title: str(),
+        body: optStr("Markdown content"),
+        project_id: optStr("Project id, omit for company wiki"),
+        parent_id: optStr("Parent page id for nesting"),
+        page_type: optStr("blank | meeting_notes | process_doc | architecture_note | runbook"),
+      }, ["title"]),
+      handler: (i) => insertRow("wiki_pages", i),
+    },
+    {
+      name: "update_wiki_page",
+      description: "Update a wiki page by id (title, body, parent_id, position).",
+      inputSchema: obj({ id: str(), patch: { type: "object" } }, ["id", "patch"]),
+      handler: (i) => updateRow("wiki_pages", String(i.id), i.patch as Record<string, unknown>),
+    },
+    {
+      name: "list_project_links",
+      description: "List a project's quick links (repo, Linear, designs, environments). Filters: { project_id }.",
+      inputSchema: listInput,
+      handler: (i) => listTable("project_links", i),
+    },
+    {
+      name: "create_project_link",
+      description:
+        "Add a quick link to a project. category: code | work_tracking | docs | design | environments | cicd | dashboards | other.",
+      inputSchema: obj({
+        project_id: str(),
+        label: str(),
+        url: str(),
+        category: optStr(),
+        note: optStr(),
+      }, ["project_id", "label", "url"]),
+      handler: (i) => insertRow("project_links", i),
+    },
+    {
+      name: "list_project_secret_refs",
+      description:
+        "List secret REFERENCES for a project (where a secret lives and who owns it). No secret values are ever stored. Filters: { project_id }.",
+      inputSchema: listInput,
+      handler: (i) => listTable("project_secret_refs", i),
+    },
+    {
       name: "list_projects",
       description: "List projects.",
       inputSchema: listInput,
