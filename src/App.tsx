@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import Wiki from "./pages/Wiki";
 import Organizations from "./pages/Organizations";
 import OrganizationDetail from "./pages/OrganizationDetail";
 import Contacts from "./pages/Contacts";
@@ -169,6 +170,14 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <ProjectDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/wiki"
+                element={
+                  <ProtectedRoute>
+                    <Wiki />
                   </ProtectedRoute>
                 }
               />
