@@ -3255,6 +3255,62 @@ export type Database = {
           },
         ]
       }
+      social_posts: {
+        Row: {
+          copy: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          media_urls: string[]
+          notes: string | null
+          organization_id: string | null
+          platforms: string[]
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          copy?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_urls?: string[]
+          notes?: string | null
+          organization_id?: string | null
+          platforms?: string[]
+          scheduled_date: string
+          scheduled_time?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          copy?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          media_urls?: string[]
+          notes?: string | null
+          organization_id?: string | null
+          platforms?: string[]
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null
