@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Wiki from "./pages/Wiki";
+import MarketingCalendar from "./pages/MarketingCalendar";
 import Organizations from "./pages/Organizations";
 import OrganizationDetail from "./pages/OrganizationDetail";
 import Contacts from "./pages/Contacts";
