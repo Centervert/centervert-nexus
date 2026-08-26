@@ -183,6 +183,14 @@ const App = () => {
                 }
               />
               <Route
+                path="/marketing"
+                element={
+                  <ProtectedRoute>
+                    <MarketingCalendar />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/billing"
                 element={
                   <ProtectedRoute adminOnly>
