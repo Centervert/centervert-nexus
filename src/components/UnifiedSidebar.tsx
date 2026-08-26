@@ -23,6 +23,7 @@ import {
   BarChart3,
   BookOpen,
   Settings as SettingsIcon,
+  CalendarDays,
 } from 'lucide-react';
 import logoFull from '@/assets/centervert-logo-full.png';
 import logoIcon from '@/assets/centervert-logo-icon.png';
@@ -63,7 +64,7 @@ const UnifiedSidebar = () => {
   // Check if we have definitive role info - if not fetched yet, show all menus
   const hasRoleInfo = isFetched && userRole !== null && userRole !== undefined;
 
-  const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/') || location.pathname === '/wiki';
+  const isActiveWorkActive = location.pathname === '/projects' || location.pathname.startsWith('/projects/') || location.pathname === '/wiki' || location.pathname === '/marketing';
   const isCrmActive = location.pathname === '/contacts' || location.pathname === '/organizations' || location.pathname === '/deals' || location.pathname === '/prospects' || location.pathname.startsWith('/organizations/') || location.pathname.startsWith('/contacts/') || location.pathname.startsWith('/deals/') || location.pathname.startsWith('/prospects/') || location.pathname === '/sales' || location.pathname === '/activities' || location.pathname === '/tasks' || location.pathname === '/reports';
   const isBackOfficeActive = location.pathname === '/hr' || location.pathname === '/expenses' || location.pathname === '/billing' || location.pathname === '/users' || location.pathname === '/history' || location.pathname.startsWith('/settings');
   
@@ -93,6 +94,11 @@ const UnifiedSidebar = () => {
       name: 'Company Wiki',
       href: '/wiki',
       icon: BookOpen,
+    },
+    {
+      name: 'Marketing Calendar',
+      href: '/marketing',
+      icon: CalendarDays,
     },
   ];
 
