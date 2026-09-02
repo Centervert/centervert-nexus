@@ -25,7 +25,7 @@ export default function MarketingCalendar() {
   const [defaultDate, setDefaultDate] = useState(toDateKey(today));
 
   const { data: userRole } = useUserRole();
-  const canEdit = !!(userRole?.isAdmin || userRole?.isAgent);
+  const canEdit = !!(userRole?.isAdmin || userRole?.isAgent || userRole?.isSalesAgent);
 
   const rangeStart = toDateKey(new Date(year, month - 1, 1));
   const rangeEnd = toDateKey(new Date(year, month + 2, 0));
